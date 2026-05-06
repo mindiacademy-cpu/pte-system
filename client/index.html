@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PTE Exam Login</title>
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
+      background: linear-gradient(135deg, #eef2ff, #f8fafc);
+      margin: 0;
+      color: #111827;
+    }
+
+    .container {
+      width: 430px;
+      max-width: calc(100% - 32px);
+      margin: 80px auto;
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+      text-align: center;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      margin: 0 0 26px;
+      color: #1e3a8a;
+      font-size: 28px;
+    }
+
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 14px;
+      margin-top: 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 15px;
+      background: #f9fafb;
+    }
+
+    input:focus {
+      border-color: #2563eb;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      outline: none;
+    }
+
+    .consent-row {
+      text-align: left;
+      margin-top: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 13px;
+      color: #4b5563;
+      line-height: 1.4;
+    }
+
+    .consent-row input {
+      width: auto;
+      margin-top: 3px;
+      padding: 0;
+    }
+
+    .link-text {
+      color: #2563eb;
+      text-decoration: underline;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button {
+      margin-top: 22px;
+      padding: 14px;
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background: #9ca3af !important;
+      cursor: not-allowed;
+    }
+
+    #loading {
+      color: #2563eb;
+      margin-top: 12px;
+      font-size: 14px;
+      min-height: 18px;
+    }
+
+    #error {
+      color: #dc2626;
+      margin-top: 8px;
+      font-size: 14px;
+      min-height: 18px;
+    }
+
+    .kvkk-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      padding: 18px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .kvkk-content {
+      background: white;
+      width: 760px;
+      max-width: 100%;
+      border-radius: 18px;
+      padding: 24px;
+      max-height: 86vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .tabs button {
+      margin: 0;
+      padding: 9px;
+      border-radius: 9px;
+      background: #e5e7eb;
+      color: #111827;
+      font-size: 12px;
+    }
+
+    .tabs button.active {
+      background: #2563eb;
+      color: white;
+    }
+
+    #tabContent {
+      overflow-y: auto;
+      max-height: 50vh;
+      text-align: left;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 18px;
+      line-height: 1.55;
+      font-size: 14px;
+      background: #f8fafc;
+    }
+
+    #tabContent h3 {
+      margin-top: 0;
+      color: #1e3a8a;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .modal-actions button {
+      margin-top: 0;
+    }
+
+    .secondary-btn {
+      background: #6b7280;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="subtitle">Pearson Test Simulation</div>
+    <h2>PTE Exam Login</h2>
+
+    <input id="name" placeholder="Name" />
+    <input id="surname" placeholder="Surname" />
+    <input id="phone" type="tel" placeholder="05XX XXX XX XX" maxlength="14" />
+    <input id="email" type="email" placeholder="E-mail" />
+    <input id="examCode" placeholder="Exam Code" />
+
+    <div class="consent-row">
+      <input type="checkbox" id="allPolicyConsent" disabled />
+      <label>
+        <span class="link-text" onclick="openPolicies()">
+          Gizlilik, KVKK, Açık Rıza ve Aydınlatma Metinleri, Kullanım Şartları ve AI Uyarısını okudum, kabul ediyorum.
+        </span>
+      </label>
+    </div>
+
+    <div class="consent-row">
+      <input type="checkbox" id="marketingConsent" />
+      <label for="marketingConsent">
+        Ticari elektronik ileti almak istiyorum. </strong>
+      </label>
+    </div>
+
+    <button onclick="startExam()">Start Exam</button>
+
+    <p id="loading"></p>
+    <p id="error"></p>
+  </div>
+
+  <div id="policyModal" class="kvkk-modal hidden">
+    <div class="kvkk-content">
+      <div class="tabs">
+        <button id="tabBtn0" onclick="showTab(0)">Gizlilik</button>
+        <button id="tabBtn1" onclick="showTab(1)">Aydınlatma</button>
+        <button id="tabBtn2" onclick="showTab(2)">Açık Rıza</button>
+        <button id="tabBtn3" onclick="showTab(3)">Terms</button>
+        <button id="tabBtn4" onclick="showTab(4)">AI / Kayıt</button>
+      </div>
+
+      <div id="tabContent"></div>
+
+      <div class="modal-actions">
+        <button class="secondary-btn" onclick="closePolicies()">Kapat</button>
+        <button id="acceptPoliciesBtn" onclick="acceptPolicies()" disabled>
+          Tüm metinleri okudum ve kabul ediyorum
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const policyTexts = [
+      `
+      <h3>Gizlilik ve Kişisel Veri Politikası</h3>
+      <p>
+        Bu platform, PTE Academic sınavına hazırlık ve deneme sınavı hizmeti sunmak amacıyla çalışmaktadır.
+        Kullanıcıların kişisel verilerinin gizliliği ve güvenliği önemsenir.
+      </p>
+      <p>
+        Toplanan veriler yalnızca sınav kaydının oluşturulması, sınavın yürütülmesi, sonuçların değerlendirilmesi,
+        kullanıcı ile iletişim kurulması ve sistem güvenliğinin sağlanması amacıyla kullanılır.
+      </p>
+      <p>
+        Kişisel verileriniz yetkisiz erişime karşı korunur ve mevzuata uygun süre boyunca saklanır.
+      </p>
+      `,
+
+      `
+      <h3>Kişisel Verilerin İşlenmesine İlişkin Aydınlatma Metni</h3>
+      <p>
+        6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında ad, soyad, telefon numarası, e-posta adresi,
+        sınav kodu, sınav cevapları, sınav tarihi, sınav sonucu ve gerekli hallerde ses kayıtları işlenebilir.
+      </p>
+      <p>
+        Kişisel verileriniz; sınav kaydının oluşturulması, sınav erişiminin sağlanması, sınav performansının
+        değerlendirilmesi, sonuçların raporlanması, aday ile iletişim kurulması ve hizmet kalitesinin artırılması
+        amaçlarıyla işlenmektedir.
+      </p>
+      <p>
+        KVKK’nın 11. maddesi kapsamında kişisel verileriniz hakkında bilgi talep etme, düzeltme, silme,
+        işlenmesine itiraz etme ve ilgili diğer haklara sahipsiniz.
+      </p>
+      `,
+
+      `
+      <h3>Kişisel Verilerin İşlenmesine İlişkin Açık Rıza Metni</h3>
+      <p>
+        Ad, soyad, telefon numarası, e-posta adresi, sınav cevapları, sınav sonuçları ve gerekli hallerde ses
+        kayıtlarımın sınav kayıt, sınav yürütme, sonuç değerlendirme ve iletişim süreçleri kapsamında işlenmesine
+        açık rıza veriyorum.
+      </p>
+      <p>
+        Bu rızanın ticari iletişim izninden ayrı olduğunu ve ticari iletişim izninin isteğe bağlı olduğunu biliyorum.
+      </p>
+      `,
+
+      `
+      <h3>Terms & Conditions / Kullanım Şartları</h3>
+      <ul>
+        <li>Sınav sırasında dış kaynak, başka kişi yardımı, kopya veya yanıltıcı işlem kullanılması yasaktır.</li>
+        <li>Sınav kodu yalnızca yetkili aday tarafından kullanılmalıdır.</li>
+        <li>Teknik aksaklıklar, internet kopması veya cihaz kaynaklı sorunlardan kullanıcı sorumludur.</li>
+        <li>Sınav sonuçları pratik/deneme amaçlıdır; resmi Pearson sonucu niteliği taşımaz.</li>
+        <li>Sistem kötüye kullanılırsa sınav geçersiz sayılabilir.</li>
+      </ul>
+      `,
+
+      `
+      <h3>Sınav Kayıt ve Yapay Zeka Değerlendirme Uyarısı</h3>
+      <p>
+        Sınav sırasında speaking bölümlerinde ses kaydı alınabileceğini, bu kayıtların transkripsiyon ve değerlendirme
+        amacıyla kullanılabileceğini kabul ediyorum.
+      </p>
+      <p>
+        Bazı cevapların otomatik algoritmalar veya yapay zeka destekli sistemler aracılığıyla ön değerlendirmeye
+        tabi tutulabileceğini biliyorum. Nihai sonuçlar gerekli durumlarda manuel olarak incelenebilir.
+      </p>
+      `
+    ];
+
+    let visitedTabs = new Set();
+
+    const phoneInput = document.getElementById("phone");
+
+    phoneInput.addEventListener("input", function (e) {
+      let value = e.target.value.replace(/\D/g, "").substring(0, 11);
+      let formatted = "";
+
+      if (value.length > 0) formatted += value.substring(0, 4);
+      if (value.length > 4) formatted += " " + value.substring(4, 7);
+      if (value.length > 7) formatted += " " + value.substring(7, 9);
+      if (value.length > 9) formatted += " " + value.substring(9, 11);
+
+      e.target.value = formatted;
+    });
+
+    function openPolicies() {
+      document.getElementById("policyModal").classList.remove("hidden");
+      showTab(0);
+    }
+
+    function closePolicies() {
+      document.getElementById("policyModal").classList.add("hidden");
+    }
+
+    function showTab(index) {
+      visitedTabs.add(index);
+
+      document.getElementById("tabContent").innerHTML = policyTexts[index];
+
+      for (let i = 0; i < policyTexts.length; i++) {
+        document.getElementById("tabBtn" + i).classList.remove("active");
+      }
+
+      document.getElementById("tabBtn" + index).classList.add("active");
+
+      if (visitedTabs.size === policyTexts.length) {
+        document.getElementById("acceptPoliciesBtn").disabled = false;
+      }
+    }
+
+    function acceptPolicies() {
+      if (visitedTabs.size !== policyTexts.length) return;
+
+      document.getElementById("allPolicyConsent").disabled = false;
+      document.getElementById("allPolicyConsent").checked = true;
+      document.getElementById("policyModal").classList.add("hidden");
+    }
+
+    async function startExam() {
+      const name = document.getElementById("name").value.trim();
+      const surname = document.getElementById("surname").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const examCode = document.getElementById("examCode").value.trim().toUpperCase();
+
+      const allPolicyConsent = document.getElementById("allPolicyConsent").checked;
+      const dataConsent = allPolicyConsent;
+      const marketingConsent = document.getElementById("marketingConsent")
+        ? document.getElementById("marketingConsent").checked
+        : false;
+
+      const errorBox = document.getElementById("error");
+      const loadingBox = document.getElementById("loading");
+
+      errorBox.innerText = "";
+      loadingBox.innerText = "";
+
+      if (!name || name.length < 2) {
+        errorBox.innerText = "Geçerli bir isim girin.";
+        return;
+      }
+
+      if (!surname || surname.length < 2) {
+        errorBox.innerText = "Geçerli bir soyisim girin.";
+        return;
+      }
+
+      const phoneRaw = phone.replace(/\D/g, "");
+      if (phoneRaw.length !== 11 || !phoneRaw.startsWith("0")) {
+        errorBox.innerText = "Telefon numarası 05XX XXX XX XX formatında olmalı.";
+        return;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        errorBox.innerText = "Geçerli bir e-mail girin.";
+        return;
+      }
+
+      if (!examCode || examCode.length < 5) {
+        errorBox.innerText = "Geçerli bir exam code girin.";
+        return;
+      }
+
+      if (!allPolicyConsent || !dataConsent) {
+        errorBox.innerText = "Zorunlu onayları tamamlamalısınız.";
+        return;
+      }
+
+      loadingBox.innerText = "Exam loading...";
+
+      try {
+        const response = await fetch(`http://localhost:3001/exams/code/${examCode}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          loadingBox.innerText = "";
+          errorBox.innerText = data.error || "Wrong Exam Code";
+          return;
+        }
+
+        localStorage.setItem("candidateName", name + " " + surname);
+        localStorage.setItem("candidateSurname", surname);
+        localStorage.setItem("candidatePhone", phone);
+        localStorage.setItem("candidateEmail", email);
+        localStorage.setItem("candidateId", phone);
+        localStorage.setItem("examCode", examCode);
+        localStorage.setItem("examData", JSON.stringify(data));
+
+        localStorage.setItem("allPolicyConsent", "true");
+        localStorage.setItem("dataConsent", dataConsent ? "true" : "false");
+        localStorage.setItem("marketingConsent", marketingConsent ? "true" : "false");
+        localStorage.setItem("consentDate", new Date().toISOString());
+
+        window.location.href = "http://localhost:3001/exam.html";
+      } catch (error) {
+        loadingBox.innerText = "";
+        errorBox.innerText = "Server bağlantı hatası.";
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+
+</html>

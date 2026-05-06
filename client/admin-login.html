@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PTE Admin Login</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial;
+background:linear-gradient(135deg,#eef3f8,#dfe9f7);
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+}
+
+.login-box{
+background:white;
+padding:40px;
+border-radius:20px;
+width:380px;
+box-shadow:0 15px 35px rgba(0,0,0,0.1);
+text-align:center;
+}
+
+h1{
+margin-top:0;
+color:#173a8c;
+}
+
+input{
+width:100%;
+padding:12px;
+margin-top:10px;
+margin-bottom:18px;
+border-radius:8px;
+border:1px solid #ccc;
+font-size:15px;
+}
+
+button{
+width:100%;
+padding:14px;
+background:#2563eb;
+border:none;
+border-radius:10px;
+color:white;
+font-weight:bold;
+font-size:16px;
+cursor:pointer;
+}
+
+button:hover{
+background:#1d4ed8;
+}
+
+.error{
+color:red;
+margin-top:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="login-box">
+
+<h1>Admin Login</h1>
+
+<input id="username" placeholder="Admin Username">
+
+<input id="password" type="password" placeholder="Admin Password">
+
+<button onclick="login()">Login</button>
+
+<div id="error" class="error"></div>
+
+</div>
+
+<script>
+
+const ADMIN_USER="admin";
+const ADMIN_PASS="pte123";
+
+function login(){
+
+const u=document.getElementById("username").value;
+const p=document.getElementById("password").value;
+
+if(u===ADMIN_USER && p===ADMIN_PASS){
+
+localStorage.setItem("adminLogged","true");
+
+window.location.href="admin-index.html";
+
+}else{
+
+document.getElementById("error").innerText="Wrong username or password";
+
+}
+
+}
+
+</script>
+
+</body>
+</html>

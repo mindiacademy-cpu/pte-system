@@ -1,0 +1,112 @@
+[
+  {
+    "id": "1777978023152",
+    "candidateName": "İbrahim Gavvam",
+    "candidateSurname": "Gavvam",
+    "candidatePhone": "0531 502 82 97",
+    "candidateEmail": "ibrahimgavvam@gmail.com",
+    "candidateId": "0531 502 82 97",
+    "examCode": "EX812140",
+    "kvkkApproval": "",
+    "finishedAt": "2026-05-05T10:47:03.134Z",
+    "answers": [
+      {
+        "questionId": "1775037900986",
+        "type": "reading",
+        "subType": "reorder_paragraphs",
+        "title": "R12",
+        "prompt": "The following paragraphs are in random order. Reorder them to restore the original order.",
+        "answer": [],
+        "autoScore": 0,
+        "manualScore": null,
+        "finalScore": 0,
+        "maxScore": 10
+      },
+      {
+        "questionId": "1775038036815",
+        "type": "reading",
+        "subType": "reading_fill_blanks",
+        "title": "R13",
+        "prompt": "Complete the following sentences with the words below.",
+        "answer": [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        "autoScore": 0,
+        "manualScore": null,
+        "finalScore": 0,
+        "maxScore": 10
+      }
+    ],
+    "summary": {
+      "overall": 10,
+      "speaking": 10,
+      "writing": 10,
+      "reading": 10,
+      "listening": 10
+    }
+  },
+  {
+    "id": "1777978232344",
+    "candidateName": "İbrahim Gavvam",
+    "candidateSurname": "Gavvam",
+    "candidatePhone": "0531 502 82 97",
+    "candidateEmail": "ibrahimgavvam@gmail.com",
+    "candidateId": "0531 502 82 97",
+    "examCode": "EX812140",
+    "kvkkApproval": "",
+    "finishedAt": "2026-05-05T10:50:32.330Z",
+    "answers": [
+      {
+        "questionId": "1775037900986",
+        "type": "reading",
+        "subType": "reorder_paragraphs",
+        "title": "R12",
+        "prompt": "The following paragraphs are in random order. Reorder them to restore the original order.",
+        "answer": [],
+        "autoScore": 0,
+        "manualScore": null,
+        "finalScore": 0,
+        "maxScore": 10
+      },
+      {
+        "questionId": "1775038036815",
+        "type": "reading",
+        "subType": "reading_fill_blanks",
+        "title": "R13",
+        "prompt": "Complete the following sentences with the words below.",
+        "answer": [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        "autoScore": 0,
+        "manualScore": null,
+        "finalScore": 0,
+        "maxScore": 10
+      }
+    ],
+    "summary": {
+      "overall": 10,
+      "speaking": 10,
+      "writing": 10,
+      "reading": 10,
+      "listening": 10
+    }
+  }
+]

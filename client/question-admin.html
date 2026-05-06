@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PTE Question Admin</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 30px;
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      color: #111827;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: #1f3c88;
+      margin-bottom: 24px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      padding: 22px;
+    }
+
+    .card h2 {
+      margin: 0 0 16px 0;
+      color: #1f3c88;
+      font-size: 22px;
+    }
+
+    label {
+      display: block;
+      margin-top: 14px;
+      margin-bottom: 6px;
+      font-weight: bold;
+      color: #1f3c88;
+      font-size: 14px;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+      background: white;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      color: white;
+      background: #2563eb;
+    }
+
+    .btn:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-secondary {
+      background: #4b5563;
+    }
+
+    .btn-secondary:hover {
+      background: #374151;
+    }
+
+    .btn-success {
+      background: #059669;
+    }
+
+    .btn-success:hover {
+      background: #047857;
+    }
+
+    .btn-danger {
+      background: #dc2626;
+    }
+
+    .btn-danger:hover {
+      background: #b91c1c;
+    }
+
+    .btn-warning {
+      background: #d97706;
+    }
+
+    .btn-warning:hover {
+      background: #b45309;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .toolbar-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    .question-list {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+      background: white;
+      max-height: 720px;
+      overflow-y: auto;
+    }
+
+    .q-row {
+      display: grid;
+      grid-template-columns: 110px 140px 300px 1fr 90px 90px 150px;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 14px;
+    }
+
+    .q-row:last-child {
+      border-bottom: none;
+    }
+
+    .q-row:hover {
+      background: #f8fafc;
+    }
+
+    .q-head {
+      background: #eef2ff;
+      font-weight: bold;
+      color: #1f3c88;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .q-id {
+      font-size: 12px;
+      color: #6b7280;
+      word-break: break-word;
+    }
+
+    .q-type,
+    .q-subtype {
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .q-type {
+      color: #1f4db8;
+    }
+
+    .q-subtype {
+      color: #6b7280;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 300px;
+    }
+
+    .q-title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #111827;
+    }
+
+    .q-time {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .q-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .small-btn {
+      border: none;
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      color: white;
+      background: #2563eb;
+    }
+
+    .small-btn:hover {
+      background: #1d4ed8;
+    }
+
+    .small-btn-warning {
+      background: #d97706;
+    }
+
+    .small-btn-warning:hover {
+      background: #b45309;
+    }
+
+    .small-btn-danger {
+      background: #dc2626;
+    }
+
+    .small-btn-danger:hover {
+      background: #b91c1c;
+    }
+
+    .empty {
+      padding: 20px;
+      text-align: center;
+      color: #6b7280;
+    }
+
+    .hint-box {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 12px;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      color: #374151;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .status-box {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 12px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e3a8a;
+      font-weight: bold;
+      line-height: 1.7;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 1100px) {
+      .q-row {
+        grid-template-columns: 100px 120px 260px 1fr 70px 80px 140px;
+        font-size: 13px;
+      }
+    }
+
+    @media (max-width: 850px) {
+
+      .row,
+      .row-3,
+      .toolbar {
+        grid-template-columns: 1fr;
+      }
+
+      .q-row {
+        grid-template-columns: 120px 120px 220px 1fr;
+        gap: 8px;
+      }
+
+      .q-head {
+        display: none;
+      }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <h1>PTE Question Admin Panel</h1>
+
+    <div class="layout">
+      <div class="card">
+        <h2 id="formTitle">Yeni Soru Ekle</h2>
+
+        <div class="row">
+          <div>
+            <label for="type">Section</label>
+            <select id="type">
+              <option value="speaking">Speaking</option>
+              <option value="writing">Writing</option>
+              <option value="reading">Reading</option>
+              <option value="listening">Listening</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="subType">Task Type</label>
+            <select id="subType"></select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="title">Question Title</label>
+            <input id="title" placeholder="Örn: Describe Image 1">
+          </div>
+          <div>
+            <label for="points">Question Weight</label>
+            <input id="points" type="number" min="1" step="1" value="10" placeholder="Auto or manual points">
+            <small style="color:#6b7280; display:block; margin-top:6px;">
+              Soru tipine göre otomatik dolar, istersen değiştirebilirsin.
+            </small>
+          </div>
+        </div>
+
+        <label for="prompt">Instruction / Prompt</label>
+        <textarea id="prompt" placeholder="İsteğe bağlı"></textarea>
+
+        <div id="generalTimeWrap" class="row">
+          <div>
+            <label for="time">Total Time (seconds)</label>
+            <input id="time" type="number" value="60">
+          </div>
+          <div>
+            <label for="evaluationType">Evaluation Type</label>
+            <select id="evaluationType">
+              <option value="keywords">Keywords</option>
+              <option value="answerKey">Answer Key</option>
+              <option value="correctAnswer">Correct Answer</option>
+              <option value="correctAnswers">Correct Answers</option>
+              <option value="manual">Manual</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="speakingTimeWrap" class="row hidden">
+          <div id="prepareTimeBox">
+            <label for="prepareTime">Prepare Time (seconds)</label>
+            <input id="prepareTime" type="number" value="25">
+          </div>
+          <div>
+            <label for="recordTime">Record Time (seconds)</label>
+            <input id="recordTime" type="number" value="40">
+          </div>
+        </div>
+
+        <div id="audioWrap" class="hidden">
+          <label for="audioUrl">Audio URL</label>
+          <input id="audioUrl" placeholder="Yükleme sonrası otomatik dolacak" readonly>
+
+          <label for="audioFile">Audio File</label>
+          <input id="audioFile" type="file" accept="audio/*">
+
+          <button type="button" class="btn btn-secondary" style="margin-top:10px;" onclick="uploadAudioFile()">
+            Audio Yükle
+          </button>
+        </div>
+
+        <div id="imageWrap" class="hidden">
+          <label for="imageUrl">Image URL</label>
+          <input id="imageUrl" placeholder="Yükleme sonrası otomatik dolacak" readonly>
+
+          <label for="imageFile">Image File</label>
+          <input id="imageFile" type="file" accept="image/*">
+
+          <button type="button" class="btn btn-secondary" style="margin-top:10px;" onclick="uploadImageFile()">
+            Image Yükle
+          </button>
+        </div>
+
+        <div id="optionsWrap" class="hidden">
+          <label for="options">Options</label>
+          <textarea id="options"
+            placeholder="Normal sorularda: her seçenek bir satır&#10;&#10;Reading MCQ Group için: aynı grubun seçeneklerini alt alta yaz, yeni grup için bir boş satır bırak"></textarea>
+        </div>
+
+        <div id="textContentWrap" class="hidden">
+          <label for="textContent">Text / Passage / Content</label>
+          <textarea id="textContent" placeholder="İsteğe bağlı metin / pasaj / içerik"></textarea>
+        </div>
+
+        <div id="keywordsWrap">
+          <label for="keywords">Keywords (comma separated)</label>
+          <input id="keywords" placeholder="graph, increase, year, percentage">
+        </div>
+
+        <div id="answerKeyWrap" class="hidden">
+          <label for="answerKey">Answer Key</label>
+          <textarea id="answerKey" placeholder="Correct answer text"></textarea>
+        </div>
+
+        <div id="correctAnswerWrap" class="hidden">
+          <label for="correctAnswer">Correct Answer</label>
+          <input id="correctAnswer" placeholder="Örn: A veya Paris">
+        </div>
+
+        <div id="correctAnswersWrap" class="hidden">
+          <label for="correctAnswers">Correct Answers (one per line)</label>
+          <textarea id="correctAnswers" placeholder="One correct answer per line"></textarea>
+        </div>
+
+        <div class="button-row">
+          <button id="saveBtn" class="btn btn-success" onclick="saveQuestion()">Soruyu Kaydet</button>
+          <button id="updateBtn" class="btn btn-warning hidden" onclick="updateQuestion()">Soruyu Güncelle</button>
+          <button class="btn btn-secondary" onclick="resetForm()">Formu Temizle</button>
+        </div>
+
+        <div class="hint-box">
+          Listening ve Reading’de prepare time yoktur. Prepare alanı sadece gerekli Speaking task’lerinde görünür.
+        </div>
+
+        <div id="statusBox"></div>
+      </div>
+
+      <div class="card">
+        <h2>Question Bank</h2>
+
+        <div class="toolbar">
+          <div>
+            <label for="searchBox">Search Question</label>
+            <input id="searchBox" placeholder="Başlık, prompt, type, subtype..." oninput="renderQuestionList()">
+          </div>
+
+          <div>
+            <label for="typeFilter">Filter by Section</label>
+            <select id="typeFilter" onchange="renderQuestionList()">
+              <option value="all">All</option>
+              <option value="speaking">Speaking</option>
+              <option value="writing">Writing</option>
+              <option value="reading">Reading</option>
+              <option value="listening">Listening</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="toolbar-info">
+          <div id="countInfo">0 soru</div>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <div>Section + Task Type destekli</div>
+            <button class="btn btn-success" type="button" onclick="exportQuestionsToExcel()">
+              Export Excel
+            </button>
+          </div>
+        </div>
+
+        <div id="questionList" class="question-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let questions = [];
+    let editingQuestionId = null;
+
+    const subtypeMap = {
+      speaking: [
+        { value: "read_aloud", label: "Read Aloud", prepare: 25, record: 40, hasPrepare: true, evaluation: "keywords" },
+        { value: "repeat_sentence", label: "Repeat Sentence", prepare: 0, record: 15, hasPrepare: false, evaluation: "answerKey" },
+        { value: "describe_image", label: "Describe Image", prepare: 25, record: 40, hasPrepare: true, evaluation: "keywords" },
+        { value: "re_tell_lecture", label: "Re-tell Lecture", prepare: 10, record: 40, hasPrepare: true, evaluation: "keywords" },
+        { value: "answer_short_question", label: "Answer Short Question", prepare: 0, record: 10, hasPrepare: false, evaluation: "answerKey" },
+        { value: "summarize_group_discussion", label: "Summarize Group Discussion", prepare: 0, record: 40, hasPrepare: false, evaluation: "keywords" },
+        { value: "respond_to_a_situation", label: "Respond to a Situation", prepare: 0, record: 40, hasPrepare: false, evaluation: "keywords" }
+      ],
+      writing: [
+        { value: "summarize_written_text", label: "Summarize Written Text", time: 600, evaluation: "keywords" },
+        { value: "essay", label: "Essay", time: 1200, evaluation: "answerKey" }
+      ],
+      reading: [
+        { value: "reading_mcq_single", label: "Reading MCQ Single", time: 60, evaluation: "correctAnswer" },
+        { value: "reading_mcq_multiple", label: "Reading MCQ Multiple", time: 60, evaluation: "correctAnswers" },
+        { value: "reading_mcq_group", label: "Reading MCQ Group", time: 90, evaluation: "correctAnswers" },
+        { value: "reorder_paragraphs", label: "Reorder Paragraphs", time: 90, evaluation: "answerKey" },
+        { value: "reading_fill_blanks", label: "Reading Fill in the Blanks", time: 60, evaluation: "correctAnswer" },
+        { value: "reading_writing_fill_blanks", label: "Reading & Writing Fill in the Blanks", time: 60, evaluation: "correctAnswer" },
+        { value: "reading_word_formation", label: "Reading Word Formation", time: 60, evaluation: "answerKey" },
+        { value: "reading_short_answer_multi", label: "Reading Short Answer (Multi)", time: 120, evaluation: "answerKey" },
+        { value: "reading_word_formation_multi", label: "Reading Word Formation (Multi)", time: 90, evaluation: "answerKey" },
+        { value: "reading_word_formation_passage", label: "Reading Word Formation Passage", time: 120, evaluation: "answerKey" }
+      ],
+      listening: [
+        { value: "summarize_spoken_text", label: "Summarize Spoken Text", time: 600, evaluation: "keywords" },
+        { value: "listening_mcq_single", label: "Listening MCQ Single", time: 60, evaluation: "correctAnswer" },
+        { value: "listening_mcq_multiple", label: "Listening MCQ Multiple", time: 60, evaluation: "correctAnswers" },
+        { value: "listening_fill_blanks", label: "Listening Fill in the Blanks", time: 60, evaluation: "answerKey" },
+        { value: "highlight_correct_summary", label: "Highlight Correct Summary", time: 60, evaluation: "correctAnswer" },
+        { value: "select_missing_word", label: "Select Missing Word", time: 60, evaluation: "correctAnswer" },
+        { value: "highlight_incorrect_words", label: "Highlight Incorrect Words", time: 60, evaluation: "answerKey" },
+        { value: "write_from_dictation", label: "Write From Dictation", time: 60, evaluation: "answerKey" },
+        { value: "listening_short_answer_multi", label: "Listening Short Answer (Multi)", time: 120, evaluation: "answerKey" },
+        { value: "listening_short_answer", label: "Listening Short Answer", time: 60, evaluation: "answerKey" },
+        { value: "listening_sequence", label: "Listening Sequence", time: 60, evaluation: "answerKey" }
+      ]
+    };
+
+    function getTaskLabel(subType) {
+      const labels = {
+        read_aloud: "Read Aloud",
+        repeat_sentence: "Repeat Sentence",
+        describe_image: "Describe Image",
+        re_tell_lecture: "Re-tell Lecture",
+        answer_short_question: "Answer Short Question",
+        summarize_group_discussion: "Summarize Group Discussion",
+        respond_to_a_situation: "Respond to a Situation",
+        summarize_written_text: "Summarize Written Text",
+        essay: "Essay",
+        reading_mcq_single: "Reading MCQ Single",
+        reading_mcq_multiple: "Reading MCQ Multiple",
+        reading_mcq_group: "Reading MCQ Group",
+        reading_word_formation: "Reading Word Formation",
+        reorder_paragraphs: "Reorder Paragraphs",
+        reading_fill_blanks: "Reading Fill in the Blanks",
+        reading_writing_fill_blanks: "Reading & Writing Fill in the Blanks",
+        reading_short_answer_multi: "Reading Short Answer (Multi)",
+        reading_word_formation_multi: "Reading Word Formation (Multi)",
+        reading_word_formation_passage: "Reading Word Formation Passage",
+        summarize_spoken_text: "Summarize Spoken Text",
+        listening_mcq_single: "Listening MCQ Single",
+        listening_mcq_multiple: "Listening MCQ Multiple",
+        listening_fill_blanks: "Listening Fill in the Blanks",
+        highlight_correct_summary: "Highlight Correct Summary",
+        select_missing_word: "Select Missing Word",
+        highlight_incorrect_words: "Highlight Incorrect Words",
+        write_from_dictation: "Write From Dictation",
+        listening_short_answer_multi: "Listening Short Answer (Multi)",
+        listening_short_answer: "Listening Short Answer",
+        listening_sequence: "Listening Sequence"
+      };
+
+      return labels[subType] || subType || "-";
+    }
+
+
+    function getCurrentSubtypeConfig() {
+      const type = document.getElementById("type").value;
+      const subType = document.getElementById("subType").value;
+      const list = subtypeMap[type] || [];
+      return list.find(item => item.value === subType) || null;
+    }
+
+    function setSubtypeOptions(type, selectedValue = null) {
+      const subType = document.getElementById("subType");
+      const items = subtypeMap[type] || [];
+      subType.innerHTML = "";
+
+      items.forEach(item => {
+        const option = document.createElement("option");
+        option.value = item.value;
+        option.textContent = item.label;
+        subType.appendChild(option);
+      });
+
+      if (selectedValue) {
+        subType.value = selectedValue;
+      }
+    }
+
+    function getDefaultPoints(subType) {
+      if (
+        subType === "read_aloud" ||
+        subType === "repeat_sentence" ||
+        subType === "reading_writing_fill_blanks" ||
+        subType === "write_from_dictation"
+      ) {
+        return 25;
+      }
+
+      if (
+        subType === "describe_image" ||
+        subType === "re_tell_lecture" ||
+        subType === "essay" ||
+        subType === "summarize_written_text" ||
+        subType === "summarize_group_discussion" ||
+        subType === "respond_to_a_situation" ||
+        subType === "listening_fill_blanks" ||
+        subType === "summarize_spoken_text"
+      ) {
+        return 15;
+      }
+
+      return 10;
+    }
+
+    function applySubtypeDefaults() {
+      const type = document.getElementById("type").value;
+      const config = getCurrentSubtypeConfig();
+      if (!config) return;
+
+      if (type === "speaking") {
+        document.getElementById("prepareTime").value = Number(config.prepare || 0);
+        document.getElementById("recordTime").value = Number(config.record || 40);
+      } else {
+        document.getElementById("time").value = Number(config.time || 60);
+      }
+
+      const pointsInput = document.getElementById("points");
+      if (!pointsInput.dataset.manuallyEdited) {
+        pointsInput.value = getDefaultPoints(config.value);
+      }
+
+      document.getElementById("evaluationType").value = config.evaluation || "keywords";
+      toggleFields();
+    }
+
+    function showStatus(message) {
+      document.getElementById("statusBox").innerHTML = `
+        <div class="status-box">${message}</div>
+      `;
+    }
+
+    function clearStatus() {
+      document.getElementById("statusBox").innerHTML = "";
+    }
+
+    function toggleFields() {
+      const type = document.getElementById("type").value;
+      const subType = document.getElementById("subType").value;
+      const evaluationType = document.getElementById("evaluationType").value;
+      const config = getCurrentSubtypeConfig();
+
+      const generalTimeWrap = document.getElementById("generalTimeWrap");
+      const speakingTimeWrap = document.getElementById("speakingTimeWrap");
+      const prepareTimeBox = document.getElementById("prepareTimeBox");
+      const audioWrap = document.getElementById("audioWrap");
+      const imageWrap = document.getElementById("imageWrap");
+      const optionsWrap = document.getElementById("optionsWrap");
+      const textContentWrap = document.getElementById("textContentWrap");
+
+      const keywordsWrap = document.getElementById("keywordsWrap");
+      const answerKeyWrap = document.getElementById("answerKeyWrap");
+      const correctAnswerWrap = document.getElementById("correctAnswerWrap");
+      const correctAnswersWrap = document.getElementById("correctAnswersWrap");
+
+      generalTimeWrap.classList.remove("hidden");
+      speakingTimeWrap.classList.add("hidden");
+      prepareTimeBox.classList.add("hidden");
+      audioWrap.classList.add("hidden");
+      imageWrap.classList.add("hidden");
+      optionsWrap.classList.add("hidden");
+      textContentWrap.classList.add("hidden");
+
+      keywordsWrap.classList.add("hidden");
+      answerKeyWrap.classList.add("hidden");
+      correctAnswerWrap.classList.add("hidden");
+      correctAnswersWrap.classList.add("hidden");
+
+      if (type === "speaking") {
+        generalTimeWrap.classList.add("hidden");
+        speakingTimeWrap.classList.remove("hidden");
+
+        if (config && config.hasPrepare) {
+          prepareTimeBox.classList.remove("hidden");
+        }
+
+        if (subType === "read_aloud") {
+          textContentWrap.classList.remove("hidden");
+          keywordsWrap.classList.remove("hidden");
+        }
+
+        if (subType === "repeat_sentence") {
+          audioWrap.classList.remove("hidden");
+          answerKeyWrap.classList.remove("hidden");
+        }
+
+        if (subType === "describe_image") {
+          imageWrap.classList.remove("hidden");
+          keywordsWrap.classList.remove("hidden");
+        }
+
+        if (subType === "re_tell_lecture") {
+          audioWrap.classList.remove("hidden");
+          keywordsWrap.classList.remove("hidden");
+        }
+
+        if (subType === "answer_short_question") {
+          audioWrap.classList.remove("hidden");
+          answerKeyWrap.classList.remove("hidden");
+        }
+
+        if (subType === "summarize_group_discussion") {
+          audioWrap.classList.remove("hidden");
+          if (evaluationType === "answerKey") {
+            answerKeyWrap.classList.remove("hidden");
+          } else {
+            keywordsWrap.classList.remove("hidden");
+          }
+        }
+
+        if (subType === "respond_to_a_situation") {
+          textContentWrap.classList.remove("hidden");
+          if (evaluationType === "answerKey") {
+            answerKeyWrap.classList.remove("hidden");
+          } else {
+            keywordsWrap.classList.remove("hidden");
+          }
+        }
+      }
+
+      if (type === "writing") {
+        textContentWrap.classList.remove("hidden");
+
+        if (subType === "summarize_written_text") {
+          if (evaluationType === "answerKey") {
+            answerKeyWrap.classList.remove("hidden");
+          } else {
+            keywordsWrap.classList.remove("hidden");
+          }
+        }
+
+        if (subType === "essay") {
+          if (evaluationType === "keywords") {
+            keywordsWrap.classList.remove("hidden");
+          } else {
+            answerKeyWrap.classList.remove("hidden");
+          }
+        }
+      }
+
+      if (type === "reading") {
+        if (subType === "reading_mcq_single") {
+          textContentWrap.classList.remove("hidden");
+          optionsWrap.classList.remove("hidden");
+          correctAnswerWrap.classList.remove("hidden");
+        }
+
+        if (subType === "reading_word_formation") {
+          textContentWrap.classList.remove("hidden");
+          answerKeyWrap.classList.remove("hidden");
+        }
+
+        if (subType === "reading_word_formation_passage") {
+          textContentWrap.classList.remove("hidden");
+          answerKeyWrap.classList.remove("hidden");
+        }
+
+        if (subType === "reading_mcq_multiple") {
+          textContentWrap.classList.remove("hidden");
+          optionsWrap.classList.remove("hidden");
+          correctAnswersWrap.classList.remove("hidden");
+        }
+
+        if (subType === "reading_mcq_group") {
+          textContentWrap.classList.remove("hidden");
+          optionsWrap.classList.remove("hidden");
+          correctAnswersWrap.classList.remove("hidden");
+        }
+
+        if (subType === "reorder_paragraphs") {
+          textContentWrap.classList.remove("hidden");
+          answerKeyWrap.classList.remove("hidden");
+        }
+
+        if (subType === "reading_fill_blanks") {
+          textContentWrap.classList.remove("hidden");
+          optionsWrap.classList.remove("hidden");
+          correctAnswerWrap.classList.remove("hidden");
+        }
+
+        if (subType === "reading_writing_fill_blanks") {
+          textContentWrap.classList.remove("hidden");
+          optionsWrap.classList.remove("hidden");
+          correctAnswerWrap.classList.remove("hidden");
+        }
+
+        if (subType === "reading_short_answer_multi") {
+          textContentWrap.classList.remove("hidden");
+          answerKeyWrap.classList.remove("hidden");
+        }
+      }
+
+      if (subType === "reading_word_formation") {
+        textContentWrap.classList.remove("hidden");
+        answerKeyWrap.classList.remove("hidden");
+      }
+
+      if (subType === "reading_word_formation_multi") {
+        textContentWrap.classList.remove("hidden");
+        answerKeyWrap.classList.remove("hidden");
+      }
+
+      if (type === "listening") {
+        audioWrap.classList.remove("hidden");
+
+        if (subType === "summarize_spoken_text") {
+          if (evaluationType === "answerKey") {
+            answerKeyWrap.classList.remove("hidden");
+          } else {
+            keywordsWrap.classList.remove("hidden");
+          }
+        }
+
+        if (subType === "listening_mcq_single") {
+          optionsWrap.classList.remove("hidden");
+          correctAnswerWrap.classList.remove("hidden");
+        }
+
+        if (subType === "listening_mcq_multiple") {
+          optionsWrap.classList.remove("hidden");
+          correctAnswersWrap.classList.remove("hidden");
+        }
+
+        if (subType === "listening_fill_blanks") {
+          textContentWrap.classList.remove("hidden");
+          answerKeyWrap.classList.remove("hidden");
+        }
+
+        if (subType === "highlight_correct_summary") {
+          optionsWrap.classList.remove("hidden");
+          correctAnswerWrap.classList.remove("hidden");
+        }
+
+        if (subType === "select_missing_word") {
+          optionsWrap.classList.remove("hidden");
+          correctAnswerWrap.classList.remove("hidden");
+        }
+
+        if (subType === "highlight_incorrect_words") {
+          textContentWrap.classList.remove("hidden");
+          answerKeyWrap.classList.remove("hidden");
+        }
+
+        if (subType === "write_from_dictation") {
+          answerKeyWrap.classList.remove("hidden");
+        }
+
+        if (subType === "listening_short_answer") {
+          answerKeyWrap.classList.remove("hidden");
+        }
+
+        if (subType === "listening_short_answer_multi") {
+          textContentWrap.classList.remove("hidden");
+          answerKeyWrap.classList.remove("hidden");
+        }
+
+        if (subType === "listening_sequence") {
+          optionsWrap.classList.remove("hidden");
+          answerKeyWrap.classList.remove("hidden");
+        }
+      }
+    }
+
+    function handleTypeChange() {
+      const type = document.getElementById("type").value;
+      setSubtypeOptions(type);
+
+      const subType = document.getElementById("subType").value;
+      const pointsInput = document.getElementById("points");
+
+      if (!pointsInput.dataset.manuallyEdited) {
+        pointsInput.value = getDefaultPoints(subType);
+      }
+
+      applySubtypeDefaults();
+      toggleFields();
+    }
+
+    function handleSubTypeChange() {
+      const subType = document.getElementById("subType").value;
+      const pointsInput = document.getElementById("points");
+
+      if (!pointsInput.dataset.manuallyEdited) {
+        pointsInput.value = getDefaultPoints(subType);
+      }
+
+      applySubtypeDefaults();
+      toggleFields();
+    }
+
+    function resetForm() {
+      editingQuestionId = null;
+
+      document.getElementById("formTitle").innerText = "Yeni Soru Ekle";
+      document.getElementById("type").value = "speaking";
+      setSubtypeOptions("speaking");
+
+      document.getElementById("title").value = "";
+      document.getElementById("prompt").value = "";
+      document.getElementById("time").value = "60";
+      document.getElementById("points").value = getDefaultPoints(document.getElementById("subType").value);
+      delete document.getElementById("points").dataset.manuallyEdited;
+      document.getElementById("prepareTime").value = "25";
+      document.getElementById("recordTime").value = "40";
+      document.getElementById("audioUrl").value = "";
+      document.getElementById("imageUrl").value = "";
+      document.getElementById("audioFile").value = "";
+      document.getElementById("imageFile").value = "";
+      document.getElementById("options").value = "";
+      document.getElementById("textContent").value = "";
+      document.getElementById("keywords").value = "";
+      document.getElementById("answerKey").value = "";
+      document.getElementById("correctAnswer").value = "";
+      document.getElementById("correctAnswers").value = "";
+
+      applySubtypeDefaults();
+
+      document.getElementById("saveBtn").classList.remove("hidden");
+      document.getElementById("updateBtn").classList.add("hidden");
+
+      clearStatus();
+      toggleFields();
+    }
+
+    function getFilteredQuestions() {
+      const searchValue = document.getElementById("searchBox").value.trim().toLowerCase();
+      const typeFilter = document.getElementById("typeFilter").value;
+
+      return questions.filter((q) => {
+        const matchesType = typeFilter === "all" ? true : q.type === typeFilter;
+        const text = `${q.title || ""} ${q.prompt || ""} ${q.type || ""} ${q.subType || ""}`.toLowerCase();
+        const matchesSearch = searchValue ? text.includes(searchValue) : true;
+        return matchesType && matchesSearch;
+      });
+    }
+
+    function getQuestionTimeText(question) {
+      if (question.type === "speaking") {
+        const prepare = Number(question.prepareTime || 0);
+        const record = Number(question.recordTime || 40);
+        return `P:${prepare}s / R:${record}s`;
+      }
+      return `${question.time || 60}s`;
+    }
+
+    function renderQuestionList() {
+      const container = document.getElementById("questionList");
+      const filteredQuestions = getFilteredQuestions();
+
+      document.getElementById("countInfo").innerText = `${filteredQuestions.length} soru`;
+
+      if (!filteredQuestions.length) {
+        container.innerHTML = `<div class="empty">Soru bulunamadı.</div>`;
+        return;
+      }
+
+      container.innerHTML = `
+       <div class="q-row q-head">
+         <div>ID</div>
+         <div>Section</div>
+         <div>Task Type</div>
+         <div>Title</div>
+         <div>Points</div>
+         <div>Time</div>
+         <div>Actions</div>
+       </div>
+     `;
+
+      filteredQuestions.slice().reverse().forEach((question) => {
+        const row = document.createElement("div");
+        row.className = "q-row";
+
+        row.innerHTML = `
+         <div class="q-id">${question.id}</div>
+         <div class="q-type">${question.type || "-"}</div>
+         <div class="q-subtype">${getTaskLabel(question.subType)}</div>
+         <div class="q-title" title="${(question.title || "").replace(/"/g, "&quot;")}">${question.title || "-"}</div>
+         <div>${question.points || getDefaultPoints(question.subType || "")}</div>
+         <div class="q-time">${getQuestionTimeText(question)}</div>
+         <div class="q-actions">
+           <button class="small-btn small-btn-warning" onclick="editQuestion('${question.id}')">Edit</button>
+           <button class="small-btn small-btn-danger" onclick="deleteQuestion('${question.id}')">Delete</button>
+         </div>
+        `;
+
+
+        container.appendChild(row);
+      });
+    }
+
+    async function loadQuestions() {
+      try {
+        const response = await fetch("http://localhost:3001/questions");
+        questions = await response.json();
+        renderQuestionList();
+      } catch (error) {
+        alert("Sorular yüklenemedi.");
+        console.error(error);
+      }
+    }
+
+    function parseGroupedOptions(optionsText) {
+      return optionsText
+        .split("\n\n")
+        .map(group =>
+          group
+            .split("\n")
+            .map(item => item.trim())
+            .filter(Boolean)
+        )
+        .filter(group => group.length);
+    }
+
+    function collectPayload() {
+      const type = document.getElementById("type").value;
+      const subType = document.getElementById("subType").value;
+      const title = document.getElementById("title").value.trim();
+      const prompt = document.getElementById("prompt").value.trim();
+      const points = Number(document.getElementById("points").value) || 10;
+
+      const time = Number(document.getElementById("time").value) || 60;
+      const prepareTime = Number(document.getElementById("prepareTime").value) || 0;
+      const recordTime = Number(document.getElementById("recordTime").value) || 40;
+
+      const audioUrl = document.getElementById("audioUrl").value.trim();
+      const imageUrl = document.getElementById("imageUrl").value.trim();
+      const textContent = document.getElementById("textContent").value.trim();
+
+      const optionsText = document.getElementById("options").value.trim();
+
+      let options = [];
+
+      if (subType === "reading_mcq_group") {
+        options = optionsText ? parseGroupedOptions(optionsText) : [];
+      } else {
+        options = optionsText
+          ? optionsText.split("\n").map(item => item.trim()).filter(Boolean)
+          : [];
+      }
+
+      const evaluationType = document.getElementById("evaluationType").value;
+      const keywords = document.getElementById("keywords").value.trim();
+      const answerKey = document.getElementById("answerKey").value.trim();
+      const correctAnswer = document.getElementById("correctAnswer").value.trim();
+      const correctAnswersText = document.getElementById("correctAnswers").value.trim();
+      const correctAnswers = correctAnswersText
+        ? correctAnswersText
+          .split(/\r?\n/)
+          .map(item => item.trim())
+          .filter(Boolean)
+        : [];
+      if (!title) {
+        alert("Soru başlığı zorunlu.");
+        return null;
+      }
+
+      if (type === "speaking") {
+        if (subType === "repeat_sentence" && !audioUrl) {
+          alert("Repeat Sentence için audio URL gir.");
+          return null;
+        }
+
+        if (subType === "describe_image" && !imageUrl) {
+          alert("Describe Image için image URL gir.");
+          return null;
+        }
+
+        if (subType === "re_tell_lecture" && !audioUrl) {
+          alert("Re-tell Lecture için audio URL gir.");
+          return null;
+        }
+
+        if (subType === "answer_short_question" && !audioUrl) {
+          alert("Answer Short Question için audio URL gir.");
+          return null;
+        }
+
+        if (subType === "summarize_group_discussion" && !audioUrl) {
+          alert("Summarize Group Discussion için audio URL gir.");
+          return null;
+        }
+
+        if (evaluationType === "keywords" && !keywords) {
+          alert("Keywords gir.");
+          return null;
+        }
+
+        if (evaluationType === "answerKey" && !answerKey) {
+          alert("Answer Key gir.");
+          return null;
+        }
+      }
+
+      if (type === "writing") {
+        if (subType === "summarize_written_text") {
+          if (evaluationType === "keywords" && !keywords) {
+            alert("Summarize Written Text için keywords gir.");
+            return null;
+          }
+          if (evaluationType === "answerKey" && !answerKey) {
+            alert("Summarize Written Text için answer key gir.");
+            return null;
+          }
+        }
+
+        if (subType === "essay") {
+          if (evaluationType === "keywords" && !keywords) {
+            alert("Essay için keywords gir.");
+            return null;
+          }
+          if (evaluationType === "answerKey" && !answerKey) {
+            alert("Essay için answer key gir.");
+            return null;
+          }
+        }
+      }
+
+      if (type === "reading") {
+        if (subType === "reading_mcq_single") {
+          if (!options.length) {
+            alert("Reading MCQ Single için seçenek gir.");
+            return null;
+          }
+          if (!correctAnswer) {
+            alert("Reading MCQ Single için correct answer gir.");
+            return null;
+          }
+        }
+
+        if (subType === "reading_mcq_multiple") {
+          if (!options.length) {
+            alert("Reading MCQ Multiple için seçenek gir.");
+            return null;
+          }
+          if (!correctAnswers.length) {
+            alert("Reading MCQ Multiple için correct answers gir.");
+            return null;
+          }
+        }
+
+        if (subType === "reading_word_formation_passage") {
+          if (!textContent) {
+            alert("Reading Word Formation Passage için metin gir.");
+            return null;
+          }
+          if (!answerKey) {
+            alert("Reading Word Formation Passage için answer key gir.");
+            return null;
+          }
+        }
+
+        if (subType === "reading_mcq_group") {
+          if (!options.length) {
+            alert("Group options gir.");
+            return null;
+          }
+          if (!correctAnswers.length) {
+            alert("Correct answers gir.");
+            return null;
+          }
+        }
+
+        if (subType === "reorder_paragraphs") {
+          if (!answerKey) {
+            alert("Reorder Paragraphs için answer key gir.");
+            return null;
+          }
+        }
+
+        if (subType === "reading_fill_blanks" || subType === "reading_writing_fill_blanks") {
+          if (!options.length) {
+            alert("Options gir.");
+            return null;
+          }
+          if (!correctAnswer) {
+            alert("Correct answer gir.");
+            return null;
+          }
+        }
+      }
+
+      if (subType === "reading_short_answer_multi") {
+        if (!textContent) {
+          alert("Reading Short Answer (Multi) için soru metni gir.");
+          return null;
+        }
+        if (!answerKey) {
+          alert("Reading Short Answer (Multi) için answer key gir.");
+          return null;
+        }
+      }
+
+      if (subType === "reading_word_formation") {
+        if (!answerKey) {
+          alert("Reading Word Formation için answer key gir.");
+          return null;
+        }
+      }
+
+      if (subType === "reading_word_formation_multi") {
+        if (!textContent) {
+          alert("Reading Word Formation (Multi) için soru metni gir.");
+          return null;
+        }
+        if (!answerKey) {
+          alert("Reading Word Formation (Multi) için answer key gir.");
+          return null;
+        }
+      }
+
+      if (type === "listening") {
+        if (!audioUrl) {
+          alert("Listening için audio URL gir.");
+          return null;
+        }
+
+        if (subType === "summarize_spoken_text") {
+          if (evaluationType === "keywords" && !keywords) {
+            alert("Summarize Spoken Text için keywords gir.");
+            return null;
+          }
+          if (evaluationType === "answerKey" && !answerKey) {
+            alert("Summarize Spoken Text için answer key gir.");
+            return null;
+          }
+        }
+
+        if (subType === "listening_mcq_single") {
+          if (!options.length) {
+            alert("Listening MCQ Single için seçenek gir.");
+            return null;
+          }
+          if (!correctAnswer) {
+            alert("Listening MCQ Single için correct answer gir.");
+            return null;
+          }
+        }
+
+        if (subType === "listening_mcq_multiple") {
+          if (!options.length) {
+            alert("Listening MCQ Multiple için seçenek gir.");
+            return null;
+          }
+          if (!correctAnswers.length) {
+            alert("Listening MCQ Multiple için correct answers gir.");
+            return null;
+          }
+        }
+
+        if (subType === "listening_fill_blanks") {
+          if (!answerKey) {
+            alert("Listening Fill in the Blanks için answer key gir.");
+            return null;
+          }
+        }
+
+        if (subType === "highlight_correct_summary" || subType === "select_missing_word") {
+          if (!options.length) {
+            alert("Seçenek gir.");
+            return null;
+          }
+          if (!correctAnswer) {
+            alert("Correct answer gir.");
+            return null;
+          }
+        }
+
+        if (subType === "highlight_incorrect_words") {
+          if (!answerKey) {
+            alert("Highlight Incorrect Words için answer key gir.");
+            return null;
+          }
+        }
+
+        if (subType === "write_from_dictation") {
+          if (!answerKey) {
+            alert("Write From Dictation için answer key gir.");
+            return null;
+          }
+        }
+
+        if (subType === "listening_short_answer") {
+          if (!answerKey) {
+            alert("Listening Short Answer için answer key gir.");
+            return null;
+          }
+        }
+
+        if (subType === "listening_short_answer_multi") {
+          if (!answerKey) {
+            alert("Listening Short Answer (Multi) için answer key gir.");
+            return null;
+          }
+        }
+
+        if (subType === "listening_sequence") {
+          if (!options.length) {
+            alert("Options gir.");
+            return null;
+          }
+          if (!answerKey) {
+            alert("Sıralama gir.");
+            return null;
+          }
+        }
+      }
+
+      const payload = {
+        type,
+        subType,
+        title,
+        prompt,
+        points,
+        time,
+        prepareTime: type === "speaking" ? prepareTime : 0,
+        recordTime: type === "speaking" ? recordTime : 0,
+        audioUrl,
+        imageUrl,
+        textContent,
+        options,
+        evaluationType,
+        keywords,
+        answerKey,
+        correctAnswer,
+        correctAnswers
+      };
+
+      if (type === "reading" && subType === "reading_mcq_single") {
+        payload.answer = correctAnswer;
+      } else if (type === "reading" && subType === "reading_mcq_multiple") {
+        payload.answer = correctAnswers;
+      } else if (type === "reading" && subType === "reorder_paragraphs") {
+        payload.answer = answerKey;
+      } else if (type === "reading" && (subType === "reading_fill_blanks" || subType === "reading_writing_fill_blanks")) {
+        payload.answer = correctAnswer;
+      } else if (type === "reading" && subType === "reading_word_formation") {
+        payload.answer = answerKey;
+      } else if (type === "reading" && subType === "reading_word_formation_multi") {
+        payload.answer = answerKey;
+      } else if (type === "reading" && subType === "reading_short_answer_multi") {
+        payload.answer = answerKey;
+      } else if (type === "reading" && subType === "reading_mcq_group") {
+        payload.answer = correctAnswers;
+      } else if (type === "listening" && subType === "listening_mcq_single") {
+        payload.answer = correctAnswer;
+      } else if (type === "listening" && subType === "listening_mcq_multiple") {
+        payload.answer = correctAnswers;
+      } else if (type === "listening" && subType === "highlight_correct_summary") {
+        payload.answer = correctAnswer;
+      } else if (type === "listening" && subType === "select_missing_word") {
+        payload.answer = correctAnswer;
+      } else if (evaluationType === "keywords") {
+        payload.answer = keywords;
+      } else if (evaluationType === "answerKey") {
+        payload.answer = answerKey;
+      } else if (evaluationType === "correctAnswer") {
+        payload.answer = correctAnswer;
+      } else if (evaluationType === "correctAnswers") {
+        payload.answer = correctAnswers;
+      } else {
+        payload.answer = "";
+      }
+
+      return payload;
+    }
+
+    async function uploadAudioFile() {
+      const fileInput = document.getElementById("audioFile");
+      const file = fileInput.files[0];
+
+      if (!file) {
+        alert("Önce bir ses dosyası seç.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("audio", file);
+
+      try {
+        const response = await fetch("http://localhost:3001/upload-audio", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert(data.error || "Audio yüklenemedi.");
+          return;
+        }
+
+        document.getElementById("audioUrl").value = data.url;
+        showStatus("Audio başarıyla yüklendi.");
+      } catch (error) {
+        alert("Server bağlantı hatası");
+        console.error(error);
+      }
+    }
+
+    async function uploadImageFile() {
+      const fileInput = document.getElementById("imageFile");
+      const file = fileInput.files[0];
+
+      if (!file) {
+        alert("Önce bir görsel seç.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("image", file);
+
+      try {
+        const response = await fetch("http://localhost:3001/upload-image", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert(data.error || "Görsel yüklenemedi.");
+          return;
+        }
+
+        document.getElementById("imageUrl").value = data.url;
+        showStatus("Görsel başarıyla yüklendi.");
+      } catch (error) {
+        alert("Server bağlantı hatası");
+        console.error(error);
+      }
+    }
+
+    async function saveQuestion() {
+      const payload = collectPayload();
+      if (!payload) return;
+
+      try {
+        const response = await fetch("http://localhost:3001/questions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert(data.error || "Soru kaydedilemedi.");
+          return;
+        }
+
+        showStatus("Soru başarıyla kaydedildi.");
+        resetForm();
+        await loadQuestions();
+      } catch (error) {
+        alert("Server bağlantı hatası");
+        console.error(error);
+      }
+    }
+
+    function editQuestion(id) {
+      id = String(id);
+      const question = questions.find((q) => String(q.id) === id);
+      if (!question) return;
+
+      editingQuestionId = String(id);
+
+      document.getElementById("formTitle").innerText = "Soruyu Düzenle";
+      document.getElementById("type").value = question.type || "speaking";
+      setSubtypeOptions(question.type || "speaking", question.subType || null);
+
+      document.getElementById("title").value = question.title || "";
+      document.getElementById("prompt").value = question.prompt || "";
+      document.getElementById("points").value = question.points || getDefaultPoints(question.subType || "");
+      delete document.getElementById("points").dataset.manuallyEdited;
+      document.getElementById("time").value = question.time || 60;
+      document.getElementById("prepareTime").value = question.prepareTime || 0;
+      document.getElementById("recordTime").value = question.recordTime || 40;
+      document.getElementById("audioUrl").value = question.audioUrl || "";
+      document.getElementById("imageUrl").value = question.imageUrl || "";
+      document.getElementById("audioFile").value = "";
+      document.getElementById("imageFile").value = "";
+      document.getElementById("textContent").value = question.textContent || "";
+      if (question.subType === "reading_mcq_group") {
+        document.getElementById("options").value = (question.options || [])
+          .map(group => (group || []).join("\n"))
+          .join("\n\n");
+      } else {
+        document.getElementById("options").value = (question.options || []).join("\n");
+      }
+      document.getElementById("evaluationType").value = question.evaluationType || "keywords";
+      document.getElementById("keywords").value = question.keywords || "";
+      document.getElementById("answerKey").value = question.answerKey || "";
+      document.getElementById("correctAnswer").value = question.correctAnswer || "";
+      document.getElementById("correctAnswers").value = (question.correctAnswers || []).join("\n");
+      document.getElementById("saveBtn").classList.add("hidden");
+      document.getElementById("updateBtn").classList.remove("hidden");
+
+      toggleFields();
+      showStatus(`Düzenlenen soru ID: ${id}`);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    async function updateQuestion() {
+      if (!editingQuestionId) return;
+      editingQuestionId = String(editingQuestionId);
+
+      const payload = collectPayload();
+      if (!payload) return;
+
+      try {
+        const response = await fetch(`http://localhost:3001/questions/${editingQuestionId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert(data.error || "Soru güncellenemedi.");
+          return;
+        }
+
+        showStatus("Soru güncellendi.");
+        resetForm();
+        await loadQuestions();
+      } catch (error) {
+        alert("Server bağlantı hatası");
+        console.error(error);
+      }
+    }
+
+    async function deleteQuestion(id) {
+      id = String(id);
+      const ok = confirm("Bu soruyu silmek istiyor musunuz?");
+      if (!ok) return;
+
+      try {
+        await fetch(`http://localhost:3001/questions/${id}`, {
+          method: "DELETE"
+        });
+
+        if (editingQuestionId === id) {
+          resetForm();
+        }
+
+        await loadQuestions();
+        showStatus(`Soru silindi. ID: ${id}`);
+      } catch (error) {
+        alert("Server bağlantı hatası");
+        console.error(error);
+      }
+    }
+
+    document.getElementById("points").addEventListener("input", function () {
+      this.dataset.manuallyEdited = "true";
+    });
+
+    document.getElementById("type").addEventListener("change", handleTypeChange);
+    document.getElementById("subType").addEventListener("change", handleSubTypeChange);
+    document.getElementById("evaluationType").addEventListener("change", toggleFields);
+
+
+    function exportQuestionsToExcel() {
+      const filteredQuestions = getFilteredQuestions();
+
+      if (!filteredQuestions.length) {
+        alert("Dışa aktarılacak soru bulunamadı.");
+        return;
+      }
+
+      const rows = filteredQuestions.map((question, index) => ({
+        No: index + 1,
+        ID: question.id || "",
+        Section: question.type || "",
+        Task_Type: getTaskLabel(question.subType || ""),
+        SubType: question.subType || "",
+        Title: question.title || "",
+        Points: question.points || getDefaultPoints(question.subType || ""),
+        Time: question.type === "speaking" ? "" : (question.time || ""),
+        Prepare_Time: question.type === "speaking" ? (question.prepareTime || 0) : "",
+        Record_Time: question.type === "speaking" ? (question.recordTime || 0) : "",
+        Prompt: question.prompt || "",
+        Audio_URL: question.audioUrl || "",
+        Image_URL: question.imageUrl || "",
+        Text_Content: question.textContent || "",
+        Options: Array.isArray(question.options) ? question.options.join(" | ") : "",
+        Evaluation_Type: question.evaluationType || "",
+        Keywords: question.keywords || "",
+        Answer_Key: question.answerKey || "",
+        Correct_Answer: question.correctAnswer || "",
+        Correct_Answers: Array.isArray(question.correctAnswers) ? question.correctAnswers.join(" | ") : "",
+        Stored_Answer: Array.isArray(question.answer) ? question.answer.join(" | ") : (question.answer || "")
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Questions");
+
+      const now = new Date();
+      const fileName = `pte_questions_${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}.xlsx`;
+
+      XLSX.writeFile(workbook, fileName);
+    }
+
+    resetForm();
+    loadQuestions();
+  </script>
+</body>
+
+</html>

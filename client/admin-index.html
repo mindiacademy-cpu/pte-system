@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PTE Admin Portal</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #eef3f8, #dfe9f7);
+      color: #1f2937;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      background: linear-gradient(135deg, #173a8c, #1f4db8);
+      color: white;
+      padding: 20px 28px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.12);
+    }
+
+    .topbar-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      font-size: 30px;
+      font-weight: bold;
+      letter-spacing: 0.3px;
+    }
+
+    .subtext {
+      font-size: 14px;
+      opacity: 0.95;
+    }
+
+    .main {
+      max-width: 1200px;
+      margin: 36px auto;
+      padding: 0 20px 40px;
+    }
+
+    .hero {
+      background: white;
+      border-radius: 20px;
+      padding: 34px 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      margin: 0 0 12px 0;
+      font-size: 34px;
+      color: #173a8c;
+    }
+
+    .hero p {
+      margin: 0;
+      color: #4b5563;
+      font-size: 17px;
+      line-height: 1.7;
+      max-width: 850px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 250px;
+    }
+
+    .card-badge {
+      display: inline-block;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 0.4px;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+    }
+
+    .card h2 {
+      margin: 0 0 10px 0;
+      font-size: 24px;
+      color: #111827;
+    }
+
+    .card p {
+      margin: 0 0 18px 0;
+      color: #6b7280;
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    .feature-list {
+      margin: 0 0 20px 0;
+      padding-left: 18px;
+      color: #4b5563;
+      line-height: 1.8;
+      font-size: 14px;
+    }
+
+    .btn {
+      display: inline-block;
+      text-decoration: none;
+      text-align: center;
+      border: none;
+      border-radius: 12px;
+      background: #2563eb;
+      color: white;
+      padding: 14px 18px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .btn:hover {
+      background: #1d4ed8;
+    }
+
+    .footer-note {
+      margin-top: 24px;
+      background: white;
+      border-radius: 16px;
+      padding: 18px 22px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+      color: #6b7280;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 980px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .hero h1 {
+        font-size: 28px;
+      }
+
+      .brand {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">PTE Admin Portal</div>
+      <div class="subtext">Question management • Exam creation • Result review</div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="hero">
+      <h1>Admin Control Center</h1>
+      <p>
+        Manage your complete practice exam workflow from one place. Use the sections below to add questions,
+        create exam sets, and review candidate results including speaking records and transcripts.
+      </p>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div>
+          <div class="card-badge">Question Bank</div>
+          <h2>Question Admin</h2>
+          <p>
+            Add, edit and organize Speaking, Writing, Reading and Listening questions.
+          </p>
+          <ul class="feature-list">
+            <li>Create new questions</li>
+            <li>Add points and time</li>
+            <li>Reading correct answers</li>
+            <li>Keywords for AI scoring</li>
+          </ul>
+        </div>
+        <a class="btn" href="question-admin.html">Open Question Admin</a>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="card-badge">Exam Builder</div>
+          <h2>Exam Admin</h2>
+          <p>
+            Select questions from the bank and create a full exam with an exam code.
+          </p>
+          <ul class="feature-list">
+            <li>Select questions</li>
+            <li>Create exam sets</li>
+            <li>Generate exam code</li>
+            <li>Prepare candidate access</li>
+          </ul>
+        </div>
+        <a class="btn" href="exam-admin.html">Open Exam Admin</a>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="card-badge">Results</div>
+          <h2>Admin Panel</h2>
+          <p>
+            Review submitted exams, scores, speaking transcripts and candidate responses.
+          </p>
+          <ul class="feature-list">
+            <li>View exam results</li>
+            <li>Check speaking transcript</li>
+            <li>Listen to recordings</li>
+            <li>Review section scores</li>
+          </ul>
+        </div>
+        <a class="btn" href="admin.html">Open Admin Panel</a>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      Student login remains on the normal entry page. This page is only for internal admin use.
+    </div>
+  </div>
+</body>
+</html>

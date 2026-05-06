@@ -1,0 +1,15 @@
+{
+  "name": "pte-server",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^4.22.1",
+    "multer": "^2.1.1",
+    "openai": "^6.27.0"
+  }
+}

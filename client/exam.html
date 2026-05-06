@@ -1,0 +1,2672 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PTE Academic Practice Exam</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #eef3f8;
+      color: #1f2937;
+    }
+
+    .top-header {
+      background: linear-gradient(135deg, #173a8c, #1f4db8);
+      color: white;
+      padding: 18px 28px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+    }
+
+    .top-header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .brand-title {
+      font-size: 30px;
+      font-weight: bold;
+      letter-spacing: 0.2px;
+    }
+
+    .candidate-bar {
+      font-size: 14px;
+      opacity: 0.95;
+      text-align: right;
+      line-height: 1.6;
+    }
+
+    .main-wrap {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 20px 30px;
+    }
+
+    .status-strip {
+      display: grid;
+      grid-template-columns: 1fr 220px;
+      gap: 20px;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .progress-card,
+    .timer-card {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+      padding: 18px 20px;
+    }
+
+    .progress-label {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 8px;
+      text-align: left;
+    }
+
+    .progress-wrap {
+      width: 100%;
+      height: 12px;
+      background: #dbeafe;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #2563eb, #60a5fa);
+      transition: width 0.3s ease;
+    }
+
+    .timer-card {
+      text-align: center;
+    }
+
+    .timer-label {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 4px;
+      letter-spacing: 0.6px;
+    }
+
+    .timer {
+      font-size: 32px;
+      font-weight: bold;
+      color: #dc2626;
+    }
+
+    .empty {
+      text-align: center;
+      color: #6b7280;
+      padding: 40px;
+      font-size: 18px;
+      pointer-events: none;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .exam-layout {
+      width: 100%;
+    }
+
+    .panel {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      background: #f8fafc;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 18px 22px;
+      text-align: left;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 14px;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .panel-subtitle {
+      margin: 6px 0 0;
+      font-size: 24px;
+      font-weight: bold;
+      color: #111827;
+    }
+
+    .panel-body {
+      padding: 24px 22px 26px;
+    }
+
+    .meta-line {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 10px;
+      text-align: left;
+    }
+
+    .section-badge {
+      display: inline-block;
+      background: #1f4db8;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 7px 12px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+      letter-spacing: 0.5px;
+    }
+
+    .question-title {
+      font-size: 28px;
+      font-weight: bold;
+      margin: 0 0 10px;
+      color: #1f2937;
+      text-align: left;
+    }
+
+    .instruction-box {
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 18px;
+      text-align: left;
+      margin-bottom: 20px;
+    }
+
+    .instruction-label {
+      font-size: 13px;
+      font-weight: bold;
+      color: #1f4db8;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    #questionPrompt {
+      margin: 0;
+      font-size: 17px;
+      color: #374151;
+      line-height: 1.7;
+      white-space: pre-wrap;
+    }
+
+    .task-box {
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 30px;
+      white-space: pre-wrap;
+      line-height: 1.7;
+      font-weight: 500;
+      font-size: 16px;
+    }
+
+    .voice-visualizer {
+      height: 90px;
+      display: flex;
+      align-items: end;
+      justify-content: center;
+      gap: 8px;
+      margin: 18px 0 10px;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .voice-visualizer .bar {
+      width: 12px;
+      height: 16px;
+      background: #2563eb;
+      border-radius: 999px;
+      transition: height 0.08s linear;
+    }
+
+    .speaking-stage {
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 8px 14px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 999px;
+      color: #1d4ed8;
+      font-weight: bold;
+      font-size: 13px;
+    }
+
+    .rec-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      color: #dc2626;
+      font-weight: bold;
+      font-size: 13px;
+    }
+
+    .rec-dot {
+      width: 10px;
+      height: 10px;
+      background: #dc2626;
+      border-radius: 50%;
+      animation: blinkRec 1s infinite;
+    }
+
+    @keyframes blinkRec {
+      0% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.25;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+
+    .record-status-box {
+      text-align: center;
+      margin-top: 12px;
+      min-height: 28px;
+    }
+
+    .status {
+      font-weight: bold;
+      color: #1f4db8;
+      font-size: 15px;
+    }
+
+    .audio-box {
+      margin-top: 14px;
+      text-align: center;
+    }
+
+    textarea,
+    input[type="text"] {
+      width: 100%;
+      min-height: 52px;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 15px;
+      outline: none;
+      margin-top: 10px;
+      font-family: Arial, sans-serif;
+    }
+
+    textarea {
+      min-height: 170px;
+      resize: vertical;
+    }
+
+    textarea:focus,
+    input[type="text"]:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    #wordCount {
+      text-align: right;
+      color: #6b7280;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 40px;
+    }
+
+    .option-btn {
+      border: 1px solid #d1d5db;
+      background: white;
+      border-radius: 12px;
+      padding: 16px 18px;
+      font-size: 15px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s ease;
+    }
+
+    .option-btn:hover {
+      border-color: #2563eb;
+      background: #eff6ff;
+    }
+
+    .option-btn.selected {
+      border-color: #2563eb;
+      background: #dbeafe;
+      font-weight: bold;
+    }
+
+    .blank-input {
+      margin-top: 12px;
+    }
+
+    .listening-audio-box {
+      margin-bottom: 12px;
+    }
+
+    .button-row {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 26px;
+    }
+
+    .action-btn {
+      min-width: 180px;
+      min-height: 48px;
+      border: none;
+      border-radius: 12px;
+      background: #2563eb;
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.05s ease;
+      padding: 12px 20px;
+    }
+
+    .action-btn:hover {
+      background: #1d4ed8;
+    }
+
+    .action-btn:active {
+      transform: translateY(1px);
+    }
+
+    .action-btn.secondary {
+      background: #4b5563;
+    }
+
+    .action-btn.secondary:hover {
+      background: #374151;
+    }
+
+    .action-btn.danger {
+      background: #dc2626;
+    }
+
+    .action-btn.danger:hover {
+      background: #b91c1c;
+    }
+
+    .action-btn:disabled,
+    .start-exam-btn:disabled {
+      background: #9ca3af !important;
+      cursor: not-allowed;
+      opacity: 0.85;
+    }
+
+    .score-preview {
+      margin-top: 16px;
+      color: #6b7280;
+      font-size: 14px;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .start-screen {
+      max-width: 760px;
+      margin: 70px auto 0;
+      background: white;
+      border-radius: 18px;
+      padding: 50px 36px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .start-screen h1 {
+      margin: 0 0 16px 0;
+      color: #173a8c;
+      font-size: 42px;
+    }
+
+    .start-screen p {
+      color: #4b5563;
+      font-size: 18px;
+      line-height: 1.6;
+      margin: 10px 0;
+    }
+
+    .start-exam-btn {
+      border: none;
+      border-radius: 10px;
+      padding: 14px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      color: white;
+      cursor: pointer;
+      background: #2563eb;
+      margin-top: 18px;
+    }
+
+    .start-exam-btn:hover {
+      background: #1d4ed8;
+    }
+
+    .finish-screen {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+
+    .finish-card {
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      padding: 48px 32px;
+      text-align: center;
+    }
+
+    .finish-card h1 {
+      margin: 0 0 18px 0;
+      color: #173a8c;
+      font-size: 34px;
+    }
+
+    .finish-card p {
+      margin: 10px 0;
+      font-size: 18px;
+      color: #4b5563;
+      line-height: 1.6;
+    }
+
+    .mic-status {
+      margin: 18px 0;
+      font-size: 16px;
+      color: #4b5563;
+      min-height: 26px;
+    }
+
+    @media (max-width: 900px) {
+      .status-strip {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .brand-title {
+        font-size: 24px;
+      }
+
+      .question-title {
+        font-size: 22px;
+      }
+
+      .action-btn {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .start-screen h1 {
+        font-size: 34px;
+      }
+    }
+
+    #readingFillDropdownWrap {
+      line-height: 2.8;
+      font-size: 16px;
+      margin-top: 16px;
+    }
+
+    .fill-dropdown {
+      min-width: 120px;
+      height: 34px;
+      margin: 0 6px;
+      padding: 4px 8px;
+      font-size: 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: white;
+      vertical-align: middle;
+      outline: none;
+    }
+
+    .fill-dropdown:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+    }
+
+    .word-form-input {
+      width: 110px !important;
+      height: 24px !important;
+      min-height: 24px !important;
+      max-height: 24px !important;
+      margin: 0 6px !important;
+      padding: 2px 6px !important;
+      border: none !important;
+      border-bottom: 2px solid #94a3b8 !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      font-size: 14px;
+      outline: none;
+      display: inline-block;
+      vertical-align: middle;
+      box-shadow: none !important;
+    }
+
+    .word-form-input:focus {
+      border-bottom: 2px solid #2563eb !important;
+      box-shadow: none !important;
+    }
+
+    .word-passage-line {
+      line-height: 2.4;
+      font-size: 16px;
+      white-space: normal;
+    }
+
+    .word-passage-input {
+      width: 120px !important;
+      height: 24px !important;
+      min-height: 24px !important;
+      max-height: 24px !important;
+      margin: 0 6px !important;
+      padding: 2px 6px !important;
+      border: none !important;
+      border-bottom: 2px solid #94a3b8 !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      font-size: 14px;
+      outline: none;
+      display: inline-block;
+      vertical-align: baseline;
+      box-shadow: none !important;
+    }
+
+    .word-passage-root {
+      display: inline-block;
+      margin: 0 10px 0 2px;
+      font-weight: bold;
+      color: #1f4db8;
+      vertical-align: baseline;
+    }
+
+    .top-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 10000;
+    }
+
+    .main-wrap {
+      padding-top: 110px;
+    }
+
+    .status-strip {
+      position: fixed;
+      top: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(1160px, calc(100% - 40px));
+      z-index: 9999;
+      background: #eef3f8;
+      padding: 12px 0;
+    }
+
+    .exam-layout {
+      margin-top: 130px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="top-header">
+    <div class="top-header-inner">
+      <div class="brand-title">PTE Academic Practice Exam</div>
+      <div class="candidate-bar" id="candidateInfo"></div>
+    </div>
+  </div>
+
+  <div class="main-wrap">
+    <div class="status-strip">
+      <div class="progress-card">
+        <div class="progress-label">Exam Progress</div>
+        <div class="progress-wrap">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+      </div>
+      <div class="timer-card hidden" id="timerCard">
+        <div class="timer-label" id="timerLabel">Time Remaining</div>
+        <div class="timer" id="timer">30:00</div>
+      </div>
+    </div>
+
+    <div id="loadingArea" class="empty">Sorular yükleniyor...</div>
+
+    <div id="startScreen" class="start-screen hidden">
+      <h1>PTE Academic Practice Test</h1>
+      <p>
+        This exam contains Speaking, Writing, Reading and Listening sections.
+        Click the button below when you are ready to start.
+      </p>
+      <button class="start-exam-btn" onclick="startExam()">Start Exam</button>
+    </div>
+
+    <div id="micCheckScreen" class="start-screen hidden">
+      <h1>Microphone Check</h1>
+      <p>Please allow microphone access and test your microphone before starting the exam.</p>
+
+      <div id="micCheckStatus" class="mic-status">Microphone not tested yet.</div>
+
+      <div class="voice-visualizer" id="micTestVisualizer">
+        <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
+        <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
+      </div>
+
+      <div class="button-row" style="margin-top:24px;">
+        <button class="action-btn secondary" onclick="runMicCheck()">Test Microphone</button>
+        <button class="action-btn" id="beginExamBtn" onclick="beginExamAfterMicCheck()" disabled>Begin Exam</button>
+      </div>
+    </div>
+
+    <div id="examArea" class="hidden">
+      <div class="exam-layout">
+        <div class="panel">
+          <div class="panel-header">
+            <h2 class="panel-title">Current Section</h2>
+            <p class="panel-subtitle" id="questionTypeTitle">Speaking</p>
+          </div>
+
+          <div class="panel-body">
+            <div class="meta-line" id="questionMeta"></div>
+            <div class="section-badge" id="sectionBadge">QUESTION</div>
+            <h3 class="question-title" id="questionTitle"></h3>
+
+            <div class="instruction-box">
+              <div class="instruction-label">Instruction</div>
+              <p id="questionPrompt"></p>
+            </div>
+
+            <div id="taskContent" class="task-box hidden"></div>
+
+            <div id="speakingArea" class="hidden">
+              <div class="voice-visualizer" id="voiceVisualizer">
+                <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
+                <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
+              </div>
+
+              <div class="record-status-box">
+                <div id="speakingStage" class="speaking-stage hidden"></div>
+                <div id="recIndicator" class="rec-indicator hidden">
+                  <span class="rec-dot"></span>
+                  <span>REC</span>
+                </div>
+                <p class="status" id="recordStatus">Get ready to speak...</p>
+              </div>
+
+              <div class="audio-box hidden" id="audioBox"></div>
+            </div>
+
+            <div id="writingArea" class="hidden">
+              <textarea id="writingAnswer" placeholder="Write your answer here..."></textarea>
+              <p id="wordCount">0 words</p>
+            </div>
+
+            <div id="readingArea" class="hidden">
+              <div class="options" id="readingOptions"></div>
+              <div id="readingFillBlanksWrap" class="hidden"></div>
+              <div id="readingFillDropdownWrap" class="hidden"></div>
+              <div id="readingMultiShortWrap" class="hidden"></div>
+
+              <div id="readingTextInputWrap" class="hidden">
+                <input type="text" id="readingTextAnswer" class="blank-input" placeholder="Write your answer here...">
+              </div>
+
+              <div id="readingLongInputWrap" class="hidden">
+                <textarea id="readingLongAnswer" placeholder="Write your answer here..."></textarea>
+              </div>
+
+              <div id="reorderWrap" class="hidden"></div>
+            </div>
+
+
+            <div id="listeningArea" class="hidden">
+              <div class="listening-audio-box">
+                <audio id="listeningPlayer" class="hidden"></audio>
+              </div>
+              <div class="options" id="listeningOptions"></div>
+              <div id="listeningTextInputWrap" class="hidden">
+                <input type="text" id="listeningTextAnswer" class="blank-input" placeholder="Write your answer here...">
+              </div>
+              <div id="listeningLongInputWrap" class="hidden">
+                <textarea id="listeningAnswer" placeholder="Write your listening answer here..."></textarea>
+              </div>
+
+              <div id="listeningSequenceWrap" class="hidden">
+                <div id="listeningSequenceOptions" class="task-box"></div>
+              </div>
+              <div id="listeningMultiShortWrap" class="hidden">
+                <div style="margin-top: 12px;">
+                  <label id="listeningShortLabel1" style="display:block; font-weight:bold; margin-bottom:6px;"></label>
+                  <input type="text" id="listeningShortAnswer1" class="blank-input" placeholder="Write answer here...">
+                </div>
+
+                <div style="margin-top: 16px;">
+                  <label id="listeningShortLabel2" style="display:block; font-weight:bold; margin-bottom:6px;"></label>
+                  <input type="text" id="listeningShortAnswer2" class="blank-input" placeholder="Write answer here...">
+                </div>
+              </div>
+            </div>
+
+            <div class="button-row">
+              <button id="stopBtn" class="action-btn secondary hidden" onclick="stopRecording()">Stop Recording</button>
+              <button id="nextBtn" class="action-btn" onclick="nextQuestion()">Next Question</button>
+              <button id="finishBtn" class="action-btn danger" onclick="finishExam()" disabled>Finish Exam</button>
+            </div>
+
+            <div class="score-preview" id="scorePreview">Current saved response count: 0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="finishScreen" class="hidden finish-screen">
+      <div class="finish-card">
+        <h1>Exam Submitted</h1>
+        <p>Your exam has been submitted successfully.</p>
+        <p>Your results will be reviewed and shared by the administration.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let time = 1800;
+    let timerInterval = null;
+
+    let questions = [];
+    let currentQuestionIndex = 0;
+    let answers = [];
+
+    const examFlow = [
+      "read_aloud",
+      "repeat_sentence",
+      "describe_image",
+      "re_tell_lecture",
+      "answer_short_question",
+      "summarize_group_discussion",
+      "respond_to_a_situation",
+      "summarize_written_text",
+      "essay",
+      "reading_writing_fill_blanks",
+      "reading_mcq_multiple",
+      "reading_mcq_group",
+      "reorder_paragraphs",
+      "reading_fill_blanks",
+      "reading_mcq_single",
+      "reading_word_formation",
+      "reading_word_formation_multi",
+      "reading_word_formation_passage",
+      "reading_short_answer_multi",
+      "summarize_spoken_text",
+      "listening_mcq_multiple",
+      "listening_fill_blanks",
+      "highlight_correct_summary",
+      "listening_mcq_single",
+      "select_missing_word",
+      "highlight_incorrect_words",
+      "write_from_dictation",
+      "listening_short_answer",
+      "listening_short_answer_multi",
+      "listening_sequence"
+    ];
+
+
+
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let speakingAudioBase64 = "";
+    let speakingTranscript = "";
+    let speakingLocked = false;
+    let speakingProcessing = false;
+    let speakingFlowRunning = false;
+
+    let prepareInterval = null;
+    let recordInterval = null;
+
+    let audioContext = null;
+    let analyser = null;
+    let sourceNode = null;
+    let visualizerAnimationId = null;
+    let dataArray = null;
+
+    let micCheckPassed = false;
+    let micCheckStream = null;
+    let micCheckAudioContext = null;
+    let micCheckAnalyser = null;
+    let micCheckSource = null;
+    let micCheckAnimationId = null;
+    let micCheckDataArray = null;
+
+    let examMicStream = null;
+
+    let readingSectionStartIndex = null;
+    let readingSectionEndIndex = null;
+    let readingSectionTimeLeft = null;
+
+    let listeningAudioEnded = true;
+    let pendingListeningAutoNext = false;
+
+    const candidateName = localStorage.getItem("candidateName") || "";
+    const candidateSurname = localStorage.getItem("candidateSurname") || "";
+    const candidatePhone = localStorage.getItem("candidatePhone") || "";
+    const candidateEmail = localStorage.getItem("candidateEmail") || "";
+    const kvkkApproval = localStorage.getItem("kvkkApproval") || "";
+    const candidateId = candidatePhone;
+    let examCode = localStorage.getItem("examCode") || "";
+
+    function formatTime(totalSeconds) {
+      const safe = Math.max(0, totalSeconds);
+      const minutes = Math.floor(safe / 60);
+      const seconds = safe % 60;
+      return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+    }
+
+    function setTimerLabel(text) {
+      const label = document.getElementById("timerLabel");
+      if (!label) return;
+      label.innerText = text;
+    }
+
+    function setMainTimer(seconds) {
+      const timerBox = document.getElementById("timer");
+      if (!timerBox) return;
+      timerBox.innerText = formatTime(seconds);
+    }
+
+    function updateProgressBar() {
+      const percent = questions.length
+        ? Math.round(((currentQuestionIndex + 1) / questions.length) * 100)
+        : 0;
+      document.getElementById("progressBar").style.width = percent + "%";
+    }
+
+    function updateSavedCount() {
+      document.getElementById("scorePreview").innerText =
+        `Current saved response count: ${answers.length}`;
+    }
+
+    function setNextButtonDisabled(disabled) {
+      const nextBtn = document.getElementById("nextBtn");
+      if (!nextBtn) return;
+      nextBtn.disabled = disabled;
+    }
+
+    function getReadingSectionBounds(index) {
+      if (!questions[index] || questions[index].type !== "reading") return null;
+
+      let start = index;
+      let end = index;
+
+      while (start > 0 && questions[start - 1].type === "reading") start--;
+      while (end < questions.length - 1 && questions[end + 1].type === "reading") end++;
+
+      return { start, end };
+    }
+
+    function updateFinishButton() {
+      const finishBtn = document.getElementById("finishBtn");
+      if (!finishBtn) return;
+
+      finishBtn.disabled = currentQuestionIndex !== questions.length - 1;
+    }
+
+    function getReadingSectionTotalTime(start, end) {
+      let total = 0;
+      for (let i = start; i <= end; i++) {
+        total += Number(questions[i]?.time || 60);
+      }
+      return total;
+    }
+
+    function goToAfterReadingSection() {
+      if (readingSectionEndIndex !== null && readingSectionEndIndex < questions.length - 1) {
+        currentQuestionIndex = readingSectionEndIndex + 1;
+        renderQuestion();
+      } else {
+        finishExam(true);
+      }
+    }
+
+    function handleTimerExpiry() {
+      const q = questions[currentQuestionIndex];
+      if (!q) return;
+
+      if (q.type === "reading") {
+        readingSectionTimeLeft = 0;
+        goToAfterReadingSection();
+        return;
+      }
+
+      if (q.type === "listening") {
+        if (!listeningAudioEnded) {
+          pendingListeningAutoNext = true;
+          return;
+        }
+        nextQuestion(true);
+        return;
+      }
+
+      if (q.type === "speaking") {
+        return;
+      }
+
+      nextQuestion(true);
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+
+      const q = questions[currentQuestionIndex];
+      if (!q) return;
+
+      if (q.type === "speaking") {
+        setTimerLabel("Speaking Timer");
+        return;
+      }
+
+      const timerBox = document.getElementById("timer");
+
+      if (q.type === "reading") {
+        const bounds = getReadingSectionBounds(currentQuestionIndex);
+        if (!bounds) return;
+
+        const isNewReadingSection =
+          readingSectionStartIndex !== bounds.start ||
+          readingSectionEndIndex !== bounds.end ||
+          readingSectionTimeLeft === null;
+
+        if (isNewReadingSection) {
+          readingSectionStartIndex = bounds.start;
+          readingSectionEndIndex = bounds.end;
+          readingSectionTimeLeft = getReadingSectionTotalTime(bounds.start, bounds.end);
+        }
+
+        setTimerLabel("Reading Time Remaining");
+        timerBox.innerText = formatTime(readingSectionTimeLeft);
+
+        timerInterval = setInterval(() => {
+          readingSectionTimeLeft--;
+          timerBox.innerText = formatTime(readingSectionTimeLeft);
+
+          if (readingSectionTimeLeft <= 0) {
+            clearInterval(timerInterval);
+            handleTimerExpiry();
+          }
+        }, 1000);
+        return;
+      }
+
+      setTimerLabel("Time Remaining");
+      time = Number(q.time);
+
+      if (!time || isNaN(time)) {
+        time = 60;
+      }
+
+      timerBox.innerText = formatTime(time);
+
+      timerInterval = setInterval(() => {
+        time--;
+        timerBox.innerText = formatTime(time);
+
+        if (time <= 0) {
+          clearInterval(timerInterval);
+          handleTimerExpiry();
+        }
+      }, 1000);
+    }
+
+    function clearSpeakingTimers() {
+      clearInterval(prepareInterval);
+      clearInterval(recordInterval);
+      speakingFlowRunning = false;
+    }
+
+    function hideAllAnswerAreas() {
+      document.getElementById("taskContent").classList.add("hidden");
+      document.getElementById("taskContent").innerHTML = "";
+
+      document.getElementById("speakingArea").classList.add("hidden");
+      document.getElementById("writingArea").classList.add("hidden");
+      document.getElementById("readingArea").classList.add("hidden");
+      document.getElementById("listeningArea").classList.add("hidden");
+
+      document.getElementById("readingOptions").innerHTML = "";
+      document.getElementById("listeningOptions").innerHTML = "";
+
+      document.getElementById("readingFillBlanksWrap").classList.add("hidden");
+      document.getElementById("readingFillBlanksWrap").innerHTML = "";
+      document.getElementById("readingFillDropdownWrap").classList.add("hidden");
+      document.getElementById("readingFillDropdownWrap").innerHTML = "";
+
+      document.getElementById("readingMultiShortWrap").classList.add("hidden");
+      document.getElementById("readingMultiShortWrap").innerHTML = "";
+
+      document.getElementById("readingTextInputWrap").classList.add("hidden");
+      document.getElementById("readingLongInputWrap").classList.add("hidden");
+      document.getElementById("reorderWrap").classList.add("hidden");
+      document.getElementById("reorderWrap").innerHTML = "";
+      document.getElementById("listeningSequenceWrap").classList.add("hidden");
+      document.getElementById("listeningTextInputWrap").classList.add("hidden");
+      document.getElementById("listeningLongInputWrap").classList.add("hidden");
+      document.getElementById("listeningMultiShortWrap").classList.add("hidden");
+
+      document.getElementById("readingTextAnswer").value = "";
+      document.getElementById("readingLongAnswer").value = "";
+      document.getElementById("listeningTextAnswer").value = "";
+      document.getElementById("listeningAnswer").value = "";
+      document.getElementById("listeningSequenceOptions").innerHTML = "";
+      document.getElementById("listeningShortAnswer1").value = "";
+      document.getElementById("listeningShortAnswer2").value = "";
+      document.getElementById("listeningShortLabel1").innerText = "";
+      document.getElementById("listeningShortLabel2").innerText = "";
+
+      document.getElementById("stopBtn").classList.add("hidden");
+      document.getElementById("audioBox").classList.add("hidden");
+    }
+
+    function parseMultiShortQuestions(text) {
+      if (!text) return [];
+
+      return text
+        .split("\n")
+        .map(line => line.trim())
+        .filter(line => line)
+        .map(line => line.replace(/^\d+[\.\)]\s*/, ""));
+    }
+
+    function getExistingAnswer(questionId) {
+      return answers.find(item => item.questionId === questionId);
+    }
+
+    function updateWordCount() {
+      const writingBox = document.getElementById("writingAnswer");
+      const wordCountBox = document.getElementById("wordCount");
+
+      if (!writingBox || !wordCountBox) return;
+      const text = writingBox.value.trim();
+      const words = text ? text.split(/\s+/).length : 0;
+      wordCountBox.innerText = words + " words";
+    }
+
+    function stopVoiceAnimation() {
+      if (visualizerAnimationId) {
+        cancelAnimationFrame(visualizerAnimationId);
+        visualizerAnimationId = null;
+      }
+
+      const bars = document.querySelectorAll("#voiceVisualizer .bar");
+      bars.forEach(bar => { bar.style.height = "16px"; });
+
+      if (sourceNode) {
+        try { sourceNode.disconnect(); } catch (e) { }
+        sourceNode = null;
+      }
+
+      if (analyser) {
+        try { analyser.disconnect(); } catch (e) { }
+        analyser = null;
+      }
+
+      if (audioContext && audioContext.state !== "closed") {
+        audioContext.close().catch(() => { });
+        audioContext = null;
+      }
+    }
+
+    function startVoiceAnimation(stream) {
+      stopVoiceAnimation();
+
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+
+      const bufferLength = analyser.frequencyBinCount;
+      dataArray = new Uint8Array(bufferLength);
+
+      sourceNode = audioContext.createMediaStreamSource(stream);
+      sourceNode.connect(analyser);
+
+      const bars = document.querySelectorAll("#voiceVisualizer .bar");
+
+      function animateBars() {
+        if (!analyser) return;
+
+        analyser.getByteFrequencyData(dataArray);
+        const chunkSize = Math.floor(bufferLength / bars.length) || 1;
+
+        bars.forEach((bar, index) => {
+          const start = index * chunkSize;
+          const end = Math.min(start + chunkSize, bufferLength);
+
+          let sum = 0;
+          for (let i = start; i < end; i++) sum += dataArray[i];
+
+          const avg = sum / (end - start || 1);
+          const height = Math.max(16, Math.min(70, 16 + avg * 0.22));
+          bar.style.height = height + "px";
+        });
+
+        visualizerAnimationId = requestAnimationFrame(animateBars);
+      }
+
+      animateBars();
+    }
+
+    function stopMicCheckAnimation() {
+      if (micCheckAnimationId) {
+        cancelAnimationFrame(micCheckAnimationId);
+        micCheckAnimationId = null;
+      }
+
+      const bars = document.querySelectorAll("#micTestVisualizer .bar");
+      bars.forEach(bar => { bar.style.height = "16px"; });
+
+      if (micCheckSource) {
+        try { micCheckSource.disconnect(); } catch (e) { }
+        micCheckSource = null;
+      }
+
+      if (micCheckAnalyser) {
+        try { micCheckAnalyser.disconnect(); } catch (e) { }
+        micCheckAnalyser = null;
+      }
+
+      if (micCheckAudioContext && micCheckAudioContext.state !== "closed") {
+        micCheckAudioContext.close().catch(() => { });
+        micCheckAudioContext = null;
+      }
+    }
+
+    function startMicCheckAnimation(stream) {
+      stopMicCheckAnimation();
+
+      micCheckStream = stream;
+      micCheckAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+      micCheckAnalyser = micCheckAudioContext.createAnalyser();
+      micCheckAnalyser.fftSize = 256;
+
+      const bufferLength = micCheckAnalyser.frequencyBinCount;
+      micCheckDataArray = new Uint8Array(bufferLength);
+
+      micCheckSource = micCheckAudioContext.createMediaStreamSource(stream);
+      micCheckSource.connect(micCheckAnalyser);
+
+      const bars = document.querySelectorAll("#micTestVisualizer .bar");
+
+      function animate() {
+        if (!micCheckAnalyser) return;
+
+        micCheckAnalyser.getByteFrequencyData(micCheckDataArray);
+        const chunkSize = Math.floor(bufferLength / bars.length) || 1;
+        let totalAverage = 0;
+
+        bars.forEach((bar, index) => {
+          const start = index * chunkSize;
+          const end = Math.min(start + chunkSize, bufferLength);
+
+          let sum = 0;
+          for (let i = start; i < end; i++) sum += micCheckDataArray[i];
+
+          const avg = sum / (end - start || 1);
+          totalAverage += avg;
+
+          const height = Math.max(16, Math.min(70, 16 + avg * 0.22));
+          bar.style.height = height + "px";
+        });
+
+        totalAverage = totalAverage / bars.length;
+
+        if (totalAverage > 8) {
+          micCheckPassed = true;
+          document.getElementById("micCheckStatus").innerText =
+            "Microphone detected successfully. You can begin the exam.";
+          document.getElementById("beginExamBtn").disabled = false;
+        }
+
+        micCheckAnimationId = requestAnimationFrame(animate);
+      }
+
+      animate();
+    }
+
+    async function runMicCheck() {
+      try {
+        micCheckPassed = false;
+        document.getElementById("beginExamBtn").disabled = true;
+        document.getElementById("micCheckStatus").innerText = "Requesting microphone access...";
+
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        document.getElementById("micCheckStatus").innerText = "Speak now to test your microphone...";
+        startMicCheckAnimation(stream);
+
+        setTimeout(() => {
+          if (!micCheckPassed) {
+            document.getElementById("micCheckStatus").innerText =
+              "Microphone access granted, but no clear voice detected yet. Please speak louder and test again.";
+          }
+        }, 4000);
+      } catch (error) {
+        console.error(error);
+        document.getElementById("micCheckStatus").innerText = "Microphone permission denied or unavailable.";
+        document.getElementById("beginExamBtn").disabled = true;
+      }
+    }
+
+    function beginExamAfterMicCheck() {
+      if (!micCheckPassed) return;
+
+      examMicStream = micCheckStream;
+
+      document.getElementById("timerCard").classList.remove("hidden");
+
+      if (micCheckAnimationId) {
+        cancelAnimationFrame(micCheckAnimationId);
+        micCheckAnimationId = null;
+      }
+
+      const bars = document.querySelectorAll("#micTestVisualizer .bar");
+      bars.forEach(bar => { bar.style.height = "16px"; });
+
+      if (micCheckSource) {
+        try { micCheckSource.disconnect(); } catch (e) { }
+        micCheckSource = null;
+      }
+
+      if (micCheckAnalyser) {
+        try { micCheckAnalyser.disconnect(); } catch (e) { }
+        micCheckAnalyser = null;
+      }
+
+      if (micCheckAudioContext && micCheckAudioContext.state !== "closed") {
+        micCheckAudioContext.close().catch(() => { });
+        micCheckAudioContext = null;
+      }
+
+      micCheckStream = null;
+
+      document.getElementById("micCheckScreen").classList.add("hidden");
+      document.getElementById("timerCard").classList.remove("hidden");
+      document.getElementById("examArea").classList.remove("hidden");
+      currentQuestionIndex = 0;
+      readingSectionStartIndex = null;
+      readingSectionEndIndex = null;
+      readingSectionTimeLeft = null;
+      renderQuestion();
+    }
+
+    function bindListeningAudioBehavior(player) {
+      player.onended = () => {
+        listeningAudioEnded = true;
+        setNextButtonDisabled(false);
+
+        if (pendingListeningAutoNext) {
+          pendingListeningAutoNext = false;
+          nextQuestion(true);
+        }
+      };
+    }
+
+    function showPrepareStage(seconds) {
+      const stageBox = document.getElementById("speakingStage");
+      const recBox = document.getElementById("recIndicator");
+      const statusBox = document.getElementById("recordStatus");
+
+      recBox.classList.add("hidden");
+      stageBox.classList.remove("hidden");
+      stageBox.innerText = `Prepare Time: ${seconds} sec`;
+      statusBox.innerText = "Get ready to speak...";
+
+      setTimerLabel("Prepare Time");
+      setMainTimer(seconds);
+    }
+
+    function showRecordingStage(seconds) {
+      const stageBox = document.getElementById("speakingStage");
+      const recBox = document.getElementById("recIndicator");
+      const statusBox = document.getElementById("recordStatus");
+
+      stageBox.classList.remove("hidden");
+      stageBox.innerText = `Recording Time: ${seconds} sec`;
+      recBox.classList.remove("hidden");
+      statusBox.innerText = "Recording...";
+
+      setTimerLabel("Recording Time");
+      setMainTimer(seconds);
+    }
+
+    async function transcribeSpeakingAudio(audioBlob) {
+      try {
+        const formData = new FormData();
+        formData.append("audio", audioBlob, "speaking.webm");
+
+        const response = await fetch("http://localhost:3001/transcribe-speaking", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          console.error("Transcription failed:", data);
+          return "";
+        }
+
+        return data.transcript || "";
+      } catch (error) {
+        console.error("Transcription request error:", error);
+        return "";
+      }
+    }
+
+    async function startRecordingInternal() {
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          document.getElementById("recordStatus").innerText = "Microphone not supported in this browser.";
+          speakingProcessing = false;
+          speakingFlowRunning = false;
+          return;
+        }
+
+        let stream = examMicStream;
+
+        if (!stream || !stream.active) {
+          stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          examMicStream = stream;
+        }
+
+        audioChunks = [];
+        mediaRecorder = new MediaRecorder(stream);
+
+        startVoiceAnimation(stream);
+
+        mediaRecorder.ondataavailable = event => {
+          if (event.data.size > 0) audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = async () => {
+          stopVoiceAnimation();
+
+          const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+          const reader = new FileReader();
+          reader.readAsDataURL(audioBlob);
+
+          reader.onloadend = async () => {
+            speakingAudioBase64 = reader.result;
+
+            document.getElementById("recordStatus").innerText =
+              "Transcribing speaking response...";
+            setTimerLabel("Processing");
+            setMainTimer(0);
+
+            speakingTranscript = await transcribeSpeakingAudio(audioBlob);
+
+            const audioBox = document.getElementById("audioBox");
+            audioBox.classList.remove("hidden");
+            audioBox.innerHTML = `
+              <p style="margin:0;color:#047857;font-weight:bold;">
+                Recording saved successfully.
+              </p>
+            `;
+
+            document.getElementById("recordStatus").innerText =
+              "Recording submitted.";
+
+            document.getElementById("speakingStage").classList.add("hidden");
+            document.getElementById("recIndicator").classList.add("hidden");
+
+            speakingProcessing = false;
+            speakingFlowRunning = false;
+
+            saveCurrentAnswer();
+
+            setTimeout(() => {
+              nextQuestion(true);
+            }, 800);
+          };
+        };
+
+        mediaRecorder.start();
+      } catch (error) {
+        console.error(error);
+        stopVoiceAnimation();
+        document.getElementById("recordStatus").innerText = "Microphone error.";
+        speakingProcessing = false;
+        speakingFlowRunning = false;
+      }
+    }
+
+    function startSpeakingFlow() {
+      if (speakingFlowRunning) return;
+
+      const q = questions[currentQuestionIndex];
+      const prepareTime = Number(q.prepareTime || 0);
+      const recordTime = Number(q.recordTime || 40);
+
+      speakingFlowRunning = true;
+      speakingLocked = true;
+      speakingProcessing = true;
+
+      clearInterval(prepareInterval);
+      clearInterval(recordInterval);
+
+      speakingTranscript = "";
+      speakingAudioBase64 = "";
+
+      document.getElementById("stopBtn").classList.add("hidden");
+      document.getElementById("audioBox").classList.add("hidden");
+      document.getElementById("audioBox").innerHTML = "";
+
+      setNextButtonDisabled(true);
+
+      if (prepareTime > 0) {
+        let prepare = prepareTime;
+        showPrepareStage(prepare);
+
+        prepareInterval = setInterval(() => {
+          prepare--;
+
+          if (prepare <= 0) {
+            clearInterval(prepareInterval);
+
+            let record = recordTime;
+            showRecordingStage(record);
+
+            document.getElementById("stopBtn").classList.remove("hidden");
+            startRecordingInternal();
+
+            recordInterval = setInterval(() => {
+              record--;
+              showRecordingStage(record);
+
+              if (record <= 0) {
+                clearInterval(recordInterval);
+                stopRecording();
+                return;
+              }
+            }, 1000);
+
+            return;
+          }
+
+          showPrepareStage(prepare);
+        }, 1000);
+      } else {
+        let record = recordTime;
+        showRecordingStage(record);
+
+        document.getElementById("stopBtn").classList.remove("hidden");
+        startRecordingInternal();
+
+        recordInterval = setInterval(() => {
+          record--;
+          showRecordingStage(record);
+
+          if (record <= 0) {
+            clearInterval(recordInterval);
+            stopRecording();
+            return;
+          }
+        }, 1000);
+      }
+    }
+
+    function stopRecording() {
+      clearInterval(prepareInterval);
+      clearInterval(recordInterval);
+
+      document.getElementById("stopBtn").classList.add("hidden");
+      document.getElementById("recIndicator").classList.add("hidden");
+
+      speakingProcessing = true;
+
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
+      }
+    }
+
+    function renderOptions(containerId, options, selectedValues, isMultiple, onSelectFnName) {
+      const box = document.getElementById(containerId);
+      box.innerHTML = "";
+
+      (options || []).forEach(option => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "option-btn";
+        btn.dataset.value = option;
+        btn.innerText = option;
+        btn.onclick = () => window[onSelectFnName](option);
+
+        if (isMultiple) {
+          if ((selectedValues || []).includes(option)) btn.classList.add("selected");
+        } else {
+          if (selectedValues === option) btn.classList.add("selected");
+        }
+
+        box.appendChild(btn);
+      });
+    }
+
+    function toggleSelectedOption(containerSelector, option, isMultiple) {
+      const buttons = document.querySelectorAll(containerSelector);
+      buttons.forEach(btn => {
+        if (!isMultiple) {
+          btn.classList.toggle("selected", btn.dataset.value === option);
+        } else if (btn.dataset.value === option) {
+          btn.classList.toggle("selected");
+        }
+      });
+    }
+
+    function selectReadingSingle(option) {
+      const q = questions[currentQuestionIndex];
+      const payload = {
+        questionId: q.id,
+        type: q.type,
+        subType: q.subType,
+        title: q.title,
+        prompt: q.prompt,
+        answer: option
+      };
+
+      const existingIndex = answers.findIndex(item => item.questionId === q.id);
+      if (existingIndex >= 0) answers[existingIndex] = payload;
+      else answers.push(payload);
+
+      toggleSelectedOption("#readingOptions .option-btn", option, false);
+      updateSavedCount();
+    }
+
+    function selectReadingMultiple(option) {
+      const q = questions[currentQuestionIndex];
+      const existing = getExistingAnswer(q.id)?.answer || [];
+      let next = Array.isArray(existing) ? [...existing] : [];
+
+      if (next.includes(option)) next = next.filter(item => item !== option);
+      else next.push(option);
+
+      const payload = {
+        questionId: q.id,
+        type: q.type,
+        subType: q.subType,
+        title: q.title,
+        prompt: q.prompt,
+        answer: next
+      };
+
+      const existingIndex = answers.findIndex(item => item.questionId === q.id);
+      if (existingIndex >= 0) answers[existingIndex] = payload;
+      else answers.push(payload);
+
+      toggleSelectedOption("#readingOptions .option-btn", option, true);
+      updateSavedCount();
+    }
+
+    function selectListeningSingle(option) {
+      const q = questions[currentQuestionIndex];
+      const payload = {
+        questionId: q.id,
+        type: q.type,
+        subType: q.subType,
+        title: q.title,
+        prompt: q.prompt,
+        answer: option
+      };
+
+      const existingIndex = answers.findIndex(item => item.questionId === q.id);
+      if (existingIndex >= 0) answers[existingIndex] = payload;
+      else answers.push(payload);
+
+      toggleSelectedOption("#listeningOptions .option-btn", option, false);
+      updateSavedCount();
+    }
+
+    function selectListeningMultiple(option) {
+      const q = questions[currentQuestionIndex];
+      const existing = getExistingAnswer(q.id)?.answer || [];
+      let next = Array.isArray(existing) ? [...existing] : [];
+
+      if (next.includes(option)) next = next.filter(item => item !== option);
+      else next.push(option);
+
+      const payload = {
+        questionId: q.id,
+        type: q.type,
+        subType: q.subType,
+        title: q.title,
+        prompt: q.prompt,
+        answer: next
+      };
+
+      const existingIndex = answers.findIndex(item => item.questionId === q.id);
+      if (existingIndex >= 0) answers[existingIndex] = payload;
+      else answers.push(payload);
+
+      toggleSelectedOption("#listeningOptions .option-btn", option, true);
+      updateSavedCount();
+    }
+
+    function getSubTypeLabel(type, subType) {
+      const labels = {
+        read_aloud: "Read Aloud",
+        repeat_sentence: "Repeat Sentence",
+        describe_image: "Describe Image",
+        re_tell_lecture: "Re-tell Lecture",
+        answer_short_question: "Answer Short Question",
+        summarize_group_discussion: "Summarize Group Discussion",
+        respond_to_a_situation: "Respond to a Situation",
+
+
+        summarize_written_text: "Summarize Written Text",
+        essay: "Essay",
+
+        reading_mcq_single: "Reading MCQ Single",
+        reading_mcq_multiple: "Reading MCQ Multiple",
+        reorder_paragraphs: "Reorder Paragraphs",
+        reading_fill_blanks: "Reading Fill in the Blanks",
+        reading_writing_fill_blanks: "Reading & Writing Fill in the Blanks",
+        reading_word_formation: "Reading Word Formation",
+        reading_mcq_group: "Reading MCQ Group",
+        reading_word_formation_multi: "Reading Word Formation (Multi)",
+        reading_word_formation_passage: "Reading Word Formation Passage",
+
+        summarize_spoken_text: "Summarize Spoken Text",
+        listening_mcq_single: "Listening MCQ Single",
+        listening_mcq_multiple: "Listening MCQ Multiple",
+        listening_fill_blanks: "Listening Fill in the Blanks",
+        highlight_correct_summary: "Highlight Correct Summary",
+        select_missing_word: "Select Missing Word",
+        highlight_incorrect_words: "Highlight Incorrect Words",
+        write_from_dictation: "Write From Dictation",
+        listening_short_answer: "Listening Short Answer",
+        listening_short_answer_multi: "Listening Short Answer (Multi)",
+        listening_sequence: "Listening Sequence"
+      };
+
+      return labels[subType] || (type ? type.toUpperCase() : "QUESTION");
+    }
+
+    function renderQuestion() {
+      time = 0;
+
+      const q = questions[currentQuestionIndex];
+      hideAllAnswerAreas();
+      clearSpeakingTimers();
+      stopVoiceAnimation();
+      clearInterval(timerInterval);
+
+      if (!q) return;
+
+      document.getElementById("questionMeta").innerText =
+        "Question " + (currentQuestionIndex + 1) + " of " + questions.length;
+
+      document.getElementById("questionTypeTitle").innerText = getSubTypeLabel(q.type, q.subType);
+      document.getElementById("sectionBadge").innerText = (q.type || "question").toUpperCase();
+      document.getElementById("questionTitle").innerText = q.title || "";
+
+      const instructionBox = document.querySelector(".instruction-box");
+
+      if (q.prompt && q.prompt.trim()) {
+        instructionBox.classList.remove("hidden");
+        document.getElementById("questionPrompt").innerText = q.prompt;
+      } else {
+        instructionBox.classList.add("hidden");
+        document.getElementById("questionPrompt").innerText = "";
+      }
+
+      const taskContent = document.getElementById("taskContent");
+      const existing = getExistingAnswer(q.id);
+      const questionText =
+        q.textContent ||
+        q.text ||
+        q.content ||
+        q.passage ||
+        "";
+
+      if (
+        questionText &&
+        q.subType !== "write_from_dictation" &&
+        q.subType !== "listening_short_answer_multi" &&
+        q.subType !== "reorder_paragraphs"
+      ) {
+        taskContent.classList.remove("hidden");
+        taskContent.innerText = questionText;
+      }
+
+      if (q.type === "speaking") {
+        speakingLocked = false;
+        speakingProcessing = false;
+        speakingFlowRunning = false;
+        speakingAudioBase64 = "";
+        speakingTranscript = "";
+
+        document.getElementById("speakingArea").classList.remove("hidden");
+        document.getElementById("speakingStage").classList.remove("hidden");
+        document.getElementById("recIndicator").classList.add("hidden");
+        document.getElementById("recordStatus").innerText = "Get ready to speak...";
+        document.getElementById("audioBox").classList.add("hidden");
+        document.getElementById("audioBox").innerHTML = "";
+
+        if (q.imageUrl) {
+          taskContent.classList.remove("hidden");
+          taskContent.innerHTML = `
+  <img 
+    src="${q.imageUrl}" 
+    alt="Question Image" 
+    style="
+      display:block;
+      max-width: 520px;
+      width: 100%;
+      max-height: 380px;
+      height: auto;
+      object-fit: contain;
+      margin: 0 auto;
+      border-radius: 10px;
+    "
+  >
+`;
+        }
+
+        setNextButtonDisabled(true);
+        startSpeakingFlow();
+      }
+
+      else if (q.type === "writing") {
+        document.getElementById("writingArea").classList.remove("hidden");
+        document.getElementById("writingAnswer").value = existing?.answer || "";
+
+        updateWordCount();
+        setNextButtonDisabled(false);
+      }
+
+      else if (q.type === "reading") {
+        document.getElementById("readingArea").classList.remove("hidden");
+
+        if (q.textContent && q.subType !== "reorder_paragraphs") {
+          taskContent.classList.remove("hidden");
+          taskContent.innerText = q.textContent;
+        }
+
+        if (q.subType === "reading_mcq_single") {
+          renderOptions("readingOptions", q.options || [], existing?.answer || "", false, "selectReadingSingle");
+        }
+        else if (q.subType === "reading_mcq_multiple") {
+          renderOptions("readingOptions", q.options || [], existing?.answer || [], true, "selectReadingMultiple");
+        }
+
+        else if (q.subType === "reading_mcq_group") {
+          const wrap = document.getElementById("readingOptions");
+          wrap.innerHTML = "";
+
+          let groupedOptions = q.options || [];
+
+          if (typeof groupedOptions === "string") {
+            try {
+              groupedOptions = JSON.parse(groupedOptions);
+            } catch (error) {
+              console.error("reading_mcq_group options parse hatası:", error);
+              groupedOptions = [];
+            }
+          }
+
+          const existingAnswers = Array.isArray(existing?.answer) ? existing.answer : [];
+
+          groupedOptions.forEach((pair, index) => {
+            const row = document.createElement("div");
+            row.style.display = "flex";
+            row.style.flexDirection = "column";
+            row.style.gap = "10px";
+            row.style.marginBottom = "20px";
+
+            const title = document.createElement("div");
+            title.innerText = (index + 1) + ".";
+            title.style.fontWeight = "bold";
+            title.style.marginBottom = "8px";
+            row.appendChild(title);
+
+            pair.forEach(option => {
+              const btn = document.createElement("button");
+              btn.type = "button";
+              btn.className = "option-btn";
+              btn.innerText = option;
+
+              btn.style.width = "100%";
+
+              if (existingAnswers[index] === option) {
+                btn.classList.add("selected");
+              }
+
+              btn.onclick = () => {
+                let current = getExistingAnswer(q.id)?.answer || [];
+                let answersArr = Array.isArray(current) ? [...current] : [];
+
+                answersArr[index] = option;
+
+                const payload = {
+                  questionId: q.id,
+                  type: q.type,
+                  subType: q.subType,
+                  title: q.title,
+                  prompt: q.prompt,
+                  answer: answersArr
+                };
+
+                const existingIndex = answers.findIndex(item => item.questionId === q.id);
+                if (existingIndex >= 0) {
+                  answers[existingIndex] = payload;
+                } else {
+                  answers.push(payload);
+                }
+
+                const rowButtons = row.querySelectorAll(".option-btn");
+                rowButtons.forEach(b => b.classList.remove("selected"));
+                btn.classList.add("selected");
+
+                updateSavedCount();
+              };
+
+              row.appendChild(btn);
+            });
+
+            wrap.appendChild(row);
+          });
+        }
+
+        else if (q.subType === "reading_short_answer_multi") {
+          const wrap = document.getElementById("readingMultiShortWrap");
+          wrap.classList.remove("hidden");
+
+          taskContent.classList.add("hidden");
+          taskContent.innerHTML = "";
+
+          const lines = (q.textContent || "")
+            .split("\n")
+            .map(line => line.trim())
+            .filter(Boolean);
+
+          const existingAnswer = Array.isArray(existing?.answer) ? existing.answer : [];
+
+          wrap.innerHTML = "";
+
+          lines.forEach((line, index) => {
+            const row = document.createElement("div");
+            row.style.marginBottom = "18px";
+
+            const label = document.createElement("label");
+            label.style.display = "block";
+            label.style.fontWeight = "bold";
+            label.style.marginBottom = "6px";
+            label.innerText = line;
+
+            const input = document.createElement("input");
+            input.type = "text";
+            input.className = "blank-input reading-multi-short-input";
+            input.dataset.index = index;
+            input.placeholder = "Write answer here...";
+            input.value = existingAnswer[index] || "";
+
+            row.appendChild(label);
+            row.appendChild(input);
+            wrap.appendChild(row);
+          });
+        }
+        else if (
+          q.subType === "reading_fill_blanks" ||
+          q.subType === "reading_writing_fill_blanks"
+        ) {
+          const wrap = document.getElementById("readingFillDropdownWrap");
+          wrap.classList.remove("hidden");
+
+          taskContent.classList.add("hidden");
+          taskContent.innerHTML = "";
+
+          const text = q.textContent || "";
+          const parts = text.split("_______");
+
+          const existingAnswers = Array.isArray(existing?.answer)
+            ? existing.answer
+            : [];
+
+          let dropdownOptions = [];
+
+          if (Array.isArray(q.options) && q.options.length) {
+            dropdownOptions = [...q.options];
+          } else {
+            dropdownOptions = [];
+          }
+
+          // seçenekleri karıştır
+          dropdownOptions = dropdownOptions.sort(() => Math.random() - 0.5);
+
+          wrap.innerHTML = "";
+
+          parts.forEach((part, index) => {
+            const span = document.createElement("span");
+            span.innerText = part;
+            wrap.appendChild(span);
+
+            if (index < parts.length - 1) {
+              const select = document.createElement("select");
+              select.className = "fill-dropdown";
+              select.dataset.index = index;
+
+              select.required = true;
+
+              const defaultOption = document.createElement("option");
+              defaultOption.value = "";
+              defaultOption.innerText = "";
+              defaultOption.disabled = true;
+              defaultOption.selected = true;
+              select.appendChild(defaultOption);
+
+
+              dropdownOptions.forEach(optionText => {
+                const option = document.createElement("option");
+                option.value = optionText;
+                option.textContent = optionText;
+
+                if (existingAnswers[index] === optionText) {
+                  option.selected = true;
+                }
+
+                select.appendChild(option);
+              });
+
+              wrap.appendChild(select);
+            }
+          });
+        }
+        else if (q.subType === "reading_word_formation") {
+          const wrap = document.getElementById("readingFillBlanksWrap");
+          wrap.classList.remove("hidden");
+
+          taskContent.classList.add("hidden");
+          taskContent.innerHTML = "";
+
+          const lines = (q.textContent || "")
+            .split("\n")
+            .map(line => line.trim())
+            .filter(Boolean);
+
+          const existingAnswers = Array.isArray(existing?.answer) ? existing.answer : [];
+
+          wrap.innerHTML = "";
+
+          lines.forEach((line, index) => {
+            const parts = line.split("|");
+            const sentence = (parts[0] || "").trim();
+            const rootWord = (parts[1] || "").trim();
+
+            const sentenceParts = sentence.split("_______");
+
+            const row = document.createElement("div");
+            row.style.marginBottom = "18px";
+            row.style.lineHeight = "2";
+
+            const beforeText = document.createElement("span");
+            beforeText.innerText = sentenceParts[0] || "";
+            row.appendChild(beforeText);
+
+            const input = document.createElement("input");
+            input.type = "text";
+            input.className = "word-form-input";
+            input.dataset.index = index;
+            input.value = existingAnswers[index] || "";
+            row.appendChild(input);
+
+            const afterText = document.createElement("span");
+            afterText.innerText = " " + (sentenceParts[1] || "");
+            row.appendChild(afterText);
+
+            const root = document.createElement("span");
+            root.innerText = " " + rootWord;
+            root.style.fontWeight = "bold";
+            root.style.color = "#1f4db8";
+            root.style.marginLeft = "10px";
+            row.appendChild(root);
+
+            wrap.appendChild(row);
+          });
+        }
+
+        else if (q.subType === "reading_word_formation_passage") {
+          const wrap = document.getElementById("readingFillBlanksWrap");
+          wrap.classList.remove("hidden");
+          wrap.innerHTML = "";
+
+          taskContent.classList.add("hidden");
+          taskContent.innerHTML = "";
+
+          const raw = (q.textContent || "").trim();
+
+          const row = document.createElement("div");
+          row.className = "word-passage-line";
+
+          const regex = /_______\s*\(([^)]+)\)/g;
+          let lastIndex = 0;
+          let blankIndex = 0;
+
+          const existingAnswers = Array.isArray(existing?.answer) ? existing.answer.flat() : [];
+
+          let match;
+          while ((match = regex.exec(raw)) !== null) {
+            const beforeText = raw.slice(lastIndex, match.index);
+            row.appendChild(document.createTextNode(beforeText));
+
+            const input = document.createElement("input");
+            input.type = "text";
+            input.className = "word-passage-input";
+            input.dataset.row = 0;
+            input.dataset.blank = blankIndex;
+            input.value = existingAnswers[blankIndex] || "";
+            row.appendChild(input);
+
+            const root = document.createElement("span");
+            root.className = "word-passage-root";
+            root.innerText = match[1];
+            row.appendChild(root);
+
+            lastIndex = regex.lastIndex;
+            blankIndex++;
+          }
+
+          const afterText = raw.slice(lastIndex);
+          row.appendChild(document.createTextNode(afterText));
+
+          wrap.appendChild(row);
+        }
+        else if (q.subType === "reading_word_formation_multi") {
+          const wrap = document.getElementById("readingFillBlanksWrap");
+          wrap.classList.remove("hidden");
+
+          taskContent.classList.add("hidden");
+          taskContent.innerHTML = "";
+
+          const lines = (q.textContent || "")
+            .split("\n")
+            .map(line => line.trim())
+            .filter(Boolean);
+
+          const existingAnswers = Array.isArray(existing?.answer) ? existing.answer : [];
+
+          wrap.innerHTML = "";
+
+          lines.forEach((line, index) => {
+            const parts = line.split("|").map(x => x.trim());
+            const sentence = parts[0] || "";
+            const rootWord1 = parts[1] || "";
+            const rootWord2 = parts[2] || "";
+
+            const sentenceParts = sentence.split("_______");
+
+            const row = document.createElement("div");
+            row.style.marginBottom = "20px";
+            row.style.lineHeight = "2.2";
+
+            const before1 = document.createElement("span");
+            before1.innerText = sentenceParts[0] || "";
+            row.appendChild(before1);
+
+            const input1 = document.createElement("input");
+            input1.type = "text";
+            input1.className = "word-form-input word-form-input-multi";
+            input1.dataset.row = index;
+            input1.dataset.blank = "0";
+            input1.value = existingAnswers[index]?.[0] || "";
+            row.appendChild(input1);
+
+            const middle = document.createElement("span");
+            middle.innerText = " " + (sentenceParts[1] || "");
+            row.appendChild(middle);
+
+            const input2 = document.createElement("input");
+            input2.type = "text";
+            input2.className = "word-form-input word-form-input-multi";
+            input2.dataset.row = index;
+            input2.dataset.blank = "1";
+            input2.value = existingAnswers[index]?.[1] || "";
+            row.appendChild(input2);
+
+            const after2 = document.createElement("span");
+            after2.innerText = " " + (sentenceParts[2] || "");
+            row.appendChild(after2);
+
+            const roots = document.createElement("span");
+            roots.innerText = ` ${rootWord1} / ${rootWord2}`;
+            roots.style.marginLeft = "10px";
+            roots.style.fontWeight = "bold";
+            roots.style.color = "#1f4db8";
+
+            row.appendChild(roots);
+
+            wrap.appendChild(row);
+          });
+        }
+        else if (q.subType === "reorder_paragraphs") {
+          const wrap = document.getElementById("reorderWrap");
+          wrap.classList.remove("hidden");
+
+          // textarea alanını kullanma
+          document.getElementById("readingLongInputWrap").classList.add("hidden");
+
+          // üstteki taskContent'i de gizle
+          taskContent.classList.add("hidden");
+          taskContent.innerHTML = "";
+
+          const paragraphs = (q.textContent || "")
+            .split("\n")
+            .map(p => p.trim())
+            .filter(p => p);
+
+          const existingAnswer = Array.isArray(existing?.answer) ? existing.answer : [];
+
+          wrap.innerHTML = "";
+
+          paragraphs.forEach((text, index) => {
+            const row = document.createElement("div");
+            row.style.display = "flex";
+            row.style.alignItems = "center";
+            row.style.justifyContent = "space-between";
+            row.style.gap = "16px";
+            row.style.marginBottom = "14px";
+
+            const textBox = document.createElement("div");
+            textBox.style.flex = "1";
+            textBox.style.fontSize = "15px";
+            textBox.style.lineHeight = "1.6";
+            textBox.textContent = `${index + 1}. ${text}`;
+
+            const input = document.createElement("input");
+            input.type = "number";
+            input.min = "1";
+            input.max = String(paragraphs.length);
+            input.className = "reorder-input";
+            input.dataset.index = index;
+            input.value = existingAnswer[index] || "";
+            input.style.width = "72px";
+            input.style.minWidth = "72px";
+            input.style.height = "40px";
+            input.style.padding = "8px";
+            input.style.border = "1px solid #d1d5db";
+            input.style.borderRadius = "8px";
+            input.style.textAlign = "center";
+            input.style.background = "#fff";
+
+            row.appendChild(textBox);
+            row.appendChild(input);
+            wrap.appendChild(row);
+          });
+        }
+        setNextButtonDisabled(false);
+      }
+
+      else if (q.type === "listening") {
+        document.getElementById("listeningArea").classList.remove("hidden");
+
+        listeningAudioEnded = false;
+        pendingListeningAutoNext = false;
+
+        const player = document.getElementById("listeningPlayer");
+        player.style.display = "none";
+
+        if (q.audioUrl) {
+          player.src = q.audioUrl;
+          player.classList.remove("hidden");
+          player.controls = false;
+          player.load();
+          bindListeningAudioBehavior(player);
+          setNextButtonDisabled(true);
+
+          setTimeout(() => {
+            player.play().catch(() => { });
+          }, 300);
+        } else {
+          player.src = "";
+          player.classList.add("hidden");
+          listeningAudioEnded = true;
+          setNextButtonDisabled(false);
+        }
+
+        if (
+          q.textContent &&
+          q.subType !== "write_from_dictation" &&
+          q.subType !== "listening_short_answer_multi"
+        ) {
+          taskContent.classList.remove("hidden");
+          taskContent.innerText = q.textContent;
+        }
+
+        if (
+          q.subType === "listening_mcq_single" ||
+          q.subType === "highlight_correct_summary" ||
+          q.subType === "select_missing_word"
+        ) {
+          renderOptions("listeningOptions", q.options || [], existing?.answer || "", false, "selectListeningSingle");
+        }
+        else if (q.subType === "listening_mcq_multiple") {
+          renderOptions("listeningOptions", q.options || [], existing?.answer || [], true, "selectListeningMultiple");
+        }
+        else if (q.subType === "listening_sequence") {
+          document.getElementById("listeningSequenceWrap").classList.remove("hidden");
+
+          const optionsBox = document.getElementById("listeningSequenceOptions");
+          const existingAnswer = existing?.answer || [];
+
+          optionsBox.innerHTML = "";
+
+          (q.options || []).forEach((opt, index) => {
+            const row = document.createElement("div");
+            row.style.display = "flex";
+            row.style.justifyContent = "space-between";
+            row.style.alignItems = "center";
+            row.style.gap = "12px";
+            row.style.marginBottom = "10px";
+
+            row.innerHTML = `
+      <div style="flex:1;">${index + 1}. ${opt}</div>
+      <input
+        type="number"
+        min="1"
+        max="${q.options.length}"
+        data-index="${index}"
+        class="sequence-order-input"
+        value="${existingAnswer[index] || ""}"
+        style="width:70px; padding:8px; border:1px solid #d1d5db; border-radius:8px;"
+      >
+    `;
+
+            optionsBox.appendChild(row);
+          });
+        }
+        else if (
+          q.subType === "listening_fill_blanks" ||
+          q.subType === "highlight_incorrect_words" ||
+          q.subType === "write_from_dictation" ||
+          q.subType === "listening_short_answer"
+        ) {
+          document.getElementById("listeningTextInputWrap").classList.remove("hidden");
+          document.getElementById("listeningTextAnswer").value = existing?.answer || "";
+        }
+        else if (q.subType === "listening_short_answer_multi") {
+          document.getElementById("listeningMultiShortWrap").classList.remove("hidden");
+
+          const questionLines = parseMultiShortQuestions(
+            q.textContent || q.text || q.content || ""
+          );
+
+          document.getElementById("listeningShortLabel1").innerText =
+            questionLines[0] || "Question 1";
+
+          document.getElementById("listeningShortLabel2").innerText =
+            questionLines[1] || "Question 2";
+
+          const existingMultiAnswer = Array.isArray(existing?.answer)
+            ? existing.answer
+            : [];
+
+          document.getElementById("listeningShortAnswer1").value =
+            existingMultiAnswer[0] || "";
+
+          document.getElementById("listeningShortAnswer2").value =
+            existingMultiAnswer[1] || "";
+        }
+        else {
+          document.getElementById("listeningLongInputWrap").classList.remove("hidden");
+          document.getElementById("listeningAnswer").value = existing?.answer || "";
+        }
+      }
+
+      updateProgressBar();
+      updateSavedCount();
+      updateFinishButton();
+      startTimer();
+    }
+
+    function saveCurrentAnswer() {
+      const q = questions[currentQuestionIndex];
+      if (!q) return;
+
+      let answerPayload = {
+        questionId: q.id,
+        type: q.type,
+        subType: q.subType,
+        title: q.title,
+        prompt: q.prompt,
+        answer: ""
+      };
+
+      if (q.type === "speaking") {
+        answerPayload.speakingAudio = speakingAudioBase64 || "";
+        answerPayload.transcript = speakingTranscript || "";
+        answerPayload.answer = speakingTranscript || "";
+      }
+
+      else if (q.type === "writing") {
+        answerPayload.answer = document.getElementById("writingAnswer").value.trim();
+      }
+
+      else if (q.type === "reading") {
+        if (
+          q.subType === "reading_fill_blanks" ||
+          q.subType === "reading_writing_fill_blanks"
+        ) {
+          const selects = document.querySelectorAll(".fill-dropdown");
+          answerPayload.answer = Array.from(selects).map(select => select.value);
+        }
+
+        else if (q.subType === "reading_short_answer_multi") {
+          const inputs = document.querySelectorAll(".reading-multi-short-input");
+          answerPayload.answer = Array.from(inputs).map(input => input.value.trim());
+        }
+
+        else if (q.subType === "reorder_paragraphs" || q.subType === "Reorder Paragraphs") {
+          const inputs = document.querySelectorAll(".reorder-input");
+          const positions = Array.from(inputs).map(input => Number(input.value.trim()));
+
+          const ordered = [];
+          positions.forEach((position, index) => {
+            if (position >= 1) {
+              ordered[position - 1] = String(index + 1);
+            }
+          });
+
+          answerPayload.answer = ordered;
+        }
+
+        else if (q.subType === "reading_mcq_group") {
+          const existing = getExistingAnswer(q.id);
+          answerPayload.answer = existing ? existing.answer : [];
+        }
+
+        else if (q.subType === "reading_word_formation") {
+          const inputs = document.querySelectorAll(".word-form-input");
+          answerPayload.answer = Array.from(inputs).map(input => input.value.trim());
+        }
+
+        else if (q.subType === "reading_word_formation_passage") {
+          const inputs = document.querySelectorAll(".word-passage-input");
+          answerPayload.answer = [Array.from(inputs).map(input => input.value.trim())];
+        }
+
+        else if (q.subType === "reading_word_formation_multi") {
+          const inputs = document.querySelectorAll(".word-form-input-multi");
+          const grouped = [];
+
+          inputs.forEach(input => {
+            const row = Number(input.dataset.row);
+            const blank = Number(input.dataset.blank);
+
+            if (!grouped[row]) grouped[row] = ["", ""];
+            grouped[row][blank] = input.value.trim();
+          });
+
+          answerPayload.answer = grouped;
+        }
+
+        else {
+          const existing = getExistingAnswer(q.id);
+          answerPayload.answer = existing ? existing.answer : "";
+        }
+      }
+
+      else if (q.type === "listening") {
+        if (
+          q.subType === "listening_fill_blanks" ||
+          q.subType === "highlight_incorrect_words" ||
+          q.subType === "write_from_dictation" ||
+          q.subType === "listening_short_answer"
+        ) {
+          answerPayload.answer = document.getElementById("listeningTextAnswer").value.trim();
+        }
+
+        else if (q.subType === "listening_sequence") {
+          const inputs = document.querySelectorAll(".sequence-order-input");
+          answerPayload.answer = Array.from(inputs).map(input => input.value.trim());
+        }
+
+        else if (q.subType === "listening_short_answer_multi") {
+          answerPayload.answer = [
+            document.getElementById("listeningShortAnswer1").value.trim(),
+            document.getElementById("listeningShortAnswer2").value.trim()
+          ];
+        }
+
+        else if (q.subType === "summarize_spoken_text") {
+          answerPayload.answer = document.getElementById("listeningAnswer").value.trim();
+        }
+
+        else {
+          const existing = getExistingAnswer(q.id);
+          answerPayload.answer = existing ? existing.answer : "";
+        }
+      }
+
+      const existingIndex = answers.findIndex(item => item.questionId === q.id);
+      if (existingIndex >= 0) {
+        answers[existingIndex] = answerPayload;
+      } else {
+        answers.push(answerPayload);
+      }
+
+      updateSavedCount();
+    }
+
+    function nextQuestion(forceAdvance = false) {
+      const q = questions[currentQuestionIndex];
+
+      // Speaking: kayıt bitmeden geçmesin
+      if (!forceAdvance && q && q.type === "speaking") {
+        if (speakingProcessing || !speakingAudioBase64) return;
+      }
+
+      // Listening: ses bitmeden geçmesin
+      if (!forceAdvance && q && q.type === "listening") {
+        if (!listeningAudioEnded) return;
+      }
+
+      saveCurrentAnswer();
+      clearSpeakingTimers();
+      stopVoiceAnimation();
+      clearInterval(timerInterval);
+
+      if (q && q.type !== "reading") {
+        readingSectionStartIndex = null;
+        readingSectionEndIndex = null;
+        readingSectionTimeLeft = null;
+      }
+
+      if (currentQuestionIndex < questions.length - 1) {
+        currentQuestionIndex++;
+        renderQuestion();
+      } else {
+        finishExam(true);
+      }
+    }
+
+    function finishExam(skipConfirm = false) {
+      if (!skipConfirm) {
+        const ok = confirm("Are you sure you want to finish the exam?");
+        if (!ok) return;
+      }
+
+      saveCurrentAnswer();
+      clearSpeakingTimers();
+      stopVoiceAnimation();
+      stopMicCheckAnimation();
+      clearInterval(timerInterval);
+
+      if (examMicStream) {
+        examMicStream.getTracks().forEach(track => track.stop());
+        examMicStream = null;
+      }
+
+      const examData = {
+        candidateName: localStorage.getItem("candidateName") || "",
+        candidateSurname: localStorage.getItem("candidateSurname") || "",
+        candidatePhone: localStorage.getItem("candidatePhone") || "",
+        candidateEmail: localStorage.getItem("candidateEmail") || "",
+        candidateId: localStorage.getItem("candidateId") || "",
+        examCode: localStorage.getItem("examCode") || "",
+        finishedAt: new Date().toISOString(),
+        answers
+      };
+
+      fetch("http://localhost:3001/save-exam", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(examData)
+      })
+        .then(async response => {
+          const data = await response.json();
+
+          console.log("SAVE EXAM RESPONSE:", data);
+
+          if (!response.ok) {
+            throw new Error(data.error || "Exam could not be saved.");
+          }
+
+          return data;
+        })
+        .then((data) => {
+          console.log("EXAM SAVED OK:", data);
+
+          document.getElementById("startScreen").classList.add("hidden");
+          document.getElementById("micCheckScreen").classList.add("hidden");
+          document.getElementById("examArea").classList.add("hidden");
+          document.getElementById("finishScreen").classList.remove("hidden");
+        })
+        .catch(error => {
+          console.error("SAVE EXAM ERROR:", error);
+          alert(error.message || "Exam could not be submitted.");
+        });
+    }
+
+    function startExam() {
+      document.getElementById("startScreen").classList.add("hidden");
+      document.getElementById("micCheckScreen").classList.remove("hidden");
+      document.getElementById("examArea").classList.add("hidden");
+      document.getElementById("finishScreen").classList.add("hidden");
+      document.getElementById("timerCard").classList.add("hidden");
+    }
+
+    async function loadQuestions() {
+      try {
+        const loadingArea = document.getElementById("loadingArea");
+        const candidateInfoBox = document.getElementById("candidateInfo");
+
+        if (candidateInfoBox) {
+          const displayName = localStorage.getItem("candidateName") || "-";
+          const displayExamCode = localStorage.getItem("examCode") || examCode || "-";
+
+          candidateInfoBox.innerText = `${displayName} | Exam: ${displayExamCode}`;
+        }
+
+        let questionsData = [];
+        const storedExam = localStorage.getItem("examData");
+
+        if (storedExam) {
+          const parsedExam = JSON.parse(storedExam);
+          questionsData = parsedExam.questions || [];
+          examCode = parsedExam.examCode || examCode;
+        } else {
+          const response = await fetch("http://localhost:3001/questions");
+          questionsData = await response.json();
+        }
+
+        if (candidateInfoBox) {
+          const displayName = localStorage.getItem("candidateName") || "-";
+          const displayExamCode = localStorage.getItem("examCode") || examCode || "-";
+
+          candidateInfoBox.innerText = `${displayName} | Exam: ${displayExamCode}`;
+        }
+
+        if (!questionsData.length) {
+          loadingArea.innerText = "Henüz kayıtlı soru yok.";
+          return;
+        }
+
+        questions = questionsData.filter(q => {
+          const sub = (q.subType || "").toLowerCase();
+
+          // bozuk reorder sorusunu alma
+          if (sub === "reorder_paragraphs" || sub === "reorder paragraphs") {
+            return (q.textContent || "").trim().length > 0;
+          }
+
+          // bozuk listening sequence sorusunu da alma
+          if (sub === "listening_sequence" || sub === "listening sequence") {
+            return Array.isArray(q.options) && q.options.length > 0;
+          }
+
+          return true;
+        });
+
+
+        const uniqueMap = new Map();
+
+        questions.forEach(q => {
+          const textKey = (q.textContent || "").trim();
+          const optionsKey = Array.isArray(q.options) ? q.options.join("|") : "";
+          const audioKey = q.audioUrl || "";
+          const promptKey = q.prompt || "";
+
+          const key = `${q.title || ""}_${q.subType || ""}_${textKey}_${optionsKey}_${audioKey}_${promptKey}`;
+
+          if (!uniqueMap.has(key)) {
+            uniqueMap.set(key, q);
+          }
+        });
+
+        questions = Array.from(uniqueMap.values());
+
+        loadingArea.style.display = "none";
+        document.getElementById("startScreen").classList.remove("hidden");
+        document.getElementById("micCheckScreen").classList.add("hidden");
+        document.getElementById("examArea").classList.add("hidden");
+        document.getElementById("finishScreen").classList.add("hidden");
+      } catch (error) {
+        console.error("loadQuestions error:", error);
+        const loadingArea = document.getElementById("loadingArea");
+        if (loadingArea) loadingArea.innerText = "Sorular yüklenemedi.";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      const writingBox = document.getElementById("writingAnswer");
+      if (writingBox) writingBox.addEventListener("input", updateWordCount);
+      loadQuestions();
+    });
+  </script>
+</body>
+
+</html>

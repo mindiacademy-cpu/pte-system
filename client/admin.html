@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PTE Admin Panel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 30px;
+      color: #111827;
+    }
+
+    h1 {
+      text-align: center;
+      color: #1f3c88;
+      margin-bottom: 24px;
+    }
+
+    .topbar {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .btn {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+      text-decoration: none;
+      display: inline-block;
+      margin-right: 8px;
+      margin-top: 8px;
+    }
+
+    .btn:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-download {
+      background: #059669;
+    }
+
+    .btn-download:hover {
+      background: #047857;
+    }
+
+    .btn-pdf {
+      background: #dc2626;
+    }
+
+    .btn-pdf:hover {
+      background: #b91c1c;
+    }
+
+    .btn-delete {
+      background: #7c3aed;
+    }
+
+    .btn-delete:hover {
+      background: #6d28d9;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      padding: 24px;
+      margin: 20px auto;
+      max-width: 1000px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .candidate-title {
+      margin: 0;
+      color: #1f3c88;
+      font-size: 24px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .meta-item {
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .label {
+      font-weight: bold;
+      color: #1f3c88;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .meta-value {
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 15px;
+    }
+
+    .score-box {
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+      border: 1px solid #bfdbfe;
+    }
+
+    .score-main {
+      font-size: 22px;
+      font-weight: bold;
+      color: #1e3a8a;
+      margin-bottom: 8px;
+    }
+
+    .score-sub {
+      color: #374151;
+      font-size: 15px;
+    }
+
+    .section-title {
+      margin-top: 26px;
+      margin-bottom: 12px;
+      font-size: 20px;
+      color: #111827;
+      text-align: left;
+    }
+
+    .question {
+      margin-top: 16px;
+      padding: 18px;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      background: #fcfcfd;
+      text-align: left;
+    }
+
+    .question-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .question-type {
+      display: inline-block;
+      background: #1f3c88;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .question-score {
+      font-weight: bold;
+      color: #059669;
+    }
+
+    .question-block {
+      margin-top: 10px;
+    }
+
+    .question-block pre {
+      background: #f8fafc;
+      padding: 12px;
+      border-radius: 10px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      margin: 6px 0 0 0;
+      border: 1px solid #e5e7eb;
+    }
+
+    audio {
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .empty {
+      text-align: center;
+      color: #666;
+      padding: 30px;
+    }
+
+    .download-wrap {
+      margin-top: 10px;
+    }
+
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+
+      .topbar,
+      .btn,
+      .download-wrap,
+      audio {
+        display: none !important;
+      }
+
+      .card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+        margin: 0;
+        max-width: 100%;
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>PTE Admin Panel</h1>
+
+  <div class="topbar">
+    <button class="btn" onclick="loadResults()">Refresh Results</button>
+
+    <input id="searchInput" type="text" placeholder="İsim, ID veya exam code ara"
+      style="padding:10px 14px; border:1px solid #ccc; border-radius:8px; width:260px; margin-left:8px;">
+
+    <select id="sortSelect" style="padding:10px 14px; border:1px solid #ccc; border-radius:8px; margin-left:8px;">
+      <option value="newest">En yeni</option>
+      <option value="oldest">En eski</option>
+      <option value="name_asc">İsim A-Z</option>
+      <option value="name_desc">İsim Z-A</option>
+    </select>
+  </div>
+
+  <div id="results"></div>
+
+  <script>
+    function getAudioExtensionFromDataUrl(dataUrl) {
+      if (!dataUrl || typeof dataUrl !== "string") return "webm";
+      if (dataUrl.includes("audio/webm")) return "webm";
+      if (dataUrl.includes("audio/wav")) return "wav";
+      if (dataUrl.includes("audio/mp4")) return "m4a";
+      if (dataUrl.includes("audio/mpeg")) return "mp3";
+      return "webm";
+    }
+
+    function createDownloadName(exam, answer, answerIndex) {
+      const candidate = (exam.candidateName || "candidate").replace(/\s+/g, "_");
+      const examCode = exam.examCode || "exam";
+      const qTitle = (answer.title || ("speaking_" + (answerIndex + 1))).replace(/[^\w\-]+/g, "_");
+      const ext = getAudioExtensionFromDataUrl(answer.speakingAudio);
+      return `${candidate}_${examCode}_${qTitle}.${ext}`;
+    }
+
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function formatFinishedAt(value) {
+      if (!value) return "-";
+
+      const date = new Date(value);
+
+      return date.toLocaleString("tr-TR", {
+        timeZone: "Europe/Istanbul",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+    }
+
+    function buildPdfHtml(exam) {
+      const summary = exam.summary || {};
+      const answers = Array.isArray(exam.answers) ? exam.answers : [];
+
+      const overall = summary.overall ?? 0;
+      const speaking = summary.speaking ?? 0;
+      const writing = summary.writing ?? 0;
+      const reading = summary.reading ?? 0;
+      const listening = summary.listening ?? 0;
+
+
+
+      return `
+    <html>
+    <head>
+      <title>PTE Academic Score Report</title>
+      <style>
+        * { box-sizing: border-box; }
+        body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 28px;
+          color: #1f2937;
+          background: white;
+        }
+        .report-wrap {
+          max-width: 980px;
+          margin: 0 auto;
+        }
+        .top-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          border-bottom: 3px solid #1f3c88;
+          padding-bottom: 14px;
+          margin-bottom: 22px;
+        }
+        .brand-title {
+          font-size: 28px;
+          font-weight: bold;
+          color: #1f3c88;
+          margin: 0;
+        }
+        .report-logo {
+          width: 90px;
+          height: auto;
+          display: block;
+          margin-bottom:30px;
+        }
+        .brand-subtitle {
+          margin-top: 6px;
+          font-size: 13px;
+          color: #6b7280;
+        }
+        .report-meta {
+          text-align: right;
+          font-size: 12px;
+          color: #6b7280;
+          line-height: 1.6;
+        }
+        .section-title {
+          font-size: 18px;
+          font-weight: bold;
+          color: #111827;
+          margin: 26px 0 12px;
+        }
+        .candidate-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+          margin-bottom: 20px;
+        }
+        .info-box {
+          border: 1px solid #d1d5db;
+          border-radius: 10px;
+          padding: 12px 14px;
+          background: #fafafa;
+        }
+        .info-label {
+          font-size: 11px;
+          font-weight: bold;
+          color: #1f3c88;
+          text-transform: uppercase;
+          margin-bottom: 6px;
+          letter-spacing: 0.4px;
+        }
+        .info-value {
+          font-size: 14px;
+          color: #111827;
+          word-break: break-word;
+        }
+        .score-summary {
+          border: 1px solid #bfdbfe;
+          background: linear-gradient(135deg, #eff6ff, #dbeafe);
+          border-radius: 14px;
+          padding: 18px;
+          margin-bottom: 18px;
+        }
+        .overall-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 18px;
+          flex-wrap: wrap;
+        }
+        .overall-left {
+          flex: 1;
+        }
+        .overall-label {
+          font-size: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          color: #1f3c88;
+          font-weight: bold;
+          margin-bottom: 6px;
+        }
+        .overall-score {
+          font-size: 44px;
+          font-weight: bold;
+          color: #1e3a8a;
+          line-height: 1;
+        }
+        .overall-note {
+          margin-top: 8px;
+          font-size: 13px;
+          color: #4b5563;
+        }
+        .module-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 12px;
+          margin-top: 18px;
+        }
+        .module-box {
+          background: white;
+          border: 1px solid #dbeafe;
+          border-radius: 12px;
+          padding: 14px;
+          text-align: center;
+        }
+        .module-name {
+          font-size: 12px;
+          color: #1f3c88;
+          font-weight: bold;
+          text-transform: uppercase;
+          margin-bottom: 8px;
+        }
+        .module-score {
+          font-size: 28px;
+          font-weight: bold;
+          color: #111827;
+        }
+        .question-card {
+          border: 1px solid #d1d5db;
+          border-radius: 12px;
+          padding: 14px;
+          margin-top: 12px;
+          page-break-inside: avoid;
+          background: #fcfcfd;
+        }
+        .question-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 10px;
+        }
+        .question-type {
+          display: inline-block;
+          background: #1f3c88;
+          color: white;
+          border-radius: 999px;
+          padding: 5px 10px;
+          font-size: 11px;
+          font-weight: bold;
+          text-transform: uppercase;
+        }
+        .logo-title-block {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 4px;
+        }
+
+        .report-logo {
+         width: 90px;
+         height: auto;
+         display: block;
+        }
+        .question-score {
+          font-size: 13px;
+          font-weight: bold;
+          color: #047857;
+        }
+        .question-row {
+          margin-bottom: 10px;
+        }
+        .q-label {
+          display: block;
+          font-size: 11px;
+          color: #6b7280;
+          text-transform: uppercase;
+          font-weight: bold;
+          margin-bottom: 4px;
+        }
+        .q-title {
+          font-size: 15px;
+          font-weight: bold;
+          color: #111827;
+        }
+        .question-block {
+          margin-top: 10px;
+        }
+        
+        .top-header {
+         display: flex;
+         justify-content: space-between; /* sağa iter */
+         align-items: flex-start;          /* ALT hizaya getirir */
+         border-bottom: 2px solid #1f3c88;
+         padding-bottom: 10px;
+         margin-bottom: 20px;
+        }
+
+        .left-header {
+         display: flex;
+         flex-direction: column;
+         gap: 6px;
+        }
+
+        .right-header {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 26px;
+        }
+
+        .right-logo {
+          width: 160px;
+          height: auto;
+        }
+
+        .generated-text {
+         font-size: 12px;
+         text-align: right;
+         color: #333;
+         margin-top: 36px; /* bunu artırıp azalt */
+        }
+
+        .right-header {
+         font-size: 12px;
+         text-align: right;
+         color: #333;
+        }
+
+        .block-label {
+          font-size: 12px;
+          font-weight: bold;
+          color: #1f3c88;
+          margin-bottom: 4px;
+        }
+        .block-value {
+          font-size: 13px;
+          color: #1f2937;
+          line-height: 1.55;
+          white-space: pre-wrap;
+          word-break: break-word;
+          background: #f8fafc;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          padding: 10px;
+        }
+        .footer {
+          margin-top: 24px;
+          border-top: 1px solid #e5e7eb;
+          padding-top: 10px;
+          font-size: 11px;
+          color: #6b7280;
+          text-align: right;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="report-wrap">
+      <div class="top-header">
+  
+  <div class="left-header">
+    <img src="http://localhost:3001/logo.png" class="report-logo">
+    <div class="brand-title">PTE Academic</div>
+    <div class="brand-subtitle">Score Report</div>
+  </div>
+
+  <div class="right-header">
+  <img src="http://localhost:3001/mylogo.png" class="right-logo">
+
+  <div class="generated-text">
+    Generated Report<br>
+    ${escapeHtml(new Date().toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }))}
+  </div>
+</div>
+
+</div>
+
+        <div class="section-title">Candidate Details</div>
+
+        <div class="candidate-grid">
+
+  <div class="info-box">
+    <div class="info-label">Name</div>
+    <div class="info-value">${escapeHtml(exam.candidateName || "-")}</div>
+  </div>
+
+  <div class="info-box">
+    <div class="info-label">Surname</div>
+    <div class="info-value">${escapeHtml(exam.candidateSurname || "-")}</div>
+  </div>
+
+  <div class="info-box">
+    <div class="info-label">Phone Number</div>
+    <div class="info-value">${escapeHtml(exam.candidatePhone || exam.candidateId || "-")}</div>
+  </div>
+
+  <div class="info-box">
+    <div class="info-label">E-mail</div>
+    <div class="info-value">${escapeHtml(exam.candidateEmail || "-")}</div>
+  </div>
+
+  <div class="info-box">
+    <div class="info-label">Exam Code</div>
+    <div class="info-value">${escapeHtml(exam.examCode || "-")}</div>
+  </div>
+
+  <div class="info-box">
+    <div class="info-label">Finished At</div>
+    <div class="info-value">${escapeHtml(
+        exam.finishedAt
+          ? new Date(exam.finishedAt).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })
+          : "-"
+      )}</div>
+  </div>
+
+</div>
+
+        <div class="section-title">Score Summary</div>
+
+        <div class="score-summary">
+          <div class="overall-row">
+            <div class="overall-left">
+              <div class="overall-label">Overall Score</div>
+              <div class="overall-score">${overall}</div>
+              <div class="overall-note">Performance across all communicative skills</div>
+            </div>
+          </div>
+
+          <div class="module-grid">
+            <div class="module-box">
+              <div class="module-name">Speaking</div>
+              <div class="module-score">${speaking}</div>
+            </div>
+            <div class="module-box">
+              <div class="module-name">Writing</div>
+              <div class="module-score">${writing}</div>
+            </div>
+            <div class="module-box">
+              <div class="module-name">Reading</div>
+              <div class="module-score">${reading}</div>
+            </div>
+            <div class="module-box">
+              <div class="module-name">Listening</div>
+              <div class="module-score">${listening}</div>
+            </div>
+          </div>
+        </div>
+
+        
+
+        <div class="footer">
+          PTE Academic Practice Exam Report
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+    }
+
+    function downloadPdfReport(exam) {
+      const reportWindow = window.open("", "_blank");
+      const html = buildPdfHtml(exam);
+
+      reportWindow.document.open();
+      reportWindow.document.write(html);
+      reportWindow.document.close();
+
+      setTimeout(() => {
+        reportWindow.focus();
+        reportWindow.print();
+      }, 500);
+    }
+
+    async function deleteResult(resultId, candidateName) {
+
+      const ok = confirm(`${candidateName || "Bu adayın"} sonucunu silmek istiyor musunuz?`);
+      if (!ok) return;
+
+      try {
+        const response = await fetch(`http://localhost:3001/exam-results/${resultId}`, {
+          method: "DELETE"
+        });
+
+        if (!response.ok) {
+          alert("Aday sonucu silinemedi.");
+          return;
+        }
+
+        alert("Aday sonucu silindi.");
+        loadResults();
+      } catch (error) {
+        alert("Server connection error.");
+        console.error(error);
+      }
+    }
+
+    function preserveScroll(callback) {
+      const scrollY = window.scrollY;
+
+      callback().then(() => {
+        requestAnimationFrame(() => {
+          window.scrollTo(0, scrollY);
+        });
+      });
+    }
+
+    function getFilteredAndSortedResults(data) {
+      const search = document.getElementById("searchInput").value.toLowerCase();
+      const sort = document.getElementById("sortSelect").value;
+
+      let results = [...data];
+
+      // filtre
+      if (search) {
+        results = results.filter(e =>
+          (e.candidateName || "").toLowerCase().includes(search) ||
+          (e.candidateId || "").toLowerCase().includes(search) ||
+          (e.examCode || "").toLowerCase().includes(search)
+        );
+      }
+
+      // sıralama
+      if (sort === "newest") {
+        results.sort((a, b) => new Date(b.finishedAt) - new Date(a.finishedAt));
+      }
+
+      if (sort === "oldest") {
+        results.sort((a, b) => new Date(a.finishedAt) - new Date(b.finishedAt));
+      }
+
+      if (sort === "name_asc") {
+        results.sort((a, b) => (a.candidateName || "").localeCompare(b.candidateName || ""));
+      }
+
+      if (sort === "name_desc") {
+        results.sort((a, b) => (b.candidateName || "").localeCompare(a.candidateName || ""));
+      }
+
+      return results;
+    }
+    async function loadResults() {
+      const container = document.getElementById("results");
+      container.innerHTML = "<p class='empty'>Loading...</p>";
+
+      try {
+        const response = await fetch("http://localhost:3001/exam-results");
+        const data = await response.json();
+
+        if (!data.length) {
+          container.innerHTML = "<p class='empty'>No exam results found.</p>";
+          return;
+        }
+
+        container.innerHTML = "";
+
+        const results = getFilteredAndSortedResults(data);
+        results.forEach((exam, examIndex) => {
+          console.log("CARD ID:", exam.id);
+          const card = document.createElement("div");
+          card.className = "card";
+
+          let html = `
+            <div class="card-header">
+              <div>
+                <h2 class="candidate-title">Candidate ${examIndex + 1}</h2>
+              </div>
+              <div>
+                <button class="btn btn-pdf">Download PDF Report</button>
+                <button class="btn btn-delete">Delete Candidate Result</button>
+              </div>
+            </div>
+
+            <div class="meta-grid">
+
+  <div class="meta-item">
+    <div class="label">Name</div>
+    <div class="meta-value">${exam.candidateName?.split(" ")[0] || "-"}</div>
+  </div>
+
+  <div class="meta-item">
+    <div class="label">Surname</div>
+    <div class="meta-value">${exam.candidateName?.split(" ").slice(1).join(" ") || "-"}</div>
+  </div>
+
+  <div class="meta-item">
+    <div class="label">Phone Number</div>
+    <div class="meta-value">${exam.candidatePhone || exam.candidateId || "-"}</div>
+  </div>
+
+  <div class="meta-item">
+    <div class="label">E-mail</div>
+    <div class="meta-value">${exam.candidateEmail || "-"}</div>
+  </div>
+
+  <div class="meta-item">
+    <div class="label">Exam Code</div>
+    <div class="meta-value">${exam.examCode || "-"}</div>
+  </div>
+
+  <div class="meta-item">
+    <div class="label">Finished At</div>
+    <div class="meta-value">${formatFinishedAt(exam.finishedAt)}</div>
+  </div>
+
+</div>
+          `;
+
+          if (exam.summary) {
+            html += `
+    <div class="score-box">
+      <div class="score-main">
+        Overall Score: ${exam.summary.overall ?? 0}
+      </div>
+      <div class="score-sub">
+        Speaking: ${exam.summary.speaking ?? 0} |
+        Writing: ${exam.summary.writing ?? 0} |
+        Reading: ${exam.summary.reading ?? 0} |
+        Listening: ${exam.summary.listening ?? 0}
+      </div>
+    </div>
+  `;
+          }
+
+          if (exam.answers && exam.answers.length) {
+            html += `<div class="section-title">Question Review</div>`;
+
+            exam.answers.forEach((answer, answerIndex) => {
+              html += `
+    <div class="question">
+      <div class="question-top">
+        <div class="question-type">${answer.type || "-"}</div>
+        <div class="question-score">
+  Auto: ${answer.autoScore ?? 0} |
+  Final: ${answer.finalScore ?? answer.autoScore ?? 0} / ${answer.maxScore || 10}
+</div>
+      </div>
+
+      <div class="question-block">
+        <div class="label">Title</div>
+        <pre>${answer.title || "-"}</pre>
+      </div>
+
+  `;
+
+              if (answer.answer) {
+                let formattedAnswer = "-";
+
+                if (Array.isArray(answer.answer)) {
+                  formattedAnswer = answer.answer.flat(Infinity).join("\n");
+                } else if (typeof answer.answer === "object" && answer.answer !== null) {
+                  formattedAnswer = Object.values(answer.answer).flat(Infinity).join("\n");
+                } else {
+                  formattedAnswer = answer.answer || "-";
+                }
+
+                html += `
+    <div class="question-block">
+      <div class="label">Answer</div>
+      <pre>${formattedAnswer}</pre>
+    </div>
+  `;
+              }
+
+              if (answer.speakingAudio) {
+                const downloadName = createDownloadName(exam, answer, answerIndex);
+
+                html += `
+      <div class="question-block">
+        <div class="label">Speaking Audio</div>
+        <audio controls src="${answer.speakingAudio}"></audio>
+        <div class="download-wrap">
+          <a class="btn btn-download" href="${answer.speakingAudio}" download="${downloadName}">
+            Download Speaking Audio
+          </a>
+        </div>
+      </div>
+    `;
+              }
+
+              if (answer.transcript) {
+                html += `
+      <div class="question-block">
+        <div class="label">Transcript</div>
+        <pre>${answer.transcript}</pre>
+      </div>
+    `;
+              }
+
+              // 🔥 EN ÖNEMLİ SATIR
+              html += `
+  <div class="question-block">
+    <div class="label">Manual Score</div>
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+      <input
+        type="number"
+        min="0"
+        max="${answer.maxScore || 10}"
+        step="0.1"
+        value="${answer.manualScore ?? ""}"
+        data-result-id="${exam.id || exam._id}"
+        data-question-id="${answer.questionId}"
+        class="manual-score-input"
+        style="
+          width:140px;
+          padding:10px 12px;
+          border:1px solid #d1d5db;
+          border-radius:8px;
+          font-size:14px;
+        "
+      >
+      <button
+        class="btn"
+        onclick="updateManualScore('${exam.id || exam._id}', '${answer.questionId}', this)"
+      >
+        Save Score
+      </button>
+      <button
+        class="btn"
+        style="background:#6b7280;"
+        onclick="clearManualScore('${exam.id || exam._id}', '${answer.questionId}')"
+      >
+        Clear
+      </button>
+    </div>
+  </div>
+`;
+
+
+
+
+              html += `</div>`;
+            });
+          }
+
+          card.innerHTML = html;
+          container.appendChild(card);
+
+          const pdfBtn = card.querySelector(".btn-pdf");
+          pdfBtn.addEventListener("click", () => downloadPdfReport(exam));
+
+          const deleteBtn = card.querySelector(".btn-delete");
+          deleteBtn.addEventListener("click", () => deleteResult(exam.id || exam._id, exam.candidateName));
+        });
+      } catch (error) {
+        container.innerHTML = "<p class='empty'>Server connection error.</p>";
+        console.error(error);
+      }
+    }
+
+    document.getElementById("searchInput").addEventListener("input", loadResults);
+    document.getElementById("sortSelect").addEventListener("change", loadResults);
+
+    loadResults();
+
+    async function updateManualScore(resultId, questionId, buttonEl) {
+      const wrapper = buttonEl.parentElement;
+      const input = wrapper.querySelector(".manual-score-input");
+      const manualScore = input.value === "" ? null : Number(input.value);
+
+      try {
+        const response = await fetch(`http://localhost:3001/exam-results/${resultId}/manual-score`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            questionId,
+            manualScore
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert(data.error || "Puan güncellenemedi.");
+          return;
+        }
+
+        await preserveScroll(loadResults);
+        alert("Puan güncellendi.");
+      } catch (error) {
+        console.error(error);
+        alert("Server connection error.");
+      }
+    }
+
+    async function clearManualScore(resultId, questionId) {
+      try {
+        const response = await fetch(`http://localhost:3001/exam-results/${resultId}/manual-score`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            questionId,
+            manualScore: null
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert(data.error || "Manual score temizlenemedi.");
+          return;
+        }
+
+        await preserveScroll(loadResults);
+        alert("Manual score temizlendi.");
+      } catch (error) {
+        console.error(error);
+        alert("Server connection error.");
+      }
+    }
+  </script>
+
+</body>
+
+</html>
