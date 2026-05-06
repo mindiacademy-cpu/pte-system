@@ -1325,7 +1325,8 @@
       document.getElementById("micCheckScreen").classList.add("hidden");
       document.getElementById("timerCard").classList.remove("hidden");
       document.getElementById("examArea").classList.remove("hidden");
-      currentQuestionIndex = 0;
+      currentQuestionIndex =
+        Number(localStorage.getItem("currentQuestionIndex")) || 0;
       readingSectionStartIndex = null;
       readingSectionEndIndex = null;
       readingSectionTimeLeft = null;
@@ -2513,6 +2514,7 @@
       }
 
       if (currentQuestionIndex < questions.length - 1) {
+        localStorage.setItem("currentQuestionIndex", currentQuestionIndex + 1);
         currentQuestionIndex++;
         renderQuestion();
       } else {
@@ -2575,6 +2577,7 @@
           localStorage.removeItem("examData");
           localStorage.removeItem("examCode");
           localStorage.removeItem("examStarted");
+          localStorage.removeItem("currentQuestionIndex");
           localStorage.removeItem("candidateName");
           localStorage.removeItem("candidateSurname");
           localStorage.removeItem("candidatePhone");
