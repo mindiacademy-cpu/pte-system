@@ -2607,8 +2607,8 @@
           questionsData = parsedExam.questions || [];
           examCode = parsedExam.examCode || examCode;
         } else {
-          const response = await fetch("/questions");
-          questionsData = await response.json();
+          window.location.href = "/";
+          return;
         }
 
         if (candidateInfoBox) {
