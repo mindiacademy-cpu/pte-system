@@ -490,7 +490,7 @@ app.post("/upload-audio", upload.single("audio"), (req, res) => {
       return res.status(400).json({ error: "Audio file is required." });
     }
 
-    const fileUrl = `http://localhost:${PORT}/uploads/${req.file.filename}`;
+    const fileUrl = `/uploads/${req.file.filename}`;
 
     res.json({
       success: true,
@@ -509,7 +509,7 @@ app.post("/upload-image", upload.single("image"), (req, res) => {
       return res.status(400).json({ error: "Image file is required." });
     }
 
-    const fileUrl = `http://localhost:${PORT}/uploads/${req.file.filename}`;
+    const fileUrl = `/uploads/${req.file.filename}`;
 
     res.json({
       success: true,
