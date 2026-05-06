@@ -1,3 +1,4 @@
+const { createClient } = require("@supabase/supabase-js");
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs")
@@ -6,6 +7,10 @@ const multer = require("multer");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
+);
 
 app.use(cors());
 app.use(express.json({ limit: "50mb" }));
@@ -719,33 +724,9 @@ app.delete("/exams/:id", (req, res) => {
   }
 });
 
-app.post("/save-exam", (req, res) => {
+app.post("/save-exam", async (req, res) => {
   try {
     const body = req.body || {};
-    const submittedAnswers = Array.isArray(body.answers) ? body.answers : [];
-    const allQuestions = readJson(QUESTIONS_FILE).map(normalizeQuestion);
-
-    const scoredAnswers = submittedAnswers.map(answer => {
-      const matchedQuestion = allQuestions.find(
-        q => String(q.id) === String(answer.questionId)
-      );
-
-      const maxScore = matchedQuestion ? Number(matchedQuestion.points || 10) : 10;
-      const autoScore = matchedQuestion
-        ? calculateAutoScore(matchedQuestion, answer.answer)
-        : 0;
-
-      return {
-        ...answer,
-        subType: matchedQuestion?.subType || answer.subType || "",
-        autoScore,
-        manualScore: null,
-        finalScore: autoScore,
-        maxScore
-      };
-    });
-
-    const summary = buildSummary(scoredAnswers);
 
     const examData = normalizeExamResult({
       id: Date.now().toString(),
@@ -756,44 +737,63 @@ app.post("/save-exam", (req, res) => {
       candidateId: body.candidateId,
       examCode: body.examCode,
       finishedAt: body.finishedAt,
-      answers: scoredAnswers,
-      summary
+      answers: body.answers,
+      summary: body.summary
     });
 
-    const examResults = readJson(EXAM_RESULTS_FILE);
-    examResults.push(examData);
-    writeJson(EXAM_RESULTS_FILE, examResults);
+    const { error } = await supabase.from("exam_results").insert([
+      {
+        candidate_name: examData.candidateName,
+        candidate_surname: examData.candidateSurname,
+        candidate_phone: examData.candidatePhone,
+        candidate_email: examData.candidateEmail,
+        exam_code: examData.examCode,
+        finished_at: examData.finishedAt,
+        answers: examData.answers,
+        summary: examData.summary
+      }
+    ]);
 
-    res.json({ success: true, examId: examData.id });
-  } catch (err) {
-    console.error("POST /save-exam error:", err);
+    if (error) {
+      console.error("SUPABASE SAVE ERROR:", error);
+      return res.status(500).json({ error: "Exam could not be saved." });
+    }
+
+    res.json({ success: true });
+
+  } catch (error) {
+    console.error("POST /save-exam error:", error);
     res.status(500).json({ error: "Exam could not be saved." });
   }
 });
 
-app.get("/exam-results", (req, res) => {
+app.get("/exam-results", async (req, res) => {
   try {
-    const examResults = readJson(EXAM_RESULTS_FILE);
+    const { data, error } = await supabase
+      .from("exam_results")
+      .select("*")
+      .order("finished_at", { ascending: false });
 
-    const normalizedResults = examResults.map(exam => {
-      const safeAnswers = Array.isArray(exam.answers)
-        ? exam.answers.map(answer => ({
-          ...answer,
-          autoScore: answer.autoScore ?? 0,
-          manualScore: answer.manualScore ?? null,
-          finalScore: answer.finalScore ?? answer.autoScore ?? 0,
-          maxScore: answer.maxScore ?? 10
-        }))
-        : [];
+    if (error) {
+      console.error("SUPABASE GET ERROR:", error);
+      return res.status(500).json({ error: "Exam results could not be loaded." });
+    }
 
-      return {
-        ...exam,
-        answers: safeAnswers,
-        summary: exam.summary || buildSummary(safeAnswers)
-      };
-    });
+    const normalizedResults = (data || []).map(item => ({
+      id: item.id,
+      candidateName: item.candidate_name || "",
+      candidateSurname: item.candidate_surname || "",
+      candidatePhone: item.candidate_phone || "",
+      candidateEmail: item.candidate_email || "",
+      candidateId: item.candidate_phone || "",
+      examCode: item.exam_code || "",
+      finishedAt: item.finished_at,
+      answers: item.answers || [],
+      summary: item.summary || {}
+    }));
 
     res.json(normalizedResults);
+
   } catch (error) {
     console.error("GET /exam-results error:", error);
     res.status(500).json({ error: "Exam results could not be loaded." });
