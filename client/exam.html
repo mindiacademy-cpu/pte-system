@@ -2564,7 +2564,14 @@
           document.getElementById("micCheckScreen").classList.add("hidden");
           document.getElementById("examArea").classList.add("hidden");
           document.getElementById("finishScreen").classList.remove("hidden");
-          localStorage.clear();
+
+          localStorage.removeItem("examData");
+          localStorage.removeItem("examCode");
+          localStorage.removeItem("candidateName");
+          localStorage.removeItem("candidateSurname");
+          localStorage.removeItem("candidatePhone");
+          localStorage.removeItem("candidateEmail");
+          localStorage.removeItem("candidateId");
         })
         .catch(error => {
           console.error("SAVE EXAM ERROR:", error);
@@ -2663,6 +2670,11 @@
     }
 
     document.addEventListener("DOMContentLoaded", function () {
+      if (!localStorage.getItem("examData") || !localStorage.getItem("examCode")) {
+        window.location.href = "/";
+        return;
+      }
+
       const writingBox = document.getElementById("writingAnswer");
       if (writingBox) writingBox.addEventListener("input", updateWordCount);
       loadQuestions();
