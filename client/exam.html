@@ -2574,6 +2574,7 @@
 
           localStorage.removeItem("examData");
           localStorage.removeItem("examCode");
+          localStorage.removeItem("examStarted");
           localStorage.removeItem("candidateName");
           localStorage.removeItem("candidateSurname");
           localStorage.removeItem("candidatePhone");
@@ -2587,6 +2588,8 @@
     }
 
     function startExam() {
+      localStorage.setItem("examStarted", "true");
+
       document.getElementById("startScreen").classList.add("hidden");
       document.getElementById("micCheckScreen").classList.remove("hidden");
       document.getElementById("examArea").classList.add("hidden");
@@ -2665,10 +2668,22 @@
         questions = Array.from(uniqueMap.values());
 
         loadingArea.style.display = "none";
-        document.getElementById("startScreen").classList.remove("hidden");
-        document.getElementById("micCheckScreen").classList.add("hidden");
-        document.getElementById("examArea").classList.add("hidden");
-        document.getElementById("finishScreen").classList.add("hidden");
+
+        const examStarted = localStorage.getItem("examStarted");
+
+        if (examStarted === "true") {
+          document.getElementById("startScreen").classList.add("hidden");
+          document.getElementById("micCheckScreen").classList.add("hidden");
+          document.getElementById("examArea").classList.remove("hidden");
+          document.getElementById("finishScreen").classList.add("hidden");
+
+          renderQuestion();
+        } else {
+          document.getElementById("startScreen").classList.remove("hidden");
+          document.getElementById("micCheckScreen").classList.add("hidden");
+          document.getElementById("examArea").classList.add("hidden");
+          document.getElementById("finishScreen").classList.add("hidden");
+        }
       } catch (error) {
         console.error("loadQuestions error:", error);
         const loadingArea = document.getElementById("loadingArea");
