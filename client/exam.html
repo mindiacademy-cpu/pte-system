@@ -2614,7 +2614,7 @@
           questionsData = parsedExam.questions || [];
           examCode = parsedExam.examCode || examCode;
         } else {
-          window.location.replace("/index.html");
+          window.location.replace("/");
           return;
         }
 
@@ -2683,7 +2683,7 @@
         localStorage.getItem("candidateName");
 
       if (!hasExam) {
-        window.location.replace("/index.html");
+        window.location.replace("/");
         return;
       }
 
