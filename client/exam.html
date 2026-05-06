@@ -800,6 +800,13 @@
   </div>
 
   <script>
+    if (
+      !localStorage.getItem("examData") ||
+      !localStorage.getItem("examCode") ||
+      !localStorage.getItem("candidateName")
+    ) {
+      window.location.href = "/index.html";
+    }
     let time = 1800;
     let timerInterval = null;
 
@@ -2684,6 +2691,7 @@
       if (writingBox) writingBox.addEventListener("input", updateWordCount);
       loadQuestions();
     });
+
   </script>
 </body>
 
