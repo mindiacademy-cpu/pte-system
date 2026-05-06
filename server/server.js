@@ -5,7 +5,7 @@ const path = require("path");
 const multer = require("multer");
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json({ limit: "50mb" }));
@@ -773,31 +773,31 @@ app.post("/save-exam", (req, res) => {
 
 app.get("/exam-results", (req, res) => {
   try {
-  const examResults = readJson(EXAM_RESULTS_FILE);
+    const examResults = readJson(EXAM_RESULTS_FILE);
 
-  const normalizedResults = examResults.map(exam => {
-    const safeAnswers = Array.isArray(exam.answers)
-      ? exam.answers.map(answer => ({
-        ...answer,
-        autoScore: answer.autoScore ?? 0,
-        manualScore: answer.manualScore ?? null,
-        finalScore: answer.finalScore ?? answer.autoScore ?? 0,
-        maxScore: answer.maxScore ?? 10
-      }))
-      : [];
+    const normalizedResults = examResults.map(exam => {
+      const safeAnswers = Array.isArray(exam.answers)
+        ? exam.answers.map(answer => ({
+          ...answer,
+          autoScore: answer.autoScore ?? 0,
+          manualScore: answer.manualScore ?? null,
+          finalScore: answer.finalScore ?? answer.autoScore ?? 0,
+          maxScore: answer.maxScore ?? 10
+        }))
+        : [];
 
-    return {
-      ...exam,
-      answers: safeAnswers,
-      summary: exam.summary || buildSummary(safeAnswers)
-    };
-  });
+      return {
+        ...exam,
+        answers: safeAnswers,
+        summary: exam.summary || buildSummary(safeAnswers)
+      };
+    });
 
-  res.json(normalizedResults);
-} catch (error) {
-  console.error("GET /exam-results error:", error);
-  res.status(500).json({ error: "Exam results could not be loaded." });
-}
+    res.json(normalizedResults);
+  } catch (error) {
+    console.error("GET /exam-results error:", error);
+    res.status(500).json({ error: "Exam results could not be loaded." });
+  }
 });
 
 app.put("/exam-results/:resultId/manual-score", (req, res) => {
