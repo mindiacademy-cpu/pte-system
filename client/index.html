@@ -419,7 +419,7 @@
       loadingBox.innerText = "Exam loading...";
 
       try {
-        const response = await fetch(`http://localhost:3001/exams/code/${examCode}`);
+        const response = await fetch(`/exams/code/${examCode}`);
         const data = await response.json();
 
         if (!response.ok) {
@@ -441,7 +441,7 @@
         localStorage.setItem("marketingConsent", marketingConsent ? "true" : "false");
         localStorage.setItem("consentDate", new Date().toISOString());
 
-        window.location.href = "http://localhost:3001/exam.html";
+        window.location.href = "/exam.html";
       } catch (error) {
         loadingBox.innerText = "";
         errorBox.innerText = "Server bağlantı hatası.";

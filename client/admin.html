@@ -581,13 +581,13 @@
       <div class="top-header">
   
   <div class="left-header">
-    <img src="http://localhost:3001/logo.png" class="report-logo">
+    <img src="/logo.png" class="report-logo">
     <div class="brand-title">PTE Academic</div>
     <div class="brand-subtitle">Score Report</div>
   </div>
 
   <div class="right-header">
-  <img src="http://localhost:3001/mylogo.png" class="right-logo">
+  <img src="/mylogo.png" class="right-logo">
 
   <div class="generated-text">
     Generated Report<br>
@@ -699,7 +699,7 @@
       if (!ok) return;
 
       try {
-        const response = await fetch(`http://localhost:3001/exam-results/${resultId}`, {
+        const response = await fetch(`/exam-results/${resultId}`, {
           method: "DELETE"
         });
 
@@ -765,7 +765,7 @@
       container.innerHTML = "<p class='empty'>Loading...</p>";
 
       try {
-        const response = await fetch("http://localhost:3001/exam-results");
+        const response = await fetch("/exam-results");
         const data = await response.json();
 
         if (!data.length) {
@@ -980,7 +980,7 @@
       const manualScore = input.value === "" ? null : Number(input.value);
 
       try {
-        const response = await fetch(`http://localhost:3001/exam-results/${resultId}/manual-score`, {
+        const response = await fetch(`/exam-results/${resultId}/manual-score`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json"
@@ -1008,7 +1008,7 @@
 
     async function clearManualScore(resultId, questionId) {
       try {
-        const response = await fetch(`http://localhost:3001/exam-results/${resultId}/manual-score`, {
+        const response = await fetch(`/exam-results/${resultId}/manual-score`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json"

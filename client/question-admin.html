@@ -1030,7 +1030,7 @@
 
     async function loadQuestions() {
       try {
-        const response = await fetch("http://localhost:3001/questions");
+        const response = await fetch("/questions");
         questions = await response.json();
         renderQuestionList();
       } catch (error) {
@@ -1417,7 +1417,7 @@
       formData.append("audio", file);
 
       try {
-        const response = await fetch("http://localhost:3001/upload-audio", {
+        const response = await fetch("/upload-audio", {
           method: "POST",
           body: formData
         });
@@ -1450,7 +1450,7 @@
       formData.append("image", file);
 
       try {
-        const response = await fetch("http://localhost:3001/upload-image", {
+        const response = await fetch("/upload-image", {
           method: "POST",
           body: formData
         });
@@ -1475,7 +1475,7 @@
       if (!payload) return;
 
       try {
-        const response = await fetch("http://localhost:3001/questions", {
+        const response = await fetch("/questions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -1550,7 +1550,7 @@
       if (!payload) return;
 
       try {
-        const response = await fetch(`http://localhost:3001/questions/${editingQuestionId}`, {
+        const response = await fetch(`/questions/${editingQuestionId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json"
@@ -1580,7 +1580,7 @@
       if (!ok) return;
 
       try {
-        await fetch(`http://localhost:3001/questions/${id}`, {
+        await fetch(`/questions/${id}`, {
           method: "DELETE"
         });
 

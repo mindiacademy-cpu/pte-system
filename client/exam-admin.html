@@ -440,7 +440,7 @@
       const selectedQuestions = questions.filter(q => questionIds.includes(Number(q.id)));
 
       try {
-        const response = await fetch("http://localhost:3001/create-exam", {
+        const response = await fetch("/create-exam", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -480,7 +480,7 @@
       if (!ok) return;
 
       try {
-        const response = await fetch(`http://localhost:3001/exams/${id}`, {
+        const response = await fetch(`/exams/${id}`, {
           method: "DELETE"
         });
 
@@ -534,7 +534,7 @@
 
     async function loadQuestions() {
       try {
-        const response = await fetch("http://localhost:3001/questions");
+        const response = await fetch("/questions");
         const data = await response.json();
 
         if (!response.ok) {
@@ -556,7 +556,7 @@
 
     async function loadExams() {
       try {
-        const response = await fetch("http://localhost:3001/exams");
+        const response = await fetch("/exams");
         const data = await response.json();
 
         if (!response.ok) {
