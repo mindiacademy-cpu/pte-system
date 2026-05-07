@@ -691,14 +691,44 @@ app.get("/exams", (req, res) => {
   }
 });
 
-app.get("/exams/code/:examCode", (req, res) => {
+app.get("/exams/code/:examCode", async (req, res) => {
   try {
     const examCode = String(req.params.examCode || "").trim().toUpperCase();
+    const phone = String(req.query.phone || "").replace(/\D/g, "");
+    const email = String(req.query.email || "").trim().toLowerCase();
+
     const exams = readJson(EXAMS_FILE);
     const exam = exams.find(e => String(e.examCode || "").toUpperCase() === examCode);
 
     if (!exam) {
       return res.status(404).json({ error: "Exam not found." });
+    }
+
+    if (phone || email) {
+      let query = supabase
+        .from("exam_results")
+        .select("id, candidate_phone, candidate_email, exam_code")
+        .eq("exam_code", examCode)
+        .limit(1);
+
+      if (phone) {
+        query = query.eq("candidate_phone", phone);
+      } else if (email) {
+        query = query.eq("candidate_email", email);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error("SUPABASE DUPLICATE CHECK ERROR:", error);
+        return res.status(500).json({ error: "Exam access check failed." });
+      }
+
+      if (data && data.length > 0) {
+        return res.status(403).json({
+          error: "Bu sınav bu aday tarafından daha önce tamamlanmıştır."
+        });
+      }
     }
 
     res.json(exam);
@@ -732,7 +762,7 @@ app.post("/save-exam", async (req, res) => {
       id: Date.now().toString(),
       candidateName: body.candidateName,
       candidateSurname: body.candidateSurname,
-      candidatePhone: body.candidatePhone,
+      candidatePhone: String(body.candidatePhone || "").replace(/\D/g, ""),
       candidateEmail: body.candidateEmail,
       candidateId: body.candidateId,
       examCode: body.examCode,

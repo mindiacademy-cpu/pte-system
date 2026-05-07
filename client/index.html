@@ -197,11 +197,11 @@
     <div class="subtitle">Pearson Test Simulation</div>
     <h2>PTE Exam Login</h2>
 
-    <input id="name" placeholder="Name" />
-    <input id="surname" placeholder="Surname" />
-    <input id="phone" type="tel" placeholder="05XX XXX XX XX" maxlength="14" />
-    <input id="email" type="email" placeholder="E-mail" />
-    <input id="examCode" placeholder="Exam Code" />
+    <input id="name" placeholder="Name" autocomplete="off" />
+    <input id="surname" placeholder="Surname" autocomplete="off" />
+    <input id="phone" type="tel" placeholder="05XX XXX XX XX" maxlength="14" autocomplete="off" />
+    <input id="email" type="email" placeholder="E-mail" autocomplete="off" />
+    <input id="examCode" placeholder="Exam Code" autocomplete="off" />
 
     <div class="consent-row">
       <input type="checkbox" id="allPolicyConsent" disabled />
@@ -247,6 +247,22 @@
   </div>
 
   <script>
+    window.addEventListener("pageshow", function () {
+      document.getElementById("name").value = "";
+      document.getElementById("surname").value = "";
+      document.getElementById("phone").value = "";
+      document.getElementById("email").value = "";
+      document.getElementById("examCode").value = "";
+
+      document.getElementById("allPolicyConsent").checked = false;
+      document.getElementById("allPolicyConsent").disabled = true;
+
+      const marketing = document.getElementById("marketingConsent");
+      if (marketing) marketing.checked = false;
+
+      localStorage.clear();
+      sessionStorage.clear();
+    });
     const policyTexts = [
       `
       <h3>Gizlilik ve Kişisel Veri Politikası</h3>
