@@ -702,22 +702,22 @@
     }
 
     async function deleteResult(resultId, candidateName) {
+
       const ok = confirm(`${candidateName || "Bu adayın"} sonucunu silmek istiyor musunuz?`);
       if (!ok) return;
 
+      const currentScroll = window.scrollY;
+
       try {
+
         const response = await fetch(`/exam-results/${resultId}`, {
           method: "DELETE"
         });
 
-        const data = await response.json();
-
         if (!response.ok) {
-          alert(data.error || "Aday sonucu silinemedi.");
+          showToast("Aday sonucu silinemedi.");
           return;
         }
-
-        const currentScroll = window.scrollY;
 
         showToast("Aday sonucu silindi.");
 
@@ -731,11 +731,11 @@
         }, 50);
 
       } catch (error) {
-        alert("Server connection error.");
         console.error(error);
+        showToast("Server connection error.");
       }
     }
-
+    
     function preserveScroll(callback) {
       const scrollY = window.scrollY;
 
