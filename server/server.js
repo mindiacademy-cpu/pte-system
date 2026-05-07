@@ -822,7 +822,7 @@ app.get("/exam-results", async (req, res) => {
     }
 
     const normalizedResults = (data || []).map(item => ({
-      id: item.id,
+      id: String(item.id),
       candidateName: item.candidate_name || "",
       candidateSurname: item.candidate_surname || "",
       candidatePhone: item.candidate_phone || "",
@@ -905,26 +905,30 @@ app.delete("/exam-results/:id", async (req, res) => {
   try {
     const id = String(req.params.id);
 
+    console.log("DELETE REQUEST ID:", id);
+
     const { data, error } = await supabase
       .from("exam_results")
       .delete()
-      .eq("id", id)
-      .select();
+      .eq("id", id);
 
     if (error) {
       console.error("SUPABASE DELETE ERROR:", error);
-      return res.status(500).json({ error: "Candidate result could not be deleted." });
+      return res.status(500).json({
+        error: "Candidate result could not be deleted."
+      });
     }
 
-    if (!data || data.length === 0) {
-      return res.status(404).json({ error: "Candidate result not found or not deleted." });
-    }
-
-    res.json({ success: true, deleted: data[0] });
+    res.json({
+      success: true
+    });
 
   } catch (error) {
     console.error("DELETE /exam-results/:id error:", error);
-    res.status(500).json({ error: "Delete failed" });
+
+    res.status(500).json({
+      error: "Delete failed"
+    });
   }
 });
 
