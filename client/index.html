@@ -192,6 +192,12 @@
   </style>
 </head>
 
+<script>
+  if (localStorage.getItem("adminLogged") !== "true") {
+    window.location.href = "admin-login.html";
+  }
+</script>
+
 <body>
   <div class="container">
     <div class="subtitle">Pearson Test Simulation</div>
@@ -437,7 +443,8 @@
       loadingBox.innerText = "Exam loading...";
 
       try {
-        const response = await fetch(`/exams/code/${examCode}`);
+        const response = await fetch(`/exams/code/${examCode}?phone=${encodeURIComponent(phoneRaw)}`);
+        const data = await response.json();
 
         if (!response.ok) {
           loadingBox.innerText = "";

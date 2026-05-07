@@ -1,4 +1,3 @@
-console.log("SERVER CHECK 555 - DUPLICATE REMOVED");
 const { createClient } = require("@supabase/supabase-js");
 const express = require("express");
 const cors = require("cors");

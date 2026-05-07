@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PTE Admin Portal</title>
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
@@ -19,7 +22,7 @@
       background: linear-gradient(135deg, #173a8c, #1f4db8);
       color: white;
       padding: 20px 28px;
-      box-shadow: 0 4px 18px rgba(0,0,0,0.12);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
     }
 
     .topbar-inner {
@@ -53,7 +56,7 @@
       background: white;
       border-radius: 20px;
       padding: 34px 30px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
       margin-bottom: 24px;
     }
 
@@ -81,7 +84,7 @@
       background: white;
       border-radius: 18px;
       padding: 24px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -147,7 +150,7 @@
       background: white;
       border-radius: 16px;
       padding: 18px 22px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
       color: #6b7280;
       font-size: 14px;
       line-height: 1.7;
@@ -170,7 +173,12 @@
     }
   </style>
 </head>
+
 <body>
+
+  <div style="display:flex;justify-content:flex-end;padding:20px;">
+    <button onclick="logout()">Logout</button>
+  </div>
   <div class="topbar">
     <div class="topbar-inner">
       <div class="brand">PTE Admin Portal</div>
@@ -244,5 +252,19 @@
       Student login remains on the normal entry page. This page is only for internal admin use.
     </div>
   </div>
+
+  <body>
+
+    ... sayfa içeriği ...
+
+    <script>
+      function logout() {
+        localStorage.removeItem("adminLogged");
+        window.location.href = "admin-login.html";
+      }
+    </script>
+
+  </body>
 </body>
+
 </html>
