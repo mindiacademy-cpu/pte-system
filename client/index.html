@@ -366,6 +366,7 @@
     }
 
     async function startExam() {
+      localStorage.removeItem("examFinished");
       const name = document.getElementById("name").value.trim();
       const surname = document.getElementById("surname").value.trim();
       const phone = document.getElementById("phone").value.trim();
