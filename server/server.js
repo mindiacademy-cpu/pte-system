@@ -685,7 +685,9 @@ app.post("/create-exam", (req, res) => {
       examCode: "EX" + Math.floor(100000 + Math.random() * 900000),
       title,
       questions: sortedQuestions,
-      createdAt: new Date().toLocaleString()
+      createdAt: new Date().toLocaleString(),
+      used: false,
+      usedAt: null
     };
 
     exams.push(exam);
@@ -714,17 +716,34 @@ app.get("/exams", (req, res) => {
 app.get("/exams/code/:examCode", async (req, res) => {
   try {
     const examCode = String(req.params.examCode || "").trim().toUpperCase();
-    const phone = String(req.query.phone || "").replace(/\D/g, "");
-    const email = String(req.query.email || "").trim().toLowerCase();
 
     const exams = readJson(EXAMS_FILE);
-    const exam = exams.find(e => String(e.examCode || "").toUpperCase() === examCode);
+    const examIndex = exams.findIndex(
+      e => String(e.examCode || "").toUpperCase() === examCode
+    );
 
-    if (!exam) {
+    if (examIndex === -1) {
       return res.status(404).json({ error: "Exam not found." });
     }
 
-    res.json(exam);
+    const exam = exams[examIndex];
+
+    if (exam.used === true) {
+      return res.status(400).json({
+        error: "This exam code has already been used."
+      });
+    }
+
+    exams[examIndex] = {
+      ...exam,
+      used: true,
+      usedAt: new Date().toISOString()
+    };
+
+    writeJson(EXAMS_FILE, exams);
+
+    res.json(exams[examIndex]);
+
   } catch (error) {
     console.error("GET /exams/code/:examCode error:", error);
     res.status(500).json({ error: "Exam could not be loaded." });
@@ -882,20 +901,22 @@ app.put("/exam-results/:resultId/manual-score", (req, res) => {
   }
 });
 
-app.delete("/exam-results/:id", (req, res) => {
+app.delete("/exam-results/:id", async (req, res) => {
   try {
     const id = String(req.params.id);
-    const exams = readJson(EXAM_RESULTS_FILE);
 
-    const filtered = exams.filter(exam => String(exam.id) !== id);
+    const { error } = await supabase
+      .from("exam_results")
+      .delete()
+      .eq("id", id);
 
-    if (filtered.length === exams.length) {
-      return res.status(404).json({ error: "Exam result not found." });
+    if (error) {
+      console.error("SUPABASE DELETE ERROR:", error);
+      return res.status(500).json({ error: "Candidate result could not be deleted." });
     }
 
-    writeJson(EXAM_RESULTS_FILE, filtered);
-
     res.json({ success: true });
+
   } catch (error) {
     console.error("DELETE /exam-results/:id error:", error);
     res.status(500).json({ error: "Delete failed" });
