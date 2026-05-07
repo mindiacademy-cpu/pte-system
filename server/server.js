@@ -905,17 +905,22 @@ app.delete("/exam-results/:id", async (req, res) => {
   try {
     const id = String(req.params.id);
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("exam_results")
       .delete()
-      .eq("id", id);
+      .eq("id", id)
+      .select();
 
     if (error) {
       console.error("SUPABASE DELETE ERROR:", error);
       return res.status(500).json({ error: "Candidate result could not be deleted." });
     }
 
-    res.json({ success: true });
+    if (!data || data.length === 0) {
+      return res.status(404).json({ error: "Candidate result not found or not deleted." });
+    }
+
+    res.json({ success: true, deleted: data[0] });
 
   } catch (error) {
     console.error("DELETE /exam-results/:id error:", error);

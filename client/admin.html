@@ -702,7 +702,6 @@
     }
 
     async function deleteResult(resultId, candidateName) {
-
       const ok = confirm(`${candidateName || "Bu adayın"} sonucunu silmek istiyor musunuz?`);
       if (!ok) return;
 
@@ -711,13 +710,16 @@
           method: "DELETE"
         });
 
+        const data = await response.json();
+
         if (!response.ok) {
-          alert("Aday sonucu silinemedi.");
+          alert(data.error || "Aday sonucu silinemedi.");
           return;
         }
 
         alert("Aday sonucu silindi.");
-        loadResults();
+        await loadResults();
+
       } catch (error) {
         alert("Server connection error.");
         console.error(error);
