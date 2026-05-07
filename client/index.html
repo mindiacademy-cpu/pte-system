@@ -412,8 +412,9 @@
       }
 
       const phoneRaw = phone.replace(/\D/g, "");
-      if (phoneRaw.length !== 11 || !phoneRaw.startsWith("0")) {
-        errorBox.innerText = "Telefon numarası 05XX XXX XX XX formatında olmalı.";
+
+      if (!phoneRaw) {
+        errorBox.innerText = "Telefon numarası girin.";
         return;
       }
 
@@ -436,8 +437,7 @@
       loadingBox.innerText = "Exam loading...";
 
       try {
-        const response = await fetch(`/exams/code/${examCode}?phone=${encodeURIComponent(phoneRaw)}`);
-        const data = await response.json();
+        const response = await fetch(`/exams/code/${examCode}`);
 
         if (!response.ok) {
           loadingBox.innerText = "";

@@ -1,3 +1,4 @@
+console.log("SERVER CHECK 555 - DUPLICATE REMOVED");
 const { createClient } = require("@supabase/supabase-js");
 const express = require("express");
 const cors = require("cors");
@@ -702,33 +703,6 @@ app.get("/exams/code/:examCode", async (req, res) => {
 
     if (!exam) {
       return res.status(404).json({ error: "Exam not found." });
-    }
-
-    if (phone || email) {
-      let query = supabase
-        .from("exam_results")
-        .select("id, candidate_phone, candidate_email, exam_code")
-        .eq("exam_code", examCode)
-        .limit(1);
-
-      if (phone) {
-        query = query.eq("candidate_phone", phone);
-      } else if (email) {
-        query = query.eq("candidate_email", email);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error("SUPABASE DUPLICATE CHECK ERROR:", error);
-        return res.status(500).json({ error: "Exam access check failed." });
-      }
-
-      if (data && data.length > 0) {
-        return res.status(403).json({
-          error: "Bu sınav bu aday tarafından daha önce tamamlanmıştır."
-        });
-      }
     }
 
     res.json(exam);
