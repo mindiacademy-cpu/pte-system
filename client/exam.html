@@ -2569,20 +2569,22 @@
         .then((data) => {
           console.log("EXAM SAVED OK:", data);
 
-          document.getElementById("startScreen").classList.add("hidden");
-          document.getElementById("micCheckScreen").classList.add("hidden");
-          document.getElementById("examArea").classList.add("hidden");
-          document.getElementById("finishScreen").classList.remove("hidden");
+          localStorage.setItem("examSubmitted", "true");
 
           localStorage.removeItem("examData");
           localStorage.removeItem("examCode");
-          localStorage.removeItem("examStarted");
-          localStorage.removeItem("currentQuestionIndex");
           localStorage.removeItem("candidateName");
           localStorage.removeItem("candidateSurname");
           localStorage.removeItem("candidatePhone");
           localStorage.removeItem("candidateEmail");
           localStorage.removeItem("candidateId");
+          localStorage.removeItem("examStarted");
+          localStorage.removeItem("currentQuestionIndex");
+
+          document.getElementById("startScreen").classList.add("hidden");
+          document.getElementById("micCheckScreen").classList.add("hidden");
+          document.getElementById("examArea").classList.add("hidden");
+          document.getElementById("finishScreen").classList.remove("hidden");
         })
         .catch(error => {
           console.error("SAVE EXAM ERROR:", error);
@@ -2695,13 +2697,19 @@
     }
 
     document.addEventListener("DOMContentLoaded", function () {
+      if (localStorage.getItem("examSubmitted") === "true") {
+        localStorage.clear();
+        window.location.replace("/index.html");
+        return;
+      }
+
       const hasExam =
         localStorage.getItem("examData") &&
         localStorage.getItem("examCode") &&
         localStorage.getItem("candidateName");
 
       if (!hasExam) {
-        window.location.replace("/");
+        window.location.replace("/index.html");
         return;
       }
 
