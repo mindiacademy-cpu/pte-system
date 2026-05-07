@@ -478,6 +478,26 @@ app.get("/exam.html", (req, res) => {
   res.sendFile(path.join(__dirname, "../client", "exam.html"));
 });
 
+app.get("/admin-login", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client", "admin-login.html"));
+});
+
+app.get("/admin-index", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client", "admin-index.html"));
+});
+
+app.get("/admin", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client", "admin.html"));
+});
+
+app.get("/exam-admin", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client", "exam-admin.html"));
+});
+
+app.get("/question-admin", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client", "question-admin.html"));
+});
+
 app.get("/questions", (req, res) => {
   const questions = readJson(QUESTIONS_FILE);
   const normalized = questions.map(normalizeQuestion);
