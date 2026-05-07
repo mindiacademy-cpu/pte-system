@@ -807,7 +807,15 @@
     ) {
       window.location.replace("/index.html");
     }
+
+    window.onpageshow = function (event) {
+      if (event.persisted) {
+        window.location.replace("/index.html");
+      }
+    };
+
     let time = 1800;
+
     let timerInterval = null;
 
     let questions = [];
@@ -2572,7 +2580,7 @@
           localStorage.clear();
           sessionStorage.clear();
 
-          window.location.href = "/index.html";
+          window.location.replace("/index.html");
         })
         .catch(error => {
           console.error("SAVE EXAM ERROR:", error);
