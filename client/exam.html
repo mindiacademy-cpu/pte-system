@@ -2580,134 +2580,137 @@
           localStorage.clear();
           sessionStorage.clear();
 
-          window.location.replace("/index.html");
-        })
-        .catch(error => {
-          console.error("SAVE EXAM ERROR:", error);
-          alert(error.message || "Exam could not be submitted.");
-        });
-    }
-
-    function startExam() {
-      localStorage.setItem("examStarted", "true");
-
-      document.getElementById("startScreen").classList.add("hidden");
-      document.getElementById("micCheckScreen").classList.remove("hidden");
-      document.getElementById("examArea").classList.add("hidden");
-      document.getElementById("finishScreen").classList.add("hidden");
-      document.getElementById("timerCard").classList.add("hidden");
-    }
-
-    async function loadQuestions() {
-      try {
-        const loadingArea = document.getElementById("loadingArea");
-        const candidateInfoBox = document.getElementById("candidateInfo");
-
-        if (candidateInfoBox) {
-          const displayName = localStorage.getItem("candidateName") || "-";
-          const displayExamCode = localStorage.getItem("examCode") || examCode || "-";
-
-          candidateInfoBox.innerText = `${displayName} | Exam: ${displayExamCode}`;
-        }
-
-        let questionsData = [];
-        const storedExam = localStorage.getItem("examData");
-
-        if (storedExam) {
-          const parsedExam = JSON.parse(storedExam);
-          questionsData = parsedExam.questions || [];
-          examCode = parsedExam.examCode || examCode;
-        } else {
-          window.location.replace("/");
-          return;
-        }
-
-        if (candidateInfoBox) {
-          const displayName = localStorage.getItem("candidateName") || "-";
-          const displayExamCode = localStorage.getItem("examCode") || examCode || "-";
-
-          candidateInfoBox.innerText = `${displayName} | Exam: ${displayExamCode}`;
-        }
-
-        if (!questionsData.length) {
-          loadingArea.innerText = "Henüz kayıtlı soru yok.";
-          return;
-        }
-
-        questions = questionsData.filter(q => {
-          const sub = (q.subType || "").toLowerCase();
-
-          // bozuk reorder sorusunu alma
-          if (sub === "reorder_paragraphs" || sub === "reorder paragraphs") {
-            return (q.textContent || "").trim().length > 0;
-          }
-
-          // bozuk listening sequence sorusunu da alma
-          if (sub === "listening_sequence" || sub === "listening sequence") {
-            return Array.isArray(q.options) && q.options.length > 0;
-          }
-
-          return true;
-        });
-
-
-        const uniqueMap = new Map();
-
-        questions.forEach(q => {
-          const textKey = (q.textContent || "").trim();
-          const optionsKey = Array.isArray(q.options) ? q.options.join("|") : "";
-          const audioKey = q.audioUrl || "";
-          const promptKey = q.prompt || "";
-
-          const key = `${q.title || ""}_${q.subType || ""}_${textKey}_${optionsKey}_${audioKey}_${promptKey}`;
-
-          if (!uniqueMap.has(key)) {
-            uniqueMap.set(key, q);
-          }
-        });
-
-        questions = Array.from(uniqueMap.values());
-
-        loadingArea.style.display = "none";
-
-        const examStarted = localStorage.getItem("examStarted");
-
-        if (examStarted === "true") {
           document.getElementById("startScreen").classList.add("hidden");
           document.getElementById("micCheckScreen").classList.add("hidden");
-          document.getElementById("examArea").classList.remove("hidden");
-          document.getElementById("finishScreen").classList.add("hidden");
-
-          renderQuestion();
-        } else {
-          document.getElementById("startScreen").classList.remove("hidden");
-          document.getElementById("micCheckScreen").classList.add("hidden");
           document.getElementById("examArea").classList.add("hidden");
-          document.getElementById("finishScreen").classList.add("hidden");
+          document.getElementById("timerCard").classList.add("hidden");
+          document.getElementById("finishScreen").classList.remove("hidden");
+
+          setTimeout(() => {
+            window.location.replace("/index.html");
+          }, 3000);
+        })
+
+      function startExam() {
+        localStorage.setItem("examStarted", "true");
+
+        document.getElementById("startScreen").classList.add("hidden");
+        document.getElementById("micCheckScreen").classList.remove("hidden");
+        document.getElementById("examArea").classList.add("hidden");
+        document.getElementById("finishScreen").classList.add("hidden");
+        document.getElementById("timerCard").classList.add("hidden");
+      }
+
+      async function loadQuestions() {
+        try {
+          const loadingArea = document.getElementById("loadingArea");
+          const candidateInfoBox = document.getElementById("candidateInfo");
+
+          if (candidateInfoBox) {
+            const displayName = localStorage.getItem("candidateName") || "-";
+            const displayExamCode = localStorage.getItem("examCode") || examCode || "-";
+
+            candidateInfoBox.innerText = `${displayName} | Exam: ${displayExamCode}`;
+          }
+
+          let questionsData = [];
+          const storedExam = localStorage.getItem("examData");
+
+          if (storedExam) {
+            const parsedExam = JSON.parse(storedExam);
+            questionsData = parsedExam.questions || [];
+            examCode = parsedExam.examCode || examCode;
+          } else {
+            window.location.replace("/");
+            return;
+          }
+
+          if (candidateInfoBox) {
+            const displayName = localStorage.getItem("candidateName") || "-";
+            const displayExamCode = localStorage.getItem("examCode") || examCode || "-";
+
+            candidateInfoBox.innerText = `${displayName} | Exam: ${displayExamCode}`;
+          }
+
+          if (!questionsData.length) {
+            loadingArea.innerText = "Henüz kayıtlı soru yok.";
+            return;
+          }
+
+          questions = questionsData.filter(q => {
+            const sub = (q.subType || "").toLowerCase();
+
+            // bozuk reorder sorusunu alma
+            if (sub === "reorder_paragraphs" || sub === "reorder paragraphs") {
+              return (q.textContent || "").trim().length > 0;
+            }
+
+            // bozuk listening sequence sorusunu da alma
+            if (sub === "listening_sequence" || sub === "listening sequence") {
+              return Array.isArray(q.options) && q.options.length > 0;
+            }
+
+            return true;
+          });
+
+
+          const uniqueMap = new Map();
+
+          questions.forEach(q => {
+            const textKey = (q.textContent || "").trim();
+            const optionsKey = Array.isArray(q.options) ? q.options.join("|") : "";
+            const audioKey = q.audioUrl || "";
+            const promptKey = q.prompt || "";
+
+            const key = `${q.title || ""}_${q.subType || ""}_${textKey}_${optionsKey}_${audioKey}_${promptKey}`;
+
+            if (!uniqueMap.has(key)) {
+              uniqueMap.set(key, q);
+            }
+          });
+
+          questions = Array.from(uniqueMap.values());
+
+          loadingArea.style.display = "none";
+
+          const examStarted = localStorage.getItem("examStarted");
+
+          if (examStarted === "true") {
+            document.getElementById("startScreen").classList.add("hidden");
+            document.getElementById("micCheckScreen").classList.add("hidden");
+            document.getElementById("examArea").classList.remove("hidden");
+            document.getElementById("finishScreen").classList.add("hidden");
+
+            renderQuestion();
+          } else {
+            document.getElementById("startScreen").classList.remove("hidden");
+            document.getElementById("micCheckScreen").classList.add("hidden");
+            document.getElementById("examArea").classList.add("hidden");
+            document.getElementById("finishScreen").classList.add("hidden");
+          }
+        } catch (error) {
+          console.error("loadQuestions error:", error);
+          const loadingArea = document.getElementById("loadingArea");
+          if (loadingArea) loadingArea.innerText = "Sorular yüklenemedi.";
         }
-      } catch (error) {
-        console.error("loadQuestions error:", error);
-        const loadingArea = document.getElementById("loadingArea");
-        if (loadingArea) loadingArea.innerText = "Sorular yüklenemedi.";
-      }
-    }
-
-    document.addEventListener("DOMContentLoaded", function () {
-
-      const hasExam =
-        localStorage.getItem("examData") &&
-        localStorage.getItem("examCode") &&
-        localStorage.getItem("candidateName");
-
-      if (!hasExam) {
-        window.location.replace("/index.html");
-        return;
       }
 
-      const writingBox = document.getElementById("writingAnswer");
-      if (writingBox) writingBox.addEventListener("input", updateWordCount);
-      loadQuestions();
-    });
+      document.addEventListener("DOMContentLoaded", function () {
+
+        const hasExam =
+          localStorage.getItem("examData") &&
+          localStorage.getItem("examCode") &&
+          localStorage.getItem("candidateName");
+
+        if (!hasExam) {
+          window.location.replace("/index.html");
+          return;
+        }
+
+        const writingBox = document.getElementById("writingAnswer");
+        if (writingBox) writingBox.addEventListener("input", updateWordCount);
+        loadQuestions();
+      });
 
   </script>
 </body>
