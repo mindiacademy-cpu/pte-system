@@ -805,7 +805,7 @@
       !localStorage.getItem("examCode") ||
       !localStorage.getItem("candidateName")
     ) {
-      window.location.href = "/index.html";
+      window.location.replace("/index.html");
     }
     let time = 1800;
     let timerInterval = null;
@@ -2569,18 +2569,10 @@
         .then((data) => {
           console.log("EXAM SAVED OK:", data);
 
-          localStorage.removeItem("examData");
-          localStorage.removeItem("examCode");
-          localStorage.removeItem("candidateName");
-          localStorage.removeItem("candidateSurname");
-          localStorage.removeItem("candidatePhone");
-          localStorage.removeItem("candidateEmail");
-          localStorage.removeItem("candidateId");
-          localStorage.removeItem("examStarted");
-          localStorage.removeItem("currentQuestionIndex");
-          localStorage.removeItem("examSubmitted");
+          localStorage.clear();
+          sessionStorage.clear();
 
-          window.location.replace("/index.html");
+          window.location.href = "/index.html";
         })
         .catch(error => {
           console.error("SAVE EXAM ERROR:", error);
