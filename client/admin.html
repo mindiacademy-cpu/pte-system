@@ -717,8 +717,18 @@
           return;
         }
 
-        alert("Aday sonucu silindi.");
-        await preserveScroll(loadResults);
+        const currentScroll = window.scrollY;
+
+        showToast("Aday sonucu silindi.");
+
+        await loadResults();
+
+        setTimeout(() => {
+          window.scrollTo({
+            top: currentScroll,
+            behavior: "auto"
+          });
+        }, 50);
 
       } catch (error) {
         alert("Server connection error.");
