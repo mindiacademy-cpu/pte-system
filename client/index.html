@@ -263,73 +263,369 @@
       localStorage.clear();
       sessionStorage.clear();
     });
+
     const policyTexts = [
-      `
-      <h3>Gizlilik ve Kişisel Veri Politikası</h3>
-      <p>
-        Bu platform, PTE Academic sınavına hazırlık ve deneme sınavı hizmeti sunmak amacıyla çalışmaktadır.
-        Kullanıcıların kişisel verilerinin gizliliği ve güvenliği önemsenir.
-      </p>
-      <p>
-        Toplanan veriler yalnızca sınav kaydının oluşturulması, sınavın yürütülmesi, sonuçların değerlendirilmesi,
-        kullanıcı ile iletişim kurulması ve sistem güvenliğinin sağlanması amacıyla kullanılır.
-      </p>
-      <p>
-        Kişisel verileriniz yetkisiz erişime karşı korunur ve mevzuata uygun süre boyunca saklanır.
-      </p>
-      `,
 
       `
-      <h3>Kişisel Verilerin İşlenmesine İlişkin Aydınlatma Metni</h3>
-      <p>
-        6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında ad, soyad, telefon numarası, e-posta adresi,
-        sınav kodu, sınav cevapları, sınav tarihi, sınav sonucu ve gerekli hallerde ses kayıtları işlenebilir.
-      </p>
-      <p>
-        Kişisel verileriniz; sınav kaydının oluşturulması, sınav erişiminin sağlanması, sınav performansının
-        değerlendirilmesi, sonuçların raporlanması, aday ile iletişim kurulması ve hizmet kalitesinin artırılması
-        amaçlarıyla işlenmektedir.
-      </p>
-      <p>
-        KVKK’nın 11. maddesi kapsamında kişisel verileriniz hakkında bilgi talep etme, düzeltme, silme,
-        işlenmesine itiraz etme ve ilgili diğer haklara sahipsiniz.
-      </p>
-      `,
+<h3>GİZLİLİK VE KİŞİSEL VERİ POLİTİKASI</h3>
+
+<p>
+Bu platform, <strong>Mindi Akademi Eğitim Danışmanlık Koçluk Ltd. Şti.</strong>
+(“Mindi Akademi”) tarafından işletilmektedir.
+Platformu kullanan tüm kullanıcılar aşağıdaki şartları,
+gizlilik esaslarını ve veri işleme süreçlerini kabul etmiş sayılır.
+</p>
+
+<p>
+Mindi Akademi;
+kişisel verilerin gizliliği,
+bütünlüğü,
+erişilebilirliği ve güvenliğinin korunmasına önem vermektedir.
+Bu kapsamda teknik,
+idari ve dijital güvenlik önlemleri uygulanmaktadır.
+</p>
+
+<p>
+Platform kapsamında elde edilen bilgiler;
+</p>
+
+<ul>
+<li>Sınav erişiminin sağlanması,</li>
+<li>Aday doğrulama işlemleri,</li>
+<li>Sınav güvenliğinin korunması,</li>
+<li>Ölçme ve değerlendirme süreçleri,</li>
+<li>AI destekli analizler,</li>
+<li>Kalite kontrol süreçleri,</li>
+<li>Teknik destek süreçleri,</li>
+<li>Hizmet geliştirme faaliyetleri,</li>
+<li>Hukuki yükümlülüklerin yerine getirilmesi</li>
+</ul>
+
+<p>
+amaçlarıyla kullanılabilir.
+</p>
+
+<p>
+Mindi Akademi,
+sistem güvenliği,
+usulsüzlük incelemeleri,
+sahtecilik tespiti,
+şüpheli işlem analizleri,
+performans değerlendirmeleri
+ve hukuki uyuşmazlıklarda delil oluşturulması amacıyla
+gerekli kayıtları inceleme,
+saklama,
+raporlama
+ve gerekli durumlarda yetkili mercilerle paylaşma hakkını saklı tutar.
+</p>
+
+<p>
+Kullanıcı;
+platform üzerinde gerçekleştirdiği tüm işlemlerin,
+sistem loglarının,
+oturum kayıtlarının,
+IP bilgilerinin,
+cihaz verilerinin
+ve speaking kayıtlarının gerektiğinde incelenebileceğini kabul eder.
+</p>
+
+<p>
+Yetkisiz erişim,
+sistem manipülasyonu,
+başkası adına işlem yapılması,
+otomatik yazılım kullanımı,
+kopya girişimi,
+sınav güvenliğini ihlal eden davranışlar
+veya kötü niyetli kullanım tespiti halinde
+Mindi Akademi;
+ilgili hesabı askıya alma,
+sınavı geçersiz sayma,
+erişimi engelleme,
+kayıtları inceleme
+ve gerekli hukuki işlemleri başlatma hakkına sahiptir.
+</p>
+
+<p>
+Kullanıcı;
+platformu kullanarak işbu gizlilik politikasını okuduğunu,
+anladığını ve kabul ettiğini beyan eder.
+</p>
+`,
+
+
 
       `
-      <h3>Kişisel Verilerin İşlenmesine İlişkin Açık Rıza Metni</h3>
-      <p>
-        Ad, soyad, telefon numarası, e-posta adresi, sınav cevapları, sınav sonuçları ve gerekli hallerde ses
-        kayıtlarımın sınav kayıt, sınav yürütme, sonuç değerlendirme ve iletişim süreçleri kapsamında işlenmesine
-        açık rıza veriyorum.
-      </p>
-      <p>
-        Bu rızanın ticari iletişim izninden ayrı olduğunu ve ticari iletişim izninin isteğe bağlı olduğunu biliyorum.
-      </p>
-      `,
+<h3>KVKK AYDINLATMA METNİ</h3>
+
+<p>
+6698 Sayılı Kişisel Verilerin Korunması Kanunu (“KVKK”) kapsamında
+veri sorumlusu sıfatıyla
+<strong>Mindi Akademi Eğitim Danışmanlık Koçluk Ltd. Şti.</strong>,
+kişisel verilerinizi aşağıda açıklanan kapsamda işlemektedir.
+</p>
+
+<p>
+İşlenebilecek kişisel veriler:
+</p>
+
+<ul>
+<li>Ad ve soyad bilgileri,</li>
+<li>Telefon numarası,</li>
+<li>E-posta adresi,</li>
+<li>Sınav kodları ve oturum bilgileri,</li>
+<li>Sınav cevapları ve puan bilgileri,</li>
+<li>Speaking ses kayıtları,</li>
+<li>Cihaz, tarayıcı, IP ve sistem log kayıtları,</li>
+<li>İletişim ve destek kayıtları</li>
+</ul>
+
+<p>
+olabilir.
+</p>
+
+<p>
+Kişisel verileriniz;
+</p>
+
+<ul>
+<li>Sınav organizasyonu,</li>
+<li>Aday doğrulama,</li>
+<li>Sınav güvenliğinin sağlanması,</li>
+<li>Ölçme-değerlendirme süreçleri,</li>
+<li>AI destekli analizler,</li>
+<li>Manuel değerlendirme işlemleri,</li>
+<li>Teknik destek hizmetleri,</li>
+<li>Hizmet geliştirme faaliyetleri,</li>
+<li>İstatistiksel analizler,</li>
+<li>Yasal yükümlülüklerin yerine getirilmesi</li>
+</ul>
+
+<p>
+amaçlarıyla işlenebilir.
+</p>
+
+<p>
+Kişisel veriler;
+ilgili mevzuatın izin verdiği süre boyunca saklanabilir
+ve gerekli durumlarda yetkili kamu kurumları,
+mahkemeler,
+resmi makamlar
+ve hukuken yetkili kişiler ile paylaşılabilir.
+</p>
+
+<p>
+KVKK’nın 11. maddesi kapsamında kullanıcı;
+kişisel verilerine erişme,
+düzeltme,
+silme,
+işlenmesini sınırlandırma,
+itiraz etme
+ve diğer yasal haklara sahiptir.
+</p>
+
+<p>
+KVKK kapsamındaki talepler,
+Mindi Akademi’ye yazılı olarak iletilebilir.
+</p>
+`,
+
+
 
       `
-      <h3>Terms & Conditions / Kullanım Şartları</h3>
-      <ul>
-        <li>Sınav sırasında dış kaynak, başka kişi yardımı, kopya veya yanıltıcı işlem kullanılması yasaktır.</li>
-        <li>Sınav kodu yalnızca yetkili aday tarafından kullanılmalıdır.</li>
-        <li>Teknik aksaklıklar, internet kopması veya cihaz kaynaklı sorunlardan kullanıcı sorumludur.</li>
-        <li>Sınav sonuçları pratik/deneme amaçlıdır; resmi Pearson sonucu niteliği taşımaz.</li>
-        <li>Sistem kötüye kullanılırsa sınav geçersiz sayılabilir.</li>
-      </ul>
-      `,
+<h3>AÇIK RIZA METNİ</h3>
+
+<p>
+Kullanıcı olarak;
+<strong>Mindi Akademi Eğitim Danışmanlık Koçluk Ltd. Şti.</strong>
+tarafından sunulan sınav,
+değerlendirme,
+raporlama
+ve eğitim hizmetleri kapsamında;
+</p>
+
+<ul>
+<li>Kişisel verilerimin,</li>
+<li>Sınav cevaplarımın,</li>
+<li>Speaking kayıtlarımın,</li>
+<li>Ses kayıtlarımın,</li>
+<li>Performans analizlerimin,</li>
+<li>Sistem kullanım verilerimin</li>
+</ul>
+
+<p>
+otomatik sistemler,
+AI destekli değerlendirme araçları,
+raporlama yazılımları,
+ölçme-değerlendirme sistemleri
+ve gerektiğinde manuel inceleme süreçleri kapsamında işlenmesine açık rıza verdiğimi kabul ederim.
+</p>
+
+<p>
+Kullanıcı;
+yüklediği içeriklerin,
+ses kayıtlarının,
+cevaplarının
+ve sınav sonuçlarının;
+sınav güvenliği,
+ölçme-değerlendirme,
+kalite kontrol,
+sistem geliştirme,
+hukuki süreçler
+ve olası uyuşmazlıklarda delil niteliğinde kullanılabileceğini kabul eder.
+</p>
+
+<p>
+Bu açık rıza,
+ticari elektronik ileti izninden bağımsızdır.
+</p>
+`,
+
+
 
       `
-      <h3>Sınav Kayıt ve Yapay Zeka Değerlendirme Uyarısı</h3>
-      <p>
-        Sınav sırasında speaking bölümlerinde ses kaydı alınabileceğini, bu kayıtların transkripsiyon ve değerlendirme
-        amacıyla kullanılabileceğini kabul ediyorum.
-      </p>
-      <p>
-        Bazı cevapların otomatik algoritmalar veya yapay zeka destekli sistemler aracılığıyla ön değerlendirmeye
-        tabi tutulabileceğini biliyorum. Nihai sonuçlar gerekli durumlarda manuel olarak incelenebilir.
-      </p>
+<h3>TERMS & CONDITIONS / KULLANIM ŞARTLARI</h3>
+
+<ul>
+
+<li>
+Bu platform yalnızca eğitim,
+deneme sınavı
+ve değerlendirme amacıyla kullanılabilir.
+</li>
+
+<li>
+Platform resmi Pearson sınav sistemi değildir.
+Üretilen sonuçlar yalnızca deneme ve gelişim amaçlıdır.
+</li>
+
+<li>
+Kopya girişimi,
+başka kişi adına katılım,
+otomatik yazılım kullanımı,
+sistem manipülasyonu,
+yapay müdahale,
+ekran paylaşımı,
+üçüncü kişi desteği
+ve sınav güvenliğini ihlal edecek davranışlar yasaktır.
+</li>
+
+<li>
+Mindi Akademi;
+şüpheli kullanım,
+usulsüzlük,
+sistem güvenliği ihlali,
+sahtecilik şüphesi
+veya teknik manipülasyon tespiti halinde
+sınavı tek taraflı olarak iptal etme,
+hesabı askıya alma,
+erişimi engelleme
+ve gerekli hukuki işlemleri başlatma hakkına sahiptir.
+</li>
+
+<li>
+Sınav kodları kişiye özeldir.
+Kodların paylaşılması,
+çoğaltılması,
+satılması
+veya yetkisiz kişilerce kullanılması yasaktır.
+</li>
+
+<li>
+İnternet bağlantısı,
+mikrofon,
+kamera,
+kulaklık,
+cihaz performansı,
+tarayıcı uyumsuzluğu
+ve kullanıcı kaynaklı teknik problemlerden kullanıcı sorumludur.
+</li>
+
+<li>
+Mindi Akademi,
+bakım çalışmaları,
+altyapı güncellemeleri,
+güvenlik önlemleri
+ve mücbir sebepler nedeniyle hizmeti geçici olarak durdurabilir.
+</li>
+
+<li>
+Platform üzerindeki tüm tasarımlar,
+altyapılar,
+sistemler,
+sorular,
+içerikler,
+markalar,
+görseller
+ve yazılımlar Mindi Akademi’ye aittir.
+İzinsiz kullanımı yasaktır.
+</li>
+
+<li>
+Platformu kullanan kullanıcı,
+işbu kullanım şartlarını,
+gizlilik politikalarını
+ve veri işleme süreçlerini kabul etmiş sayılır.
+</li>
+
+<li>
+İşbu sözleşmeden doğabilecek uyuşmazlıklarda
+Hatay Mahkemeleri ve İcra Daireleri yetkilidir.
+</li>
+
+</ul>
+`,
+
+
+
       `
+<h3>AI / KAYIT / SINAV GÜVENLİĞİ BİLDİRİMİ</h3>
+
+<p>
+Kullanıcı;
+speaking bölümlerinde ses kaydı alınabileceğini,
+bu kayıtların otomatik transkripsiyon,
+AI destekli değerlendirme,
+ölçme-değerlendirme,
+kalite kontrol,
+sistem geliştirme,
+güvenlik incelemesi
+ve hukuki süreçler kapsamında kullanılabileceğini kabul eder.
+</p>
+
+<p>
+Platform;
+otomatik analiz sistemleri,
+algoritmalar,
+AI değerlendirme araçları
+ve dijital sınav güvenliği teknolojileri kullanabilir.
+</p>
+
+<p>
+Mindi Akademi;
+otomatik değerlendirme sonuçlarını gerekli gördüğü durumlarda manuel olarak yeniden inceleme,
+puan değişikliği yapma,
+sınavı yeniden değerlendirme
+veya sınavı geçersiz sayma hakkını saklı tutar.
+</p>
+
+<p>
+Kullanıcı;
+IP kayıtlarının,
+cihaz bilgilerinin,
+tarayıcı hareketlerinin,
+oturum loglarının
+ve sınav aktivitelerinin güvenlik amacıyla kayıt altına alınabileceğini kabul eder.
+</p>
+
+<p>
+Usulsüzlük,
+kopya girişimi,
+şüpheli işlem,
+teknik manipülasyon
+veya sistem güvenliğini tehlikeye atan durumların tespiti halinde
+ilgili kayıtlar hukuki süreçlerde delil niteliğinde kullanılabilir.
+</p>
+`
     ];
 
     let visitedTabs = new Set();
