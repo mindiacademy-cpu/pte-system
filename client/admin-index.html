@@ -35,6 +35,22 @@
       flex-wrap: wrap;
     }
 
+    .logout-btn {
+      background: white;
+      color: #173a8c;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-weight: bold;
+      cursor: pointer;
+      width: auto;
+      margin: 0;
+    }
+
+    .logout-btn:hover {
+      background: #eef3f8;
+    }
+
     .brand {
       font-size: 30px;
       font-weight: bold;
@@ -191,89 +207,88 @@
   <div class="topbar">
     <div class="topbar-inner">
       <div class="brand">PTE Admin Portal</div>
-      <div class="subtext">Question management • Exam creation • Result review</div>
-    </div>
-  </div>
-
-  <div class="main">
-    <div class="hero">
-      <h1>Admin Control Center</h1>
-      <p>
-        Manage your complete practice exam workflow from one place. Use the sections below to add questions,
-        create exam sets, and review candidate results including speaking records and transcripts.
-      </p>
+      <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
 
-    <div class="grid">
-      <div class="card">
-        <div>
-          <div class="card-badge">Question Bank</div>
-          <h2>Question Admin</h2>
-          <p>
-            Add, edit and organize Speaking, Writing, Reading and Listening questions.
-          </p>
-          <ul class="feature-list">
-            <li>Create new questions</li>
-            <li>Add points and time</li>
-            <li>Reading correct answers</li>
-            <li>Keywords for AI scoring</li>
-          </ul>
-        </div>
-        <a class="btn" href="question-admin.html">Open Question Admin</a>
+    <div class="main">
+      <div class="hero">
+        <h1>Admin Control Center</h1>
+        <p>
+          Manage your complete practice exam workflow from one place. Use the sections below to add questions,
+          create exam sets, and review candidate results including speaking records and transcripts.
+        </p>
       </div>
 
-      <div class="card">
-        <div>
-          <div class="card-badge">Exam Builder</div>
-          <h2>Exam Admin</h2>
-          <p>
-            Select questions from the bank and create a full exam with an exam code.
-          </p>
-          <ul class="feature-list">
-            <li>Select questions</li>
-            <li>Create exam sets</li>
-            <li>Generate exam code</li>
-            <li>Prepare candidate access</li>
-          </ul>
+      <div class="grid">
+        <div class="card">
+          <div>
+            <div class="card-badge">Question Bank</div>
+            <h2>Question Admin</h2>
+            <p>
+              Add, edit and organize Speaking, Writing, Reading and Listening questions.
+            </p>
+            <ul class="feature-list">
+              <li>Create new questions</li>
+              <li>Add points and time</li>
+              <li>Reading correct answers</li>
+              <li>Keywords for AI scoring</li>
+            </ul>
+          </div>
+          <a class="btn" href="question-admin.html">Open Question Admin</a>
         </div>
-        <a class="btn" href="exam-admin.html">Open Exam Admin</a>
+
+        <div class="card">
+          <div>
+            <div class="card-badge">Exam Builder</div>
+            <h2>Exam Admin</h2>
+            <p>
+              Select questions from the bank and create a full exam with an exam code.
+            </p>
+            <ul class="feature-list">
+              <li>Select questions</li>
+              <li>Create exam sets</li>
+              <li>Generate exam code</li>
+              <li>Prepare candidate access</li>
+            </ul>
+          </div>
+          <a class="btn" href="exam-admin.html">Open Exam Admin</a>
+        </div>
+
+        <div class="card">
+          <div>
+            <div class="card-badge">Results</div>
+            <h2>Admin Panel</h2>
+            <p>
+              Review submitted exams, scores, speaking transcripts and candidate responses.
+            </p>
+            <ul class="feature-list">
+              <li>View exam results</li>
+              <li>Check speaking transcript</li>
+              <li>Listen to recordings</li>
+              <li>Review section scores</li>
+            </ul>
+          </div>
+          <a class="btn" href="admin.html">Open Admin Panel</a>
+        </div>
       </div>
 
-      <div class="card">
-        <div>
-          <div class="card-badge">Results</div>
-          <h2>Admin Panel</h2>
-          <p>
-            Review submitted exams, scores, speaking transcripts and candidate responses.
-          </p>
-          <ul class="feature-list">
-            <li>View exam results</li>
-            <li>Check speaking transcript</li>
-            <li>Listen to recordings</li>
-            <li>Review section scores</li>
-          </ul>
-        </div>
-        <a class="btn" href="admin.html">Open Admin Panel</a>
+      <div class="footer-note">
+        Student login remains on the normal entry page. This page is only for internal admin use.
       </div>
     </div>
 
-    <div class="footer-note">
-      Student login remains on the normal entry page. This page is only for internal admin use.
-    </div>
-  </div>
+    <body>
 
-  <body>
+      ... sayfa içeriği ...
 
-    ... sayfa içeriği ...
+      <script>
+        function logout() {
+          localStorage.removeItem("adminLogged");
+          window.location.href = "admin-login.html";
+        }
+      </script>
 
-    <script>
-      function logout() {
-        localStorage.removeItem("adminLogged");
-        window.location.href = "admin-login.html";
-      }
-    </script>
-
-  </body>
+    </body>
 </body>
 
 </html>
