@@ -1,4 +1,3 @@
-console.log("SERVER VERSION TEST 999");
 const { createClient } = require("@supabase/supabase-js");
 const express = require("express");
 const cors = require("cors");
