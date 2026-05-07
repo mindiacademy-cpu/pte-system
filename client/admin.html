@@ -248,7 +248,7 @@
   <div class="topbar">
     <button class="btn" onclick="loadResults()">Refresh Results</button>
 
-    <input id="searchInput" type="text" placeholder="İsim, ID veya exam code ara"
+    <input id="searchInput" type="text" placeholder="İsim veya Exam Code ara"
       style="padding:10px 14px; border:1px solid #ccc; border-radius:8px; width:260px; margin-left:8px;">
 
     <select id="sortSelect" style="padding:10px 14px; border:1px solid #ccc; border-radius:8px; margin-left:8px;">
@@ -718,7 +718,7 @@
         }
 
         alert("Aday sonucu silindi.");
-        await loadResults();
+        await preserveScroll(loadResults);
 
       } catch (error) {
         alert("Server connection error.");
@@ -746,7 +746,6 @@
       if (search) {
         results = results.filter(e =>
           (e.candidateName || "").toLowerCase().includes(search) ||
-          (e.candidateId || "").toLowerCase().includes(search) ||
           (e.examCode || "").toLowerCase().includes(search)
         );
       }

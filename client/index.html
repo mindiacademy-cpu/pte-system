@@ -207,7 +207,8 @@
       <input type="checkbox" id="allPolicyConsent" disabled />
       <label>
         <span class="link-text" onclick="openPolicies()">
-          Gizlilik, KVKK, Açık Rıza ve Aydınlatma Metinleri, Kullanım Şartları, AI Uyarısı, Çerez Politikası okudum, kabul ediyorum.
+          Gizlilik, KVKK, Açık Rıza ve Aydınlatma Metinleri, Kullanım Şartları, AI Uyarısı, Çerez Politikası okudum,
+          kabul ediyorum.
         </span>
       </label>
     </div>
@@ -792,8 +793,8 @@ platformun düzgün çalışmasını engelleyebilir.
 
       const phoneRaw = phone.replace(/\D/g, "");
 
-      if (!phoneRaw) {
-        errorBox.innerText = "Telefon numarası girin.";
+      if (phoneRaw.length !== 11 || !phoneRaw.startsWith("05")) {
+        errorBox.innerText = "Telefon numarası 05XX XXX XX XX formatında olmalı.";
         return;
       }
 
