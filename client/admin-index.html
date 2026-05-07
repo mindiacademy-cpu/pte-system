@@ -176,6 +176,15 @@
 
 <body>
 
+  <script>
+    if (localStorage.getItem("adminLogged") !== "true") {
+      window.location.href = "admin-login.html";
+    }
+  </script>
+
+  <!-- sayfa içeriği -->
+
+
   <div style="display:flex;justify-content:flex-end;padding:20px;">
     <button onclick="logout()">Logout</button>
   </div>

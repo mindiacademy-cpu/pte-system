@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -38,7 +39,7 @@
     .card {
       background: white;
       border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
       padding: 22px;
       margin-bottom: 24px;
     }
@@ -71,7 +72,7 @@
     input[type="text"]:focus,
     select:focus {
       border-color: #2563eb;
-      box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
     }
 
     .toolbar {
@@ -284,7 +285,16 @@
     }
   </style>
 </head>
+
 <body>
+
+  <script>
+    if (localStorage.getItem("adminLogged") !== "true") {
+      window.location.href = "admin-login.html";
+    }
+  </script>
+
+  <!-- sayfa içeriği -->
   <div class="container">
     <h1>PTE Exam Admin Panel</h1>
 
@@ -300,7 +310,8 @@
         <div class="toolbar">
           <div>
             <label for="searchBox">Soru Ara</label>
-            <input id="searchBox" type="text" placeholder="Başlığa veya tipe göre ara..." oninput="renderQuestionSelectionList()">
+            <input id="searchBox" type="text" placeholder="Başlığa veya tipe göre ara..."
+              oninput="renderQuestionSelectionList()">
           </div>
 
           <div>
@@ -582,4 +593,5 @@
     loadAll();
   </script>
 </body>
+
 </html>

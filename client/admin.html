@@ -235,6 +235,14 @@
 
 <body>
 
+  <script>
+    if (localStorage.getItem("adminLogged") !== "true") {
+      window.location.href = "admin-login.html";
+    }
+  </script>
+
+  <!-- sayfa içeriği -->
+
   <h1>PTE Admin Panel</h1>
 
   <div class="topbar">

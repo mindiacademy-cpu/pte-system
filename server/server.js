@@ -459,7 +459,7 @@ function buildSummary(answers) {
 }
 
 app.get("/", (req, res) => {
-  res.send("PTE backend running.");
+  res.sendFile(path.join(__dirname, "../client", "index.html"));
 });
 
 app.get("/question-admin.html", (req, res) => {
