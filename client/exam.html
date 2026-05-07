@@ -2569,8 +2569,6 @@
         .then((data) => {
           console.log("EXAM SAVED OK:", data);
 
-          localStorage.setItem("examSubmitted", "true");
-
           localStorage.removeItem("examData");
           localStorage.removeItem("examCode");
           localStorage.removeItem("candidateName");
@@ -2580,12 +2578,9 @@
           localStorage.removeItem("candidateId");
           localStorage.removeItem("examStarted");
           localStorage.removeItem("currentQuestionIndex");
+          localStorage.removeItem("examSubmitted");
 
-          document.getElementById("startScreen").classList.add("hidden");
-          document.getElementById("micCheckScreen").classList.add("hidden");
-          document.getElementById("examArea").classList.add("hidden");
-          document.getElementById("finishScreen").classList.remove("hidden");
-          history.replaceState(null, "", "/index.html");
+          window.location.replace("/index.html");
         })
         .catch(error => {
           console.error("SAVE EXAM ERROR:", error);
@@ -2698,11 +2693,6 @@
     }
 
     document.addEventListener("DOMContentLoaded", function () {
-      if (localStorage.getItem("examSubmitted") === "true") {
-        localStorage.clear();
-        window.location.replace("/index.html");
-        return;
-      }
 
       const hasExam =
         localStorage.getItem("examData") &&
