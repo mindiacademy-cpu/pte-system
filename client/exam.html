@@ -2585,6 +2585,7 @@
           document.getElementById("micCheckScreen").classList.add("hidden");
           document.getElementById("examArea").classList.add("hidden");
           document.getElementById("finishScreen").classList.remove("hidden");
+          history.replaceState(null, "", "/index.html");
         })
         .catch(error => {
           console.error("SAVE EXAM ERROR:", error);
