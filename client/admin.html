@@ -863,18 +863,11 @@
   <div class="meta-item">
   <div class="label">Period</div>
 
-  <div class="meta-value">
-    <strong>Started:</strong><br>
-    ${formatFinishedAt(exam.startedAt)}
-
-    <br><br>
-
-    <strong>Finished:</strong><br>
+  <div class="meta-value" style="line-height:1.9;">
+    ${formatFinishedAt(exam.startedAt) || "-"}
+    <br>
     ${formatFinishedAt(exam.finishedAt)}
-
-    <br><br>
-
-    <strong>Duration:</strong><br>
+    <br>
     ${getDuration(exam.startedAt, exam.finishedAt)}
   </div>
 </div>
