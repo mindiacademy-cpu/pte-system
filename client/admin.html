@@ -647,27 +647,30 @@
   </div>
 
   <div class="info-box">
-  <div class="info-label">Started At</div>
-  <div class="info-value">${escapeHtml(
+  <div class="info-label">Period</div>
+
+  <div class="info-value">
+    <strong>Started:</strong><br>
+    ${escapeHtml(
         exam.startedAt
           ? new Date(exam.startedAt).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })
           : "-"
-      )}</div>
-</div>
+      )}
 
-<div class="info-box">
-  <div class="info-label">Finished At</div>
-  <div class="info-value">${escapeHtml(
+    <br><br>
+
+    <strong>Finished:</strong><br>
+    ${escapeHtml(
         exam.finishedAt
           ? new Date(exam.finishedAt).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })
           : "-"
-      )}</div>
-</div>
+      )}
 
-<div class="info-box">
-  <div class="info-label">Duration</div>
-  <div class="info-value">${escapeHtml(getDuration(exam.startedAt, exam.finishedAt))}</div>
-</div>
+    <br><br>
+
+    <strong>Duration:</strong><br>
+    ${escapeHtml(getDuration(exam.startedAt, exam.finishedAt))}
+  </div>
 </div>
 
         <div class="section-title">Score Summary</div>
@@ -858,18 +861,22 @@
   </div>
 
   <div class="meta-item">
-  <div class="label">Started At</div>
-  <div class="meta-value">${formatFinishedAt(exam.startedAt)}</div>
-</div>
+  <div class="label">Period</div>
 
-<div class="meta-item">
-  <div class="label">Finished At</div>
-  <div class="meta-value">${formatFinishedAt(exam.finishedAt)}</div>
-</div>
+  <div class="meta-value">
+    <strong>Started:</strong><br>
+    ${formatFinishedAt(exam.startedAt)}
 
-<div class="meta-item">
-  <div class="label">Duration</div>
-  <div class="meta-value">${getDuration(exam.startedAt, exam.finishedAt)}</div>
+    <br><br>
+
+    <strong>Finished:</strong><br>
+    ${formatFinishedAt(exam.finishedAt)}
+
+    <br><br>
+
+    <strong>Duration:</strong><br>
+    ${getDuration(exam.startedAt, exam.finishedAt)}
+  </div>
 </div>
 
 </div>
