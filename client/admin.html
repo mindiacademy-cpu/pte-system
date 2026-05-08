@@ -862,9 +862,9 @@
     <div class="meta-value">${exam.examCode || "-"}</div>
   </div>
 
-  <div class="meta-item" style="grid-column: 1 / -1; padding:12px 14px;">
+  <div class="meta-item">
   <div class="label">Period</div>
-  <div class="meta-value" style="line-height:1.4;">
+  <div class="meta-value">
     ${formatFinishedAt(exam.startedAt)} → ${formatFinishedAt(exam.finishedAt)} (${getDuration(exam.startedAt, exam.finishedAt)})
   </div>
 </div>
