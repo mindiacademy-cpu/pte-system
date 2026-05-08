@@ -303,6 +303,18 @@
       });
     }
 
+    function getDuration(start, end) {
+      if (!start || !end) return "-";
+
+      const diff = new Date(end) - new Date(start);
+      if (diff < 0 || Number.isNaN(diff)) return "-";
+
+      const minutes = Math.floor(diff / 60000);
+      const seconds = Math.floor((diff % 60000) / 1000);
+
+      return `${minutes}m ${seconds}s`;
+    }
+
     function buildPdfHtml(exam) {
       const summary = exam.summary || {};
       const answers = Array.isArray(exam.answers) ? exam.answers : [];
@@ -635,14 +647,27 @@
   </div>
 
   <div class="info-box">
-    <div class="info-label">Finished At</div>
-    <div class="info-value">${escapeHtml(
+  <div class="info-label">Started At</div>
+  <div class="info-value">${escapeHtml(
+        exam.startedAt
+          ? new Date(exam.startedAt).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })
+          : "-"
+      )}</div>
+</div>
+
+<div class="info-box">
+  <div class="info-label">Finished At</div>
+  <div class="info-value">${escapeHtml(
         exam.finishedAt
           ? new Date(exam.finishedAt).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })
           : "-"
       )}</div>
-  </div>
+</div>
 
+<div class="info-box">
+  <div class="info-label">Duration</div>
+  <div class="info-value">${escapeHtml(getDuration(exam.startedAt, exam.finishedAt))}</div>
+</div>
 </div>
 
         <div class="section-title">Score Summary</div>
@@ -833,9 +858,19 @@
   </div>
 
   <div class="meta-item">
-    <div class="label">Finished At</div>
-    <div class="meta-value">${formatFinishedAt(exam.finishedAt)}</div>
-  </div>
+  <div class="label">Started At</div>
+  <div class="meta-value">${formatFinishedAt(exam.startedAt)}</div>
+</div>
+
+<div class="meta-item">
+  <div class="label">Finished At</div>
+  <div class="meta-value">${formatFinishedAt(exam.finishedAt)}</div>
+</div>
+
+<div class="meta-item">
+  <div class="label">Duration</div>
+  <div class="meta-value">${getDuration(exam.startedAt, exam.finishedAt)}</div>
+</div>
 
 </div>
           `;

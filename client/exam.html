@@ -822,6 +822,8 @@
     let currentQuestionIndex = 0;
     let answers = [];
 
+    const examStartedAt = new Date().toISOString();
+
     const examFlow = [
       "read_aloud",
       "repeat_sentence",
@@ -2554,7 +2556,10 @@
         candidateEmail: localStorage.getItem("candidateEmail") || "",
         candidateId: localStorage.getItem("candidateId") || "",
         examCode: localStorage.getItem("examCode") || "",
+
+        startedAt: examStartedAt,
         finishedAt: new Date().toISOString(),
+
         answers
       };
 

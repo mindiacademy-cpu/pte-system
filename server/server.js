@@ -394,6 +394,7 @@ function normalizeExamResult(exam) {
     candidateId: exam.candidateId || "",
     examCode: exam.examCode || "",
     kvkkApproval: exam.kvkkApproval || "",
+    startedAt: exam.startedAt || "",
     finishedAt: exam.finishedAt || new Date().toISOString(),
     answers: Array.isArray(exam.answers) ? exam.answers : [],
     summary: exam.summary || {
@@ -974,6 +975,7 @@ app.post("/save-exam", async (req, res) => {
       candidateEmail: body.candidateEmail,
       candidateId: body.candidateId,
       examCode: body.examCode,
+      startedAt: body.startedAt,
       finishedAt: body.finishedAt,
       answers: scoredAnswers,
       summary: calculatedSummary
@@ -985,6 +987,7 @@ app.post("/save-exam", async (req, res) => {
         candidate_phone: examData.candidatePhone,
         candidate_email: examData.candidateEmail,
         exam_code: examData.examCode,
+        started_at: examData.startedAt,
         finished_at: examData.finishedAt,
         answers: examData.answers,
         summary: examData.summary
@@ -1024,6 +1027,7 @@ app.get("/exam-results", async (req, res) => {
       candidateEmail: item.candidate_email || "",
       candidateId: item.candidate_phone || "",
       examCode: item.exam_code || "",
+      startedAt: item.started_at,
       finishedAt: item.finished_at,
       answers: item.answers || [],
       summary: item.summary || {}
