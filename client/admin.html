@@ -651,27 +651,11 @@
   <div class="info-box">
   <div class="info-label">Period</div>
 
-  <div class="info-value">
-    <strong>Started:</strong><br>
-    ${escapeHtml(
-        exam.startedAt
-          ? new Date(exam.startedAt).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })
-          : "-"
-      )}
-
-    <br><br>
-
-    <strong>Finished:</strong><br>
-    ${escapeHtml(
-        exam.finishedAt
-          ? new Date(exam.finishedAt).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })
-          : "-"
-      )}
-
-    <br><br>
-
-    <strong>Duration:</strong><br>
-    ${escapeHtml(getDuration(exam.startedAt, exam.finishedAt))}
+  <div class="info-value" style="line-height:1.3;">
+    ${formatFinishedAt(exam.startedAt)}
+    →
+    ${formatFinishedAt(exam.finishedAt)}
+    (${getDuration(exam.startedAt, exam.finishedAt)})
   </div>
 </div>
 
