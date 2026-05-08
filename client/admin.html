@@ -102,7 +102,8 @@
       background: #f8fafc;
       border: 1px solid #e5e7eb;
       border-radius: 12px;
-      padding: 14px;
+      padding: 12px 14px;
+      min-height: auto;
     }
 
     .label {
@@ -863,7 +864,7 @@
   <div class="meta-item">
   <div class="label">Period</div>
 
-  <div class="meta-value" style="line-height:1.9;">
+  <div class="meta-value" style="line-height:1.55;">
     ${formatFinishedAt(exam.startedAt) || "-"}
     <br>
     ${formatFinishedAt(exam.finishedAt)}
