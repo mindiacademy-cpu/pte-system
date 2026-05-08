@@ -96,6 +96,7 @@
       grid-template-columns: repeat(2, minmax(220px, 1fr));
       gap: 14px;
       margin-top: 18px;
+      align-items: start;
     }
 
     .meta-item {
@@ -864,11 +865,9 @@
   <div class="meta-item">
   <div class="label">Period</div>
 
-  <div class="meta-value" style="line-height:1.55;">
+  <div class="meta-value" style="line-height:1.4;">
     ${formatFinishedAt(exam.startedAt) || "-"}
-    <br>
     ${formatFinishedAt(exam.finishedAt)}
-    <br>
     ${getDuration(exam.startedAt, exam.finishedAt)}
   </div>
 </div>
