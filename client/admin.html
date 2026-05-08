@@ -701,41 +701,35 @@
       }, 500);
     }
 
-    async function deleteResult(resultId, candidateName) {
-
+    async function deleteResult(resultId, candidateName, cardEl) {
       const ok = confirm(`${candidateName || "Bu adayın"} sonucunu silmek istiyor musunuz?`);
       if (!ok) return;
 
-      const currentScroll = window.scrollY;
-
       try {
-
         const response = await fetch(`/exam-results/${resultId}`, {
-          method: "DELETE"
+          method: "DELETE",
+          cache: "no-store"
         });
 
-        if (!response.ok) {
-          showToast("Aday sonucu silinemedi.");
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          showToast(data.error || "Aday sonucu silinemedi.", "error");
           return;
         }
 
-        showToast("Aday sonucu silindi.");
+        if (cardEl) {
+          cardEl.remove();
+        }
 
-        await loadResults();
-
-        setTimeout(() => {
-          window.scrollTo({
-            top: currentScroll,
-            behavior: "auto"
-          });
-        }, 50);
+        showToast("Aday sonucu silindi.", "success");
 
       } catch (error) {
         console.error(error);
-        showToast("Server connection error.");
+        showToast("Server connection error.", "error");
       }
     }
-    
+
     function preserveScroll(callback) {
       const scrollY = window.scrollY;
 
@@ -980,7 +974,9 @@
           pdfBtn.addEventListener("click", () => downloadPdfReport(exam));
 
           const deleteBtn = card.querySelector(".btn-delete");
-          deleteBtn.addEventListener("click", () => deleteResult(exam.id || exam._id, exam.candidateName));
+          deleteBtn.addEventListener("click", () =>
+            deleteResult(exam.id || exam._id, exam.candidateName, card)
+          );
         });
       } catch (error) {
         container.innerHTML = "<p class='empty'>Server connection error.</p>";
