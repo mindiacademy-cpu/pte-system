@@ -786,7 +786,7 @@ app.delete("/questions/:id", (req, res) => {
   }
 });
 
-app.post("/create-exam", (req, res) => {
+app.post("/create-exam", async (req, res) => {
   try {
     const { title, questions } = req.body;
 
@@ -819,49 +819,61 @@ app.post("/create-exam", (req, res) => {
     const sortedQuestions = selectedQuestions.sort((a, b) => {
       const orderA = sectionOrder[String(a.type || "").toLowerCase()] || 999;
       const orderB = sectionOrder[String(b.type || "").toLowerCase()] || 999;
-
-      if (orderA !== orderB) {
-        return orderA - orderB;
-      }
-
-      return 0;
+      return orderA - orderB;
     });
 
-    console.log("SORTED EXAM ORDER:", sortedQuestions.map(q => ({
-      title: q.title,
-      type: q.type,
-      subType: q.subType
-    })));
+    const examCode = "EX" + Math.floor(100000 + Math.random() * 900000);
 
-    const exams = readJson(EXAMS_FILE);
+    const { error } = await supabase.from("exams").insert([
+      {
+        exam_code: examCode,
+        title,
+        questions: sortedQuestions,
+        used: false,
+        used_at: null
+      }
+    ]);
 
-    const exam = {
-      id: Date.now().toString(),
-      examCode: "EX" + Math.floor(100000 + Math.random() * 900000),
-      title,
-      questions: sortedQuestions,
-      createdAt: new Date().toLocaleString(),
-      used: false,
-      usedAt: null
-    };
-
-    exams.push(exam);
-    writeJson(EXAMS_FILE, exams);
+    if (error) {
+      console.error("SUPABASE CREATE EXAM ERROR:", error);
+      return res.status(500).json({ error: "Exam could not be created." });
+    }
 
     res.json({
       success: true,
-      examCode: exam.examCode
+      examCode
     });
+
   } catch (error) {
     console.error("POST /create-exam error:", error);
     res.status(500).json({ error: "Exam could not be created." });
   }
 });
 
-app.get("/exams", (req, res) => {
+app.get("/exams", async (req, res) => {
   try {
-    const exams = readJson(EXAMS_FILE);
+    const { data, error } = await supabase
+      .from("exams")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("SUPABASE GET EXAMS ERROR:", error);
+      return res.status(500).json({ error: "Exams could not be loaded." });
+    }
+
+    const exams = (data || []).map(item => ({
+      id: item.id,
+      examCode: item.exam_code,
+      title: item.title,
+      questions: item.questions || [],
+      createdAt: item.created_at,
+      used: item.used,
+      usedAt: item.used_at
+    }));
+
     res.json(exams);
+
   } catch (error) {
     console.error("GET /exams error:", error);
     res.status(500).json({ error: "Exams could not be loaded." });
@@ -872,32 +884,48 @@ app.get("/exams/code/:examCode", async (req, res) => {
   try {
     const examCode = String(req.params.examCode || "").trim().toUpperCase();
 
-    const exams = readJson(EXAMS_FILE);
-    const examIndex = exams.findIndex(
-      e => String(e.examCode || "").toUpperCase() === examCode
-    );
+    const { data, error } = await supabase
+      .from("exams")
+      .select("*")
+      .eq("exam_code", examCode)
+      .single();
 
-    if (examIndex === -1) {
+    if (error || !data) {
       return res.status(404).json({ error: "Exam not found." });
     }
 
-    const exam = exams[examIndex];
-
-    if (exam.used === true) {
+    if (data.used === true) {
       return res.status(400).json({
         error: "This exam code has already been used."
       });
     }
 
-    exams[examIndex] = {
-      ...exam,
-      used: true,
-      usedAt: new Date().toISOString()
-    };
+    const usedAt = new Date().toISOString();
 
-    writeJson(EXAMS_FILE, exams);
+    const { data: updated, error: updateError } = await supabase
+      .from("exams")
+      .update({
+        used: true,
+        used_at: usedAt
+      })
+      .eq("id", data.id)
+      .select()
+      .single();
 
-    res.json(exams[examIndex]);
+    if (updateError) {
+      console.error("SUPABASE UPDATE EXAM USED ERROR:", updateError);
+      return res.status(500).json({ error: "Exam could not be loaded." });
+    }
+
+    res.json({
+      id: updated.id,
+      examCode: updated.exam_code,
+      title: updated.title,
+      questions: updated.questions || [],
+      createdAt: updated.created_at,
+      used: updated.used,
+      usedAt: updated.used_at
+    });
 
   } catch (error) {
     console.error("GET /exams/code/:examCode error:", error);
@@ -905,19 +933,29 @@ app.get("/exams/code/:examCode", async (req, res) => {
   }
 });
 
-app.delete("/exams/:id", (req, res) => {
+app.delete("/exams/:id", async (req, res) => {
   try {
     const id = String(req.params.id);
-    const exams = readJson(EXAMS_FILE);
 
-    const filtered = exams.filter(e => String(e.id) !== id);
+    const { data, error } = await supabase
+      .from("exams")
+      .delete()
+      .eq("id", id)
+      .select();
 
-    writeJson(EXAMS_FILE, filtered);
+    if (error) {
+      console.error("SUPABASE DELETE EXAM ERROR:", error);
+      return res.status(500).json({ error: "Exam could not be deleted." });
+    }
 
-    res.json({ success: true });
+    res.json({
+      success: true,
+      deleted: data
+    });
+
   } catch (error) {
     console.error("DELETE /exams/:id error:", error);
-    res.status(500).json({ error: "Exam could not be deleted" });
+    res.status(500).json({ error: "Exam could not be deleted." });
   }
 });
 

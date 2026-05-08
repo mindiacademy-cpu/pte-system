@@ -534,8 +534,7 @@
             </div>
 
             <div>
-              <button class="btn btn-danger" onclick="deleteExam(${exam.id})">Sınavı Sil</button>
-            </div>
+              <button class="btn btn-danger" onclick="deleteExam('${exam.id}')">Sınavı Sil</button>
           </div>
         `;
 
@@ -567,7 +566,9 @@
 
     async function loadExams() {
       try {
-        const response = await fetch("/exams");
+        const response = await fetch("/exams", {
+          cache: "no-store"
+        });
         const data = await response.json();
 
         if (!response.ok) {
