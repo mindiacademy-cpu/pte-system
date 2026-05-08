@@ -4,6 +4,7 @@ const cors = require("cors");
 const fs = require("fs")
 const path = require("path");
 const multer = require("multer");
+const OpenAI = require("openai");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -11,6 +12,10 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_KEY
 );
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
 app.use(cors());
 app.use(express.json({ limit: "50mb" }));
@@ -456,6 +461,127 @@ function buildSummary(answers) {
     reading: readingScore,
     listening: listeningScore
   };
+}
+
+function safeJsonParse(text) {
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    return null;
+  }
+}
+
+async function scoreSpeakingWithAI({ question, transcript, maxScore }) {
+  if (!transcript || !transcript.trim()) {
+    return {
+      score: 0,
+      feedback: "No speaking response detected.",
+      fluency: 0,
+      pronunciation: 0,
+      content: 0
+    };
+  }
+
+  const response = await openai.responses.create({
+    model: "gpt-4.1-mini",
+    input: `
+You are scoring a PTE-style speaking response.
+
+Question type: ${question.subType || question.type || "speaking"}
+Question title: ${question.title || ""}
+Prompt: ${question.prompt || ""}
+Question content: ${question.textContent || ""}
+
+Candidate transcript:
+${transcript}
+
+Score the response from 0 to ${maxScore}.
+
+Return ONLY valid JSON in this exact format:
+{
+  "score": number,
+  "fluency": number,
+  "pronunciation": number,
+  "content": number,
+  "feedback": "short explanation"
+}
+
+Rules:
+- score must be between 0 and ${maxScore}
+- fluency, pronunciation and content must be between 0 and 10
+- be strict but fair
+- if the answer is unrelated, score low
+- if transcript is empty or meaningless, score 0
+`
+  });
+
+  const rawText = response.output_text || "";
+  const parsed = safeJsonParse(rawText);
+
+  if (!parsed) {
+    return {
+      score: 0,
+      feedback: "AI scoring failed.",
+      fluency: 0,
+      pronunciation: 0,
+      content: 0
+    };
+  }
+
+  const score = Math.max(0, Math.min(Number(maxScore), Number(parsed.score || 0)));
+
+  return {
+    score,
+    fluency: Number(parsed.fluency || 0),
+    pronunciation: Number(parsed.pronunciation || 0),
+    content: Number(parsed.content || 0),
+    feedback: parsed.feedback || ""
+  };
+}
+
+async function enrichAnswersWithScores(answers) {
+  const safeAnswers = Array.isArray(answers) ? answers : [];
+
+  const questions = readJson(QUESTIONS_FILE).map(normalizeQuestion);
+  const questionMap = new Map(
+    questions.map(q => [String(q.id), q])
+  );
+
+  const enriched = [];
+
+  for (const answer of safeAnswers) {
+    const question = questionMap.get(String(answer.questionId)) || {};
+    const maxScore = Number(question.points || answer.maxScore || 10);
+
+    let autoScore = 0;
+    let aiFeedback = "";
+    let aiDetails = null;
+
+    if (answer.type === "speaking") {
+      const aiScore = await scoreSpeakingWithAI({
+        question,
+        transcript: answer.transcript || answer.answer || "",
+        maxScore
+      });
+
+      autoScore = aiScore.score;
+      aiFeedback = aiScore.feedback;
+      aiDetails = aiScore;
+    } else {
+      autoScore = calculateAutoScore(question, answer.answer);
+    }
+
+    enriched.push({
+      ...answer,
+      maxScore,
+      autoScore,
+      finalScore: autoScore,
+      aiFeedback,
+      aiDetails
+    });
+  }
+
+  return enriched;
 }
 
 app.get("/", (req, res) => {
@@ -905,26 +1031,30 @@ app.delete("/exam-results/:id", async (req, res) => {
   try {
     const id = String(req.params.id);
 
-    console.log("DELETE REQUEST ID:", id);
+    console.log("DELETE ID:", id);
 
     const { data, error } = await supabase
       .from("exam_results")
       .delete()
-      .eq("id", id);
+      .eq("id", id)
+      .select();
+
+    console.log("DELETE RESULT:", data);
+    console.log("DELETE ERROR:", error);
 
     if (error) {
-      console.error("SUPABASE DELETE ERROR:", error);
       return res.status(500).json({
-        error: "Candidate result could not be deleted."
+        error: error.message
       });
     }
 
     res.json({
-      success: true
+      success: true,
+      deleted: data
     });
 
   } catch (error) {
-    console.error("DELETE /exam-results/:id error:", error);
+    console.error(error);
 
     res.status(500).json({
       error: "Delete failed"
