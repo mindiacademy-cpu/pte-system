@@ -539,14 +539,6 @@ Rules:
   };
 }
 
-const { createClient } = require("@supabase/supabase-js");
-const express = require("express");
-const cors = require("cors");
-const fs = require("fs")
-const path = require("path");
-const multer = require("multer");
-const OpenAI = require("openai");
-
 const app = express();
 const PORT = process.env.PORT || 3001;
 const supabase = createClient(
