@@ -158,6 +158,70 @@
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
     }
 
+    .headset-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(8px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 99999;
+    }
+
+    .headset-modal {
+      width: calc(100% - 40px);
+      max-width: 520px;
+      background: white;
+      border-radius: 22px;
+      padding: 32px 28px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      animation: popupFade .25s ease;
+    }
+
+    .headset-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 16px;
+    }
+
+    .headset-text {
+      font-size: 15px;
+      line-height: 1.7;
+      color: #4b5563;
+      margin-bottom: 24px;
+    }
+
+    .headset-btn {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 14px 22px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      min-width: 180px;
+    }
+
+    .headset-btn:hover {
+      background: #1d4ed8;
+    }
+
+    @keyframes popupFade {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
     .tabs {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -213,6 +277,28 @@
 </head>
 
 <body>
+  <div id="headsetModal" class="headset-overlay">
+
+    <div class="headset-modal">
+
+      <div class="headset-title">
+        Important Notice
+      </div>
+
+      <div class="headset-text">
+        This exam includes listening and speaking sections.
+        Please use headphones or a headset with a working microphone
+        for the best exam experience.
+      </div>
+
+      <button id="headsetOkBtn" class="headset-btn">
+        I Understand
+      </button>
+
+    </div>
+
+  </div>
+
   <div class="headset-popup">
     This exam includes listening and speaking sections. Please use a headset or headphones with a working microphone.
   </div>
@@ -948,6 +1034,16 @@ platformun düzgün çalışmasını engelleyebilir.
       cookiePopup.style.display = "none";
     });
   </script>
+
+  <script>
+    const headsetModal = document.getElementById("headsetModal");
+    const headsetOkBtn = document.getElementById("headsetOkBtn");
+
+    headsetOkBtn.addEventListener("click", () => {
+      headsetModal.style.display = "none";
+    });
+  </script>
+  
 </body>
 
 </html>
