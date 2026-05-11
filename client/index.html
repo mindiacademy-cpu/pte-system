@@ -138,6 +138,26 @@
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
     }
 
+    .headset-popup {
+      position: fixed;
+      top: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 680px;
+      width: calc(100% - 40px);
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e3a8a;
+      padding: 14px 18px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.5;
+      text-align: center;
+      z-index: 9999;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    }
+
     .tabs {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -193,6 +213,10 @@
 </head>
 
 <body>
+  <div class="headset-popup">
+    This exam includes listening and speaking sections. Please use a headset or headphones with a working microphone.
+  </div>
+
   <div class="container">
     <div class="subtitle">PTE Academic Exam Simulation</div>
     <h2>PTE Exam Login</h2>
