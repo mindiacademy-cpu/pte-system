@@ -5,6 +5,7 @@ const fs = require("fs")
 const path = require("path");
 const multer = require("multer");
 const OpenAI = require("openai");
+const nodemailer = require("nodemailer");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -15,6 +16,14 @@ const supabase = createClient(
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
+});
+
+const mailTransporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.NOTIFY_EMAIL,
+    pass: process.env.NOTIFY_EMAIL_PASSWORD
+  }
 });
 
 app.use(cors());
@@ -998,6 +1007,16 @@ app.post("/save-exam", async (req, res) => {
       console.error("SUPABASE SAVE ERROR:", error);
       return res.status(500).json({ error: "Exam could not be saved." });
     }
+
+    await mailTransporter.sendMail({
+      from: process.env.NOTIFY_EMAIL,
+      to: process.env.NOTIFY_EMAIL,
+      subject: "Yeni PTE sınavı tamamlandı",
+      html: `
+    <h2>Yeni sınav tamamlandı</h2>
+    <p><b>Aday:</b> ${examData.candidateName}</p>
+  `
+    });
 
     res.json({ success: true });
 
