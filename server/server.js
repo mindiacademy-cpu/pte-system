@@ -21,16 +21,15 @@ const openai = new OpenAI({
 });
 
 const mailTransporter = nodemailer.createTransport({
-  host: "smtp.hostinger.com",
+  host: "mail.mindiacademy.com",
   port: 465,
   secure: true,
-  family: 4,
   auth: {
     user: process.env.NOTIFY_EMAIL,
     pass: process.env.NOTIFY_EMAIL_PASSWORD
   },
   tls: {
-    servername: "smtp.hostinger.com"
+    servername: "mail.mindiacademy.com"
   }
 });
 
