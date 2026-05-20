@@ -21,10 +21,16 @@ const openai = new OpenAI({
 });
 
 const mailTransporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  family: 4,
   auth: {
     user: process.env.NOTIFY_EMAIL,
     pass: process.env.NOTIFY_EMAIL_PASSWORD
+  },
+  tls: {
+    servername: "smtp.gmail.com"
   }
 });
 
