@@ -21,9 +21,7 @@ const openai = new OpenAI({
 });
 
 const mailTransporter = nodemailer.createTransport({
-  host: "mail.mindiacademy.com",
-  port: 465,
-  secure: true,
+  service: "gmail",
   auth: {
     user: process.env.NOTIFY_EMAIL,
     pass: process.env.NOTIFY_EMAIL_PASSWORD
