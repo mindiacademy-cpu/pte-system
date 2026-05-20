@@ -1010,17 +1010,23 @@ app.post("/save-exam", async (req, res) => {
       return res.status(500).json({ error: "Exam could not be saved." });
     }
 
-    await mailTransporter.sendMail({
+    res.json({ success: true });
+
+    mailTransporter.sendMail({
       from: process.env.NOTIFY_EMAIL,
       to: process.env.NOTIFY_EMAIL,
       subject: "Yeni PTE sınavı tamamlandı",
       html: `
     <h2>Yeni sınav tamamlandı</h2>
-    <p><b>Aday:</b> ${examData.candidateName}</p>
+    <p><b>Aday:</b> ${examData.candidateName || ""} ${examData.candidateSurname || ""}</p>
+    <p><b>Telefon:</b> ${examData.candidatePhone || ""}</p>
+    <p><b>E-posta:</b> ${examData.candidateEmail || ""}</p>
+    <p><b>Exam Code:</b> ${examData.examCode || ""}</p>
+    <p><b>Finished At:</b> ${examData.finishedAt || ""}</p>
   `
+    }).catch(error => {
+      console.error("MAIL SEND ERROR:", error);
     });
-
-    res.json({ success: true });
 
   } catch (error) {
     console.error("POST /save-exam error:", error);
