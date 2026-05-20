@@ -1013,7 +1013,7 @@ app.post("/save-exam", async (req, res) => {
     res.json({ success: true });
 
     mailTransporter.sendMail({
-      from: process.env.NOTIFY_EMAIL,
+      from: `"PTE Exam System" <${process.env.NOTIFY_EMAIL}>`,
       to: process.env.NOTIFY_EMAIL,
       subject: "Yeni PTE sınavı tamamlandı",
       html: `
