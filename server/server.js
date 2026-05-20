@@ -20,8 +20,8 @@ const openai = new OpenAI({
 
 const mailTransporter = nodemailer.createTransport({
   host: "smtp.hostinger.com",
-  port: 465,
-  secure: true,
+  port: 587,
+  secure: false,
   auth: {
     user: process.env.NOTIFY_EMAIL,
     pass: process.env.NOTIFY_EMAIL_PASSWORD
@@ -1025,7 +1025,9 @@ app.post("/save-exam", async (req, res) => {
     <p><b>Finished At:</b> ${examData.finishedAt || ""}</p>
   `
     }).catch(error => {
-      console.error("MAIL SEND ERROR:", error);
+      console.error("MAIL SEND ERROR MESSAGE:", error.message);
+      console.error("MAIL SEND ERROR CODE:", error.code);
+      console.error("MAIL SEND ERROR FULL:", error);
     });
 
   } catch (error) {
