@@ -19,7 +19,9 @@ const openai = new OpenAI({
 });
 
 const mailTransporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.hostinger.com",
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.NOTIFY_EMAIL,
     pass: process.env.NOTIFY_EMAIL_PASSWORD
