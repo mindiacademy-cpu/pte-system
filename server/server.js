@@ -659,35 +659,6 @@ app.get("/test-mail", async (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  app.get("/test-mail", async (req, res) => {
-    try {
-
-      const info = await mailTransporter.sendMail({
-        from: process.env.NOTIFY_EMAIL,
-        to: process.env.NOTIFY_EMAIL,
-        subject: "SMTP TEST",
-        text: "Mail sistemi çalışıyor"
-      });
-
-      console.log("MAIL SUCCESS:", info);
-
-      res.json({
-        success: true,
-        info
-      });
-
-    } catch (error) {
-
-      console.error("MAIL TEST ERROR:", error);
-
-      res.status(500).json({
-        success: false,
-        message: error.message,
-        code: error.code,
-        full: error
-      });
-    }
-  });
   res.sendFile(path.join(__dirname, "../client", "index.html"));
 });
 
