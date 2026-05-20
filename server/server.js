@@ -6,6 +6,8 @@ const path = require("path");
 const multer = require("multer");
 const OpenAI = require("openai");
 const nodemailer = require("nodemailer");
+const dns = require("dns");
+dns.setDefaultResultOrder("ipv4first");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -20,11 +22,15 @@ const openai = new OpenAI({
 
 const mailTransporter = nodemailer.createTransport({
   host: "smtp.hostinger.com",
-  port: 587,
-  secure: false,
+  port: 465,
+  secure: true,
+  family: 4,
   auth: {
     user: process.env.NOTIFY_EMAIL,
     pass: process.env.NOTIFY_EMAIL_PASSWORD
+  },
+  tls: {
+    servername: "smtp.hostinger.com"
   }
 });
 
