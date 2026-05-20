@@ -625,6 +625,33 @@ async function enrichAnswersWithScores(answers) {
   return enriched;
 }
 
+app.get("/test-mail", async (req, res) => {
+  try {
+
+    const info = await mailTransporter.sendMail({
+      from: process.env.NOTIFY_EMAIL,
+      to: process.env.NOTIFY_EMAIL,
+      subject: "SMTP TEST",
+      text: "Mail sistemi çalışıyor"
+    });
+
+    res.json({
+      success: true,
+      info
+    });
+
+  } catch (error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+      code: error.code
+    });
+  }
+});
+
 app.get("/", (req, res) => {
   app.get("/test-mail", async (req, res) => {
     try {
