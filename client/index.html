@@ -344,7 +344,11 @@
       const marketing = document.getElementById("marketingConsent");
       if (marketing) marketing.checked = false;
 
+      const cookiesAccepted = localStorage.getItem("cookiesAccepted");
       localStorage.clear();
+      if (cookiesAccepted === "true") {
+        localStorage.setItem("cookiesAccepted", "true");
+      }
       sessionStorage.clear();
     });
 
@@ -844,6 +848,11 @@ platformun düzgün çalışmasını engelleyebilir.
     }
 
     async function startExam() {
+      if (localStorage.getItem("cookiesAccepted") !== "true") {
+        document.getElementById("error").innerText =
+          "Devam etmek için çerez kullanımını kabul etmelisiniz.";
+        return;
+      }
       localStorage.removeItem("examFinished");
       const name = document.getElementById("name").value.trim();
       const surname = document.getElementById("surname").value.trim();
@@ -943,22 +952,23 @@ platformun düzgün çalışmasını engelleyebilir.
   <style>
     .cookie-popup {
       position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: calc(100% - 40px);
-      max-width: 900px;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      transform: none;
+      max-width: none;
       background: rgba(17, 24, 39, 0.96);
       color: white;
-      padding: 18px 22px;
-      border-radius: 16px;
+      padding: 18px 24px;
+      border-radius: 0;
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 20px;
       z-index: 9999;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.25);
       backdrop-filter: blur(10px);
+      box-sizing: border-box;
     }
 
     .cookie-text {
@@ -1015,7 +1025,7 @@ platformun düzgün çalışmasını engelleyebilir.
       headsetModal.style.display = "none";
     });
   </script>
-  
+
 </body>
 
 </html>
