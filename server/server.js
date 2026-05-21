@@ -620,7 +620,7 @@ async function enrichAnswersWithScores(answers) {
 app.get("/test-mail", async (req, res) => {
   try {
     const info = await resend.emails.send({
-      from: "PTE Exam <onboarding@resend.dev>",
+      from: "PTE Exam <no-reply@mindiacademy.com>",
       to: process.env.NOTIFY_EMAIL,
       subject: "PTE Mail Test",
       html: "<h2>Mail sistemi çalışıyor ✅</h2>"
@@ -1029,7 +1029,7 @@ app.post("/save-exam", async (req, res) => {
     res.json({ success: true });
 
     resend.emails.send({
-      from: "PTE Exam <onboarding@resend.dev>",
+      from: "PTE Exam <no-reply@mindiacademy.com>",
       to: process.env.NOTIFY_EMAIL,
       subject: "Yeni PTE sınavı tamamlandı",
       html: `
