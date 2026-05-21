@@ -617,30 +617,6 @@ async function enrichAnswersWithScores(answers) {
   return enriched;
 }
 
-app.get("/test-mail", async (req, res) => {
-  try {
-    const info = await resend.emails.send({
-      from: "PTE Exam <no-reply@mindiacademy.com>",
-      to: process.env.NOTIFY_EMAIL,
-      subject: "PTE Mail Test",
-      html: "<h2>Mail sistemi çalışıyor ✅</h2>"
-    });
-
-    res.json({
-      success: true,
-      info
-    });
-
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
-  }
-});
-
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../client", "index.html"));
 });
