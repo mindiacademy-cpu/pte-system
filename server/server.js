@@ -5,9 +5,7 @@ const fs = require("fs")
 const path = require("path");
 const multer = require("multer");
 const OpenAI = require("openai");
-const nodemailer = require("nodemailer");
-const dns = require("dns");
-dns.setDefaultResultOrder("ipv4first");
+const { Resend } = require("resend");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -20,19 +18,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-const mailTransporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  family: 4,
-  auth: {
-    user: process.env.NOTIFY_EMAIL,
-    pass: process.env.NOTIFY_EMAIL_PASSWORD
-  },
-  tls: {
-    servername: "smtp.gmail.com"
-  }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 app.use(cors());
 app.use(express.json({ limit: "50mb" }));
@@ -633,12 +619,11 @@ async function enrichAnswersWithScores(answers) {
 
 app.get("/test-mail", async (req, res) => {
   try {
-
-    const info = await mailTransporter.sendMail({
-      from: process.env.NOTIFY_EMAIL,
+    const info = await resend.emails.send({
+      from: "PTE Exam <onboarding@resend.dev>",
       to: process.env.NOTIFY_EMAIL,
-      subject: "SMTP TEST",
-      text: "Mail sistemi çalışıyor"
+      subject: "PTE Mail Test",
+      html: "<h2>Mail sistemi çalışıyor ✅</h2>"
     });
 
     res.json({
@@ -647,13 +632,11 @@ app.get("/test-mail", async (req, res) => {
     });
 
   } catch (error) {
-
     console.error(error);
 
     res.status(500).json({
       success: false,
-      message: error.message,
-      code: error.code
+      message: error.message
     });
   }
 });
@@ -1045,8 +1028,8 @@ app.post("/save-exam", async (req, res) => {
 
     res.json({ success: true });
 
-    mailTransporter.sendMail({
-      from: `"PTE Exam System" <${process.env.NOTIFY_EMAIL}>`,
+    resend.emails.send({
+      from: "PTE Exam <onboarding@resend.dev>",
       to: process.env.NOTIFY_EMAIL,
       subject: "Yeni PTE sınavı tamamlandı",
       html: `
@@ -1058,9 +1041,7 @@ app.post("/save-exam", async (req, res) => {
     <p><b>Finished At:</b> ${examData.finishedAt || ""}</p>
   `
     }).catch(error => {
-      console.error("MAIL SEND ERROR MESSAGE:", error.message);
-      console.error("MAIL SEND ERROR CODE:", error.code);
-      console.error("MAIL SEND ERROR FULL:", error);
+      console.error("RESEND MAIL ERROR:", error);
     });
 
   } catch (error) {
