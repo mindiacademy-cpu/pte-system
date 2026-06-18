@@ -998,9 +998,14 @@
     loadResults();
 
     async function updateManualScore(resultId, questionId, buttonEl) {
+      const scrollY = window.scrollY;
+
       const wrapper = buttonEl.parentElement;
       const input = wrapper.querySelector(".manual-score-input");
       const manualScore = input.value === "" ? null : Number(input.value);
+
+      buttonEl.disabled = true;
+      buttonEl.innerText = "Saving...";
 
       try {
         const response = await fetch(`/exam-results/${resultId}/manual-score`, {
@@ -1016,20 +1021,28 @@
 
         const data = await response.json();
 
-        if (!response.ok) {
+        if (!response.ok || !data.success) {
           alert(data.error || "Puan güncellenemedi.");
           return;
         }
 
-        await preserveScroll(loadResults);
-        alert("Puan güncellendi.");
+        await loadResults();
+
+        setTimeout(() => {
+          window.scrollTo(0, scrollY);
+        }, 100);
+
       } catch (error) {
         console.error(error);
         alert("Server connection error.");
+      } finally {
+        buttonEl.disabled = false;
+        buttonEl.innerText = "Save Score";
       }
     }
-
     async function clearManualScore(resultId, questionId) {
+      const scrollY = window.scrollY;
+
       try {
         const response = await fetch(`/exam-results/${resultId}/manual-score`, {
           method: "PUT",
@@ -1044,13 +1057,17 @@
 
         const data = await response.json();
 
-        if (!response.ok) {
+        if (!response.ok || !data.success) {
           alert(data.error || "Manual score temizlenemedi.");
           return;
         }
 
-        await preserveScroll(loadResults);
-        alert("Manual score temizlendi.");
+        await loadResults();
+
+        setTimeout(() => {
+          window.scrollTo(0, scrollY);
+        }, 100);
+
       } catch (error) {
         console.error(error);
         alert("Server connection error.");
