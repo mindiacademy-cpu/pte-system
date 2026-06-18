@@ -998,8 +998,6 @@
     loadResults();
 
     async function updateManualScore(resultId, questionId, buttonEl) {
-      const scrollY = window.scrollY;
-
       const wrapper = buttonEl.parentElement;
       const input = wrapper.querySelector(".manual-score-input");
       const manualScore = input.value === "" ? null : Number(input.value);
@@ -1023,25 +1021,46 @@
 
         if (!response.ok || !data.success) {
           alert(data.error || "Puan güncellenemedi.");
+          buttonEl.innerText = "Save Score";
+          buttonEl.disabled = false;
           return;
         }
 
-        await loadResults();
+        input.value = data.updatedAnswer.manualScore ?? "";
+
+        const questionBox = wrapper.closest(".question");
+        const scoreBox = questionBox.querySelector(".question-score");
+
+        if (scoreBox) {
+          scoreBox.innerHTML = `
+        Auto: ${data.updatedAnswer.autoScore ?? 0} |
+        Final: ${data.updatedAnswer.finalScore ?? data.updatedAnswer.autoScore ?? 0} / ${data.updatedAnswer.maxScore || 10}
+      `;
+        }
+
+        buttonEl.innerText = "Saved";
+        buttonEl.style.background = "#059669";
 
         setTimeout(() => {
-          window.scrollTo(0, scrollY);
-        }, 100);
+          buttonEl.innerText = "Save Score";
+          buttonEl.style.background = "";
+          buttonEl.disabled = false;
+        }, 1200);
 
       } catch (error) {
         console.error(error);
         alert("Server connection error.");
-      } finally {
-        buttonEl.disabled = false;
         buttonEl.innerText = "Save Score";
+        buttonEl.disabled = false;
       }
     }
     async function clearManualScore(resultId, questionId) {
-      const scrollY = window.scrollY;
+      const buttonEl = event.target;
+      const wrapper = buttonEl.parentElement;
+      const input = wrapper.querySelector(".manual-score-input");
+
+      buttonEl.disabled = true;
+      buttonEl.innerText = "Clearing...";
 
       try {
         const response = await fetch(`/exam-results/${resultId}/manual-score`, {
@@ -1059,18 +1078,37 @@
 
         if (!response.ok || !data.success) {
           alert(data.error || "Manual score temizlenemedi.");
+          buttonEl.innerText = "Clear";
+          buttonEl.disabled = false;
           return;
         }
 
-        await loadResults();
+        input.value = "";
+
+        const questionBox = wrapper.closest(".question");
+        const scoreBox = questionBox.querySelector(".question-score");
+
+        if (scoreBox) {
+          scoreBox.innerHTML = `
+        Auto: ${data.updatedAnswer.autoScore ?? 0} |
+        Final: ${data.updatedAnswer.finalScore ?? data.updatedAnswer.autoScore ?? 0} / ${data.updatedAnswer.maxScore || 10}
+      `;
+        }
+
+        buttonEl.innerText = "Cleared";
+        buttonEl.style.background = "#059669";
 
         setTimeout(() => {
-          window.scrollTo(0, scrollY);
-        }, 100);
+          buttonEl.innerText = "Clear";
+          buttonEl.style.background = "#6b7280";
+          buttonEl.disabled = false;
+        }, 1200);
 
       } catch (error) {
         console.error(error);
         alert("Server connection error.");
+        buttonEl.innerText = "Clear";
+        buttonEl.disabled = false;
       }
     }
   </script>
