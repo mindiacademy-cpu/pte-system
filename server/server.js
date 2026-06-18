@@ -1060,31 +1060,31 @@ app.get("/exam-results", async (req, res) => {
   }
 });
 
-app.put("/exam-results/:resultId/manual-score", (req, res) => {
+app.put("/exam-results/:resultId/manual-score", async (req, res) => {
   try {
     const resultId = String(req.params.resultId);
     const { questionId, manualScore } = req.body;
 
-    const examResults = readJson(EXAM_RESULTS_FILE);
-    const examIndex = examResults.findIndex(exam => String(exam.id) === resultId);
+    const { data: exam, error: getError } = await supabase
+      .from("exam_results")
+      .select("*")
+      .eq("id", resultId)
+      .single();
 
-    if (examIndex === -1) {
+    if (getError || !exam) {
       return res.status(404).json({ error: "Exam result not found." });
     }
 
-    const exam = examResults[examIndex];
+    const answers = Array.isArray(exam.answers) ? exam.answers : [];
 
-    if (!Array.isArray(exam.answers)) {
-      return res.status(400).json({ error: "Answers not found." });
-    }
-
-    const answerIndex = exam.answers.findIndex(a => String(a.questionId) === String(questionId));
+    const answerIndex = answers.findIndex(
+      a => String(a.questionId) === String(questionId)
+    );
 
     if (answerIndex === -1) {
       return res.status(404).json({ error: "Answer not found." });
     }
 
-    const answer = exam.answers[answerIndex];
     const parsedManualScore =
       manualScore === null || manualScore === "" || manualScore === undefined
         ? null
@@ -1094,24 +1094,35 @@ app.put("/exam-results/:resultId/manual-score", (req, res) => {
       return res.status(400).json({ error: "Invalid score." });
     }
 
-    exam.answers[answerIndex] = {
-      ...answer,
+    answers[answerIndex] = {
+      ...answers[answerIndex],
       manualScore: parsedManualScore,
       finalScore:
-        parsedManualScore !== null && !Number.isNaN(parsedManualScore)
+        parsedManualScore !== null
           ? parsedManualScore
-          : Number(answer.autoScore || 0)
+          : Number(answers[answerIndex].autoScore || 0)
     };
 
-    exam.summary = buildSummary(exam.answers);
+    const summary = buildSummary(answers);
 
-    examResults[examIndex] = exam;
-    writeJson(EXAM_RESULTS_FILE, examResults);
+    const { error: updateError } = await supabase
+      .from("exam_results")
+      .update({
+        answers,
+        summary
+      })
+      .eq("id", resultId);
+
+    if (updateError) {
+      return res.status(500).json({
+        error: "Manual score could not be updated."
+      });
+    }
 
     res.json({
       success: true,
-      updatedAnswer: exam.answers[answerIndex],
-      summary: exam.summary
+      updatedAnswer: answers[answerIndex],
+      summary
     });
   } catch (error) {
     console.error("PUT /exam-results/:resultId/manual-score error:", error);
