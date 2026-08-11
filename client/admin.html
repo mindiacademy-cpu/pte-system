@@ -789,8 +789,22 @@
       container.innerHTML = "<p class='empty'>Loading...</p>";
 
       try {
-        const response = await fetch("/exam-results");
+        const response = await fetch(`/exam-results?t=${Date.now()}`, {
+          method: "GET",
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache"
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
         const data = await response.json();
+
+        console.log("EXAM RESULTS:", data);
+        console.log("RESULT COUNT:", Array.isArray(data) ? data.length : "NOT ARRAY");
 
         if (!data.length) {
           container.innerHTML = "<p class='empty'>No exam results found.</p>";
