@@ -624,9 +624,13 @@
         <div class="candidate-grid">
 
   <div class="info-box">
-    <div class="info-label">Name</div>
-    <div class="info-value">${escapeHtml(exam.candidateName || "-")}</div>
-  </div>
+  <div class="info-label">Name</div>
+  <div class="info-value">${escapeHtml(
+        exam.candidateSurname && exam.candidateName?.endsWith(exam.candidateSurname)
+          ? exam.candidateName.slice(0, -exam.candidateSurname.length).trim()
+          : exam.candidateName || "-"
+      )}</div>
+</div>
 
   <div class="info-box">
     <div class="info-label">Surname</div>
