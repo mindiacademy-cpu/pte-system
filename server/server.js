@@ -998,8 +998,20 @@ app.post("/save-exam", async (req, res) => {
     ]);
 
     if (error) {
+      if (error.code === "23505") {
+        console.log("DUPLICATE EXAM BLOCKED:", examData.examCode);
+
+        return res.json({
+          success: true,
+          alreadySaved: true
+        });
+      }
+
       console.error("SUPABASE SAVE ERROR:", error);
-      return res.status(500).json({ error: "Exam could not be saved." });
+
+      return res.status(500).json({
+        error: "Exam could not be saved."
+      });
     }
 
     res.json({ success: true });
