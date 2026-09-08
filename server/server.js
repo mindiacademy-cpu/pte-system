@@ -467,6 +467,239 @@ function buildSummary(answers) {
   };
 }
 
+function buildEvaluation(summary) {
+  const scores = {
+    speaking: Number(summary?.speaking || 0),
+    writing: Number(summary?.writing || 0),
+    reading: Number(summary?.reading || 0),
+    listening: Number(summary?.listening || 0)
+  };
+
+  const labels = {
+    speaking: "Speaking",
+    writing: "Writing",
+    reading: "Reading",
+    listening: "Listening"
+  };
+
+  const recommendations = {
+    speaking: "Akıcılık, telaffuz, ritim, vurgu ve sözlü anlatım",
+    writing: "Grammar, sentence structure, vocabulary ve fikir geliştirme",
+    reading: "Vocabulary, collocation, word formation ve okuma hızı",
+    listening: "Ana fikir, detay, note-taking, dictation ve spelling"
+  };
+
+  function getLevel(score) {
+    if (score >= 70) return "GÜÇLÜ ALAN";
+    if (score >= 55) return "İYİ / GÜÇLÜ";
+    if (score >= 40) return "GELİŞTİRİLEBİLİR";
+    return "ÖNCELİKLİ GELİŞTİRİLMELİ";
+  }
+
+  function getEvaluation(skill, score) {
+    if (skill === "speaking") {
+      if (score >= 70)
+        return "Speaking adayın güçlü becerilerinden biridir. Sözlü İngilizce üretiminde güçlü bir performans görülmektedir. Mevcut seviyeyi korumak ve daha ileri taşımak için akıcılık, telaffuz, ritim ve vurgu çalışmalarına devam edilmelidir.";
+
+      if (score >= 55)
+        return "Speaking performansı iyi düzeydedir. Daha yüksek skor için akıcılık, pronunciation ve oral fluency çalışmalarına ağırlık verilmesi önerilir.";
+
+      if (score >= 40)
+        return "Speaking performansı geliştirilebilir düzeydedir. Akıcılık, doğru telaffuz, ritim ve kesintisiz konuşma çalışmalarına düzenli olarak devam edilmelidir.";
+
+      return "Speaking öncelikli geliştirilmesi gereken alanlardan biridir. Akıcılık, telaffuz, ritim ve temel sözlü üretim çalışmalarına yoğunlaşılması önerilir.";
+    }
+
+    if (skill === "writing") {
+      if (score >= 70)
+        return "Writing güçlü bir seviyededir. Akademik yazım kalitesini korumak için grammar accuracy, vocabulary range ve fikir organizasyonu çalışmalarına devam edilmelidir.";
+
+      if (score >= 55)
+        return "Writing iyi düzeydedir. Daha yüksek skor için grammar doğruluğu, akademik kelime kullanımı, cümle çeşitliliği ve fikirlerin açık biçimde geliştirilmesi üzerinde çalışılmalıdır.";
+
+      if (score >= 40)
+        return "Writing performansı geliştirmeye açıktır. Grammar doğruluğu, sentence structure, akademik vocabulary ve fikir organizasyonu üzerinde düzenli çalışma önerilir.";
+
+      return "Writing öncelikli geliştirilmesi gereken alanlardan biridir. Daha yüksek skor için grammar doğruluğu, cümle yapısı, akademik kelime kullanımı ve fikirlerin açık biçimde geliştirilmesi üzerinde çalışılmalıdır.";
+    }
+
+    if (skill === "reading") {
+      if (score >= 70)
+        return "Reading güçlü bir seviyededir. Akademik vocabulary, collocation ve hızlı anlamlandırma çalışmalarıyla mevcut performans korunabilir.";
+
+      if (score >= 55)
+        return "Reading adayın güçlü alanlarından biridir. Skoru daha ileri taşımak için akademik vocabulary, collocation, word formation ve zaman yönetimi çalışmalarına devam edilmelidir.";
+
+      if (score >= 40)
+        return "Reading performansı geliştirilebilir düzeydedir. Vocabulary, collocation, bağlamdan anlam çıkarma ve okuma hızına ağırlık verilmesi önerilir.";
+
+      return "Reading öncelikli geliştirilmesi gereken alanlardan biridir. Akademik vocabulary, temel anlam çıkarma, collocation, word formation ve zaman yönetimi üzerinde çalışılmalıdır.";
+    }
+
+    if (skill === "listening") {
+      if (score >= 70)
+        return "Listening güçlü bir seviyededir. Farklı aksanlar, akademik içerikler ve ayrıntı yakalama çalışmalarıyla mevcut seviye korunabilir.";
+
+      if (score >= 55)
+        return "Listening iyi düzeydedir. Daha yüksek skor için ana fikir ve detayları ayırt etme, note-taking, dictation ve spelling çalışmalarına devam edilmelidir.";
+
+      if (score >= 40)
+        return "Listening performansı geliştirmeye açıktır. Ana fikir ve detayları ayırt etme, anahtar kelimeleri yakalama, note-taking ve spelling çalışmalarına ağırlık verilmelidir.";
+
+      return "Listening öncelikli geliştirilmesi gereken alanlardan biridir. Ana fikir ve detayları ayırt etme, anahtar kelimeleri yakalama, note-taking, dictation ve spelling çalışmalarına ağırlık verilmelidir.";
+    }
+
+    return "";
+  }
+
+  const ordered = Object.entries(scores)
+    .sort((a, b) => a[1] - b[1]);
+
+  const weakest = ordered[0];
+  const secondWeakest = ordered[1];
+  const strongest = ordered[ordered.length - 1];
+
+  const overall = Number(summary?.overall || 0);
+
+  const generalEvaluation =
+    `Adayın genel performansında beceriler arasında farklılıklar görülmektedir. ` +
+    `${labels[strongest[0]]} ${strongest[1]} puan ile en güçlü alan olarak öne çıkmaktadır. ` +
+    `${labels[weakest[0]]} ${weakest[1]} puan ise öncelikli geliştirilmesi gereken alandır. ` +
+    `Mevcut Overall Score ${overall} olup, özellikle ${labels[weakest[0]]} ve ` +
+    `${labels[secondWeakest[0]]} alanlarında sağlanacak gelişim genel performansın yükselmesine katkı sağlayacaktır.`;
+
+  const result = {
+    generalEvaluation,
+
+    speaking: {
+      score: scores.speaking,
+      level: getLevel(scores.speaking),
+      evaluation: getEvaluation("speaking", scores.speaking)
+    },
+
+    writing: {
+      score: scores.writing,
+      level: getLevel(scores.writing),
+      evaluation: getEvaluation("writing", scores.writing)
+    },
+
+    reading: {
+      score: scores.reading,
+      level: getLevel(scores.reading),
+      evaluation: getEvaluation("reading", scores.reading)
+    },
+
+    listening: {
+      score: scores.listening,
+      level: getLevel(scores.listening),
+      evaluation: getEvaluation("listening", scores.listening)
+    },
+
+    priorities: ordered.map(([skill, score], index) => ({
+      rank: index + 1,
+      skill: labels[skill],
+      score,
+      recommendation: recommendations[skill]
+    })),
+
+    conclusion:
+      `Adayın öncelikle ${labels[weakest[0]]} ve ${labels[secondWeakest[0]]} ` +
+      `becerilerine odaklanması önerilir. Bu alanlarda sağlanacak gelişim, mevcut ` +
+      `${overall} puanlık genel performansın daha dengeli ve daha yüksek bir seviyeye taşınmasına yardımcı olacaktır.`
+  };
+
+  return result;
+}
+
+async function generateDetailedEvaluation(summary, answers) {
+  try {
+    const simplifiedAnswers = (answers || []).map(a => ({
+      type: a.type || "",
+      subType: a.subType || "",
+      title: a.title || "",
+      finalScore: Number(a.finalScore || 0),
+      maxScore: Number(a.maxScore || 0),
+      aiFeedback: a.aiFeedback || ""
+    }));
+
+    const response = await openai.responses.create({
+      model: "gpt-4.1-mini",
+      input: `
+You are an expert PTE Academic performance evaluator.
+
+Candidate scores:
+Overall: ${summary.overall}
+Speaking: ${summary.speaking}
+Writing: ${summary.writing}
+Reading: ${summary.reading}
+Listening: ${summary.listening}
+
+Question-level results:
+${JSON.stringify(simplifiedAnswers, null, 2)}
+
+Create a detailed professional evaluation in Turkish.
+
+Rules:
+- Do NOT say this is an official Pearson evaluation.
+- Base your conclusions only on the supplied scores and question results.
+- Identify strengths and weaknesses.
+- Give practical, specific improvement recommendations.
+- Avoid generic filler.
+- Keep the tone professional and suitable for a candidate score report.
+
+Return ONLY valid JSON in this exact structure:
+
+{
+  "generalEvaluation": "Genel değerlendirme paragrafı",
+  "speaking": {
+    "score": ${summary.speaking},
+    "level": "GÜÇLÜ ALAN veya İYİ veya GELİŞTİRİLMELİ veya ÖNCELİKLİ GELİŞTİRİLMELİ",
+    "evaluation": "Speaking değerlendirmesi"
+  },
+  "writing": {
+    "score": ${summary.writing},
+    "level": "GÜÇLÜ ALAN veya İYİ veya GELİŞTİRİLMELİ veya ÖNCELİKLİ GELİŞTİRİLMELİ",
+    "evaluation": "Writing değerlendirmesi"
+  },
+  "reading": {
+    "score": ${summary.reading},
+    "level": "GÜÇLÜ ALAN veya İYİ veya GELİŞTİRİLMELİ veya ÖNCELİKLİ GELİŞTİRİLMELİ",
+    "evaluation": "Reading değerlendirmesi"
+  },
+  "listening": {
+    "score": ${summary.listening},
+    "level": "GÜÇLÜ ALAN veya İYİ veya GELİŞTİRİLMELİ veya ÖNCELİKLİ GELİŞTİRİLMELİ",
+    "evaluation": "Listening değerlendirmesi"
+  },
+  "priorities": [
+    {
+      "rank": 1,
+      "skill": "Writing",
+      "score": 0,
+      "recommendation": "Çalışma önerisi"
+    }
+  ],
+  "conclusion": "Sonuç paragrafı"
+}
+`
+    });
+
+    const raw = response.output_text || "";
+    const parsed = safeJsonParse(raw);
+
+    if (!parsed) {
+      console.error("DETAILED EVALUATION JSON ERROR:", raw);
+      return null;
+    }
+
+    return parsed;
+
+  } catch (error) {
+    console.error("DETAILED EVALUATION ERROR:", error);
+    return null;
+  }
+}
+
 function safeJsonParse(text) {
   try {
     return JSON.parse(text);
@@ -970,6 +1203,11 @@ app.post("/save-exam", async (req, res) => {
     const scoredAnswers = await enrichAnswersWithScores(body.answers);
     const calculatedSummary = buildSummary(scoredAnswers);
 
+    const detailedEvaluation = await generateDetailedEvaluation(
+      calculatedSummary,
+      scoredAnswers
+    );
+
     const examData = normalizeExamResult({
       id: Date.now().toString(),
       candidateName: body.candidateName,
@@ -993,7 +1231,8 @@ app.post("/save-exam", async (req, res) => {
         started_at: examData.startedAt,
         finished_at: examData.finishedAt,
         answers: examData.answers,
-        summary: examData.summary
+        summary: examData.summary,
+        evaluation: detailedEvaluation
       }
     ]);
 
@@ -1061,7 +1300,8 @@ app.get("/exam-results", async (req, res) => {
       startedAt: item.started_at,
       finishedAt: item.finished_at,
       answers: item.answers || [],
-      summary: item.summary || {}
+      summary: item.summary || {},
+      evaluation: item.evaluation || null
     }));
 
     res.json(normalizedResults);
@@ -1117,11 +1357,21 @@ app.put("/exam-results/:resultId/manual-score", async (req, res) => {
 
     const summary = buildSummary(answers);
 
+    // Manuel puan değiştiği için detaylı değerlendirmeyi de yeniden oluştur
+    let evaluation = await generateDetailedEvaluation(summary, answers);
+
+    // OpenAI herhangi bir nedenle cevap vermezse,
+    // rapor yine boş kalmasın.
+    if (!evaluation) {
+      evaluation = buildEvaluation(summary);
+    }
+
     const { error: updateError } = await supabase
       .from("exam_results")
       .update({
         answers,
-        summary
+        summary,
+        evaluation
       })
       .eq("id", resultId);
 
