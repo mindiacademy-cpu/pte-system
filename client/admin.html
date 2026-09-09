@@ -908,7 +908,29 @@
 
     function downloadPdfReport(exam) {
       const reportWindow = window.open("", "_blank");
-      const html = buildPdfHtml(exam);
+
+      const candidateName = String(exam.candidateName || "Candidate")
+        .trim()
+        .replace(/\s+/g, "_")
+        .replace(/[^\p{L}\p{N}_-]/gu, "");
+
+      const candidateSurname = String(exam.candidateSurname || "")
+        .trim()
+        .replace(/\s+/g, "_")
+        .replace(/[^\p{L}\p{N}_-]/gu, "");
+
+      const fullName = candidateSurname
+        ? `${candidateName}_${candidateSurname}`
+        : candidateName;
+
+      const fileName = `PTE_SCORE_REPORT_${fullName}`;
+
+      let html = buildPdfHtml(exam);
+
+      html = html.replace(
+        /<title>.*?<\/title>/i,
+        `<title>${fileName}</title>`
+      );
 
       reportWindow.document.open();
       reportWindow.document.write(html);
