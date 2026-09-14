@@ -337,11 +337,105 @@
 
       return `${minutes}m ${seconds}s`;
     }
+    function buildFallbackEvaluation(summary = {}) {
+      const speaking = Number(summary.speaking ?? 0);
+      const writing = Number(summary.writing ?? 0);
+      const reading = Number(summary.reading ?? 0);
+      const listening = Number(summary.listening ?? 0);
+      const overall = Number(summary.overall ?? 0);
+
+      function getLevel(score) {
+        if (score >= 70) return "GÜÇLÜ ALAN";
+        if (score >= 55) return "İYİ";
+        if (score >= 40) return "GELİŞTİRİLMELİ";
+        return "ÖNCELİKLİ GELİŞTİRİLMELİ";
+      }
+
+      function getEvaluation(skill, score) {
+        if (score >= 70) {
+          return `${skill} performansı güçlü düzeydedir. Aday bu alanda istikrarlı bir performans göstermektedir. Mevcut seviyenin korunması için düzenli soru tipi pratiğine devam edilmesi önerilir.`;
+        }
+
+        if (score >= 55) {
+          return `${skill} performansı genel olarak iyi düzeydedir. Bununla birlikte daha yüksek bir toplam skor için bu alandaki hata oranının azaltılması ve soru tipi bazlı çalışmaların sürdürülmesi faydalı olacaktır.`;
+        }
+
+        if (score >= 40) {
+          return `${skill} performansı geliştirilebilir düzeydedir. Adayın bu beceride düzenli ve hedefli çalışmaya ihtiyaç duyduğu görülmektedir. Özellikle düşük puan alınan soru türlerine odaklanılması önerilir.`;
+        }
+
+        return `${skill} performansı öncelikli geliştirilmesi gereken alanlardan biridir. Bu beceriye yönelik temel eksiklerin belirlenmesi, soru tipi stratejilerinin çalışılması ve düzenli uygulama yapılması önerilir.`;
+      }
+
+      const skills = [
+        { skill: "Speaking", score: speaking },
+        { skill: "Writing", score: writing },
+        { skill: "Reading", score: reading },
+        { skill: "Listening", score: listening }
+      ];
+
+      const priorities = [...skills]
+        .sort((a, b) => a.score - b.score)
+        .map((item, index) => ({
+          rank: index + 1,
+          skill: item.skill,
+          score: item.score,
+          recommendation:
+            index === 0
+              ? `${item.skill} alanı çalışma planında ilk öncelik olmalıdır.`
+              : `${item.skill} alanında düzenli soru tipi çalışması yapılmalıdır.`
+        }));
+
+      const strongest = [...skills].sort((a, b) => b.score - a.score)[0];
+      const weakest = [...skills].sort((a, b) => a.score - b.score)[0];
+
+      return {
+        generalEvaluation:
+          `Adayın genel PTE Academic practice test skoru ${overall}'dır. ` +
+          `En güçlü performans ${strongest.skill} (${strongest.score}), ` +
+          `en fazla gelişim gerektiren alan ise ${weakest.skill} (${weakest.score}) olarak görülmektedir. ` +
+          `Çalışma programının düşük skorlu becerilere öncelik verecek şekilde planlanması ve güçlü alanlarda mevcut seviyenin korunması önerilir.`,
+
+        speaking: {
+          score: speaking,
+          level: getLevel(speaking),
+          evaluation: getEvaluation("Speaking", speaking)
+        },
+
+        writing: {
+          score: writing,
+          level: getLevel(writing),
+          evaluation: getEvaluation("Writing", writing)
+        },
+
+        reading: {
+          score: reading,
+          level: getLevel(reading),
+          evaluation: getEvaluation("Reading", reading)
+        },
+
+        listening: {
+          score: listening,
+          level: getLevel(listening),
+          evaluation: getEvaluation("Listening", listening)
+        },
+
+        priorities,
+
+        conclusion:
+          `Adayın performansının geliştirilmesi için öncelikle ${weakest.skill} alanına odaklanılması, ardından diğer düşük skorlu becerilerin sistematik olarak güçlendirilmesi önerilir.`
+      };
+    }
 
     function buildPdfHtml(exam) {
       const summary = exam.summary || {};
       const answers = Array.isArray(exam.answers) ? exam.answers : [];
-      const evaluation = exam.evaluation || null;
+      const evaluation =
+        exam.evaluation &&
+          typeof exam.evaluation === "object" &&
+          exam.evaluation.generalEvaluation
+          ? exam.evaluation
+          : buildFallbackEvaluation(summary);
 
       const overall = summary.overall ?? 0;
       const speaking = summary.speaking ?? 0;

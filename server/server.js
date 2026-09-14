@@ -1203,10 +1203,14 @@ app.post("/save-exam", async (req, res) => {
     const scoredAnswers = await enrichAnswersWithScores(body.answers);
     const calculatedSummary = buildSummary(scoredAnswers);
 
-    const detailedEvaluation = await generateDetailedEvaluation(
+    let detailedEvaluation = await generateDetailedEvaluation(
       calculatedSummary,
       scoredAnswers
     );
+
+    if (!detailedEvaluation) {
+      detailedEvaluation = buildEvaluation(calculatedSummary);
+    }
 
     const examData = normalizeExamResult({
       id: Date.now().toString(),
@@ -1384,7 +1388,8 @@ app.put("/exam-results/:resultId/manual-score", async (req, res) => {
     res.json({
       success: true,
       updatedAnswer: answers[answerIndex],
-      summary
+      summary,
+      evaluation
     });
   } catch (error) {
     console.error("PUT /exam-results/:resultId/manual-score error:", error);
