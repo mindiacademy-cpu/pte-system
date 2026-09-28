@@ -701,6 +701,22 @@
     .exam-confirm-actions .confirm-next { border-color:var(--exam-teal); color:var(--exam-teal-dark); }
     @media(max-width:700px){ .progress-card{display:none}.panel-body{padding:22px 18px 88px}.brand-title{font-size:16px}.candidate-bar{font-size:10px}.button-row{padding:10px 14px}.action-btn{min-width:78px}.main-wrap{padding-top:96px} }
 
+  
+    /* Section briefing + authentic workstation refinements */
+    .section-briefing { min-height:calc(100vh - 158px); background:#fff; }
+    .section-briefing-title { padding:17px 28px 13px; background:#eeeeec; border-bottom:1px solid #d4d4d1; color:#50545a; font-size:20px; font-weight:400; }
+    .section-briefing-accent { height:38px; background:var(--exam-teal); }
+    .section-briefing-body { padding:34px max(7vw,38px) 95px; }
+    .section-briefing-body h2 { margin:0 0 24px; font-size:19px; color:#35383c; }
+    .section-table { width:min(620px,100%); border-collapse:collapse; font-size:15px; }
+    .section-table th,.section-table td { border:2px solid #4f5458; padding:8px 12px; text-align:center; }
+    .section-table th { font-style:italic; font-weight:500; }
+    .section-briefing-note { margin-top:22px; font-size:14px; color:#555b60; }
+    .section-briefing .button-row { display:flex; }
+    .writing-toolbar { display:flex; gap:22px; align-items:center; margin-top:16px; padding:9px 14px; background:var(--exam-teal); color:#fff; font-size:13px; }
+    .writing-toolbar button { border:0; background:transparent; color:#fff; cursor:pointer; font:inherit; padding:0; }
+    #writingArea textarea,#readingLongInputWrap textarea,#listeningLongInputWrap textarea { margin-top:0; min-height:190px; }
+
   </style>
 </head>
 
@@ -754,6 +770,20 @@
       </div>
     </div>
 
+    <div id="sectionBriefing" class="section-briefing hidden">
+      <div class="section-briefing-title" id="sectionBriefingTitle">PTE Academic Practice Test</div>
+      <div class="section-briefing-accent"></div>
+      <div class="section-briefing-body">
+        <h2 id="sectionBriefingHeading">You are about to begin this section:</h2>
+        <table class="section-table">
+          <thead><tr><th>Part</th><th>Content</th><th>Time Allowed</th></tr></thead>
+          <tbody id="sectionBriefingRows"></tbody>
+        </table>
+        <p class="section-briefing-note">Complete each question carefully. When you move to the next question, you may not be able to return.</p>
+      </div>
+      <div class="button-row"><button class="action-btn" onclick="continueFromSectionBriefing()">Next</button></div>
+    </div>
+
     <div id="examArea" class="hidden">
       <div class="exam-layout">
         <div class="panel">
@@ -793,6 +823,13 @@
             </div>
 
             <div id="writingArea" class="hidden">
+              <div class="writing-toolbar">
+                <button type="button" onclick="document.execCommand('cut')">✂ Cut</button>
+                <button type="button" onclick="document.execCommand('copy')">▣ Copy</button>
+                <button type="button" onclick="document.execCommand('paste')">▣ Paste</button>
+                <button type="button" onclick="document.execCommand('undo')">↶ Undo</button>
+                <button type="button" onclick="document.execCommand('redo')">↷ Redo</button>
+              </div>
               <textarea id="writingAnswer" placeholder="Write your answer here..."></textarea>
               <p id="wordCount">0 words</p>
             </div>
@@ -2619,9 +2656,15 @@
       }
 
       if (currentQuestionIndex < questions.length - 1) {
+        const previousType = q?.type || "";
         localStorage.setItem("currentQuestionIndex", currentQuestionIndex + 1);
         currentQuestionIndex++;
-        renderQuestion();
+        const nextQ = questions[currentQuestionIndex];
+        if (nextQ && nextQ.type !== previousType) {
+          showSectionBriefing(nextQ);
+        } else {
+          renderQuestion();
+        }
       } else {
         finishExam(true);
       }
@@ -2694,6 +2737,34 @@
           console.error("SAVE EXAM ERROR:", error);
           alert(error.message || "Exam could not be submitted.");
         });
+    }
+
+    let pendingSectionBriefing = false;
+
+    function getSectionName(q) {
+      return q?.type ? q.type.charAt(0).toUpperCase() + q.type.slice(1) : "Exam";
+    }
+
+    function showSectionBriefing(q) {
+      if (!q) return;
+      const section = getSectionName(q);
+      document.getElementById("examArea").classList.add("hidden");
+      document.getElementById("timerCard").classList.add("hidden");
+      document.getElementById("sectionBriefing").classList.remove("hidden");
+      document.getElementById("sectionBriefingTitle").textContent = "PTE Academic Practice - " + section;
+      document.getElementById("sectionBriefingHeading").textContent = "You are about to begin the " + section + " section:";
+      const sectionQuestions = questions.filter(item => item.type === q.type);
+      const labels = [...new Set(sectionQuestions.map(item => item.title || item.subType || section))];
+      document.getElementById("sectionBriefingRows").innerHTML =
+        labels.map((label,i) => `<tr><td>Part ${i+1}</td><td>${label}</td><td>—</td></tr>`).join("");
+      pendingSectionBriefing = true;
+    }
+
+    function continueFromSectionBriefing() {
+      pendingSectionBriefing = false;
+      document.getElementById("sectionBriefing").classList.add("hidden");
+      document.getElementById("examArea").classList.remove("hidden");
+      renderQuestion();
     }
 
     function startExam() {
