@@ -717,6 +717,31 @@
     .writing-toolbar button { border:0; background:transparent; color:#fff; cursor:pointer; font:inherit; padding:0; }
     #writingArea textarea,#readingLongInputWrap textarea,#listeningLongInputWrap textarea { margin-top:0; min-height:190px; }
 
+  
+    /* Final polish */
+    .audio-console { width:min(390px,100%); margin:20px auto 26px; padding:22px 24px; background:linear-gradient(135deg,#1593a0,#087884); color:#fff; }
+    .audio-console-top { display:flex; align-items:center; gap:12px; }
+    .audio-play-mark { font-size:20px; line-height:1; }
+    .audio-track { flex:1; height:9px; background:rgba(255,255,255,.3); border:1px solid rgba(255,255,255,.4); }
+    .audio-track-fill { width:0%; height:100%; background:#fff; transition:width .25s linear; }
+    .audio-state { margin:8px 0 0 32px; font-size:12px; }
+    .audio-volume { margin-top:18px; display:flex; align-items:center; gap:12px; }
+    .audio-volume-line { width:130px; height:4px; background:rgba(255,255,255,.75); }
+    .speaking-meter { width:min(390px,100%); margin:18px auto 0; display:flex; align-items:center; gap:16px; }
+    .speaking-ring { width:52px; height:52px; border:5px solid #41ad52; border-radius:50%; position:relative; flex:0 0 52px; }
+    .speaking-ring.recording { border-color:#cf4b4b; }
+    .speaking-ring::after { content:""; position:absolute; inset:9px; border-radius:50%; background:currentColor; opacity:.18; }
+    .speaking-meter-text { flex:1; }
+    .speaking-meter-title { font-size:14px; font-weight:600; color:#4a4f54; margin-bottom:7px; }
+    .speaking-wave { height:22px; display:flex; gap:3px; align-items:center; }
+    .speaking-wave i { width:3px; height:8px; background:#678a94; display:block; }
+    .speaking-wave.active i:nth-child(2n){height:17px}.speaking-wave.active i:nth-child(3n){height:12px}
+    .speaking-meter-time { min-width:48px; text-align:right; color:#555; font-size:13px; }
+    .question-counter-top { font-size:12px; color:#fff; white-space:nowrap; }
+    .status-strip .progress-card { order:2; }
+    .status-strip .timer-card { order:1; }
+    .status-strip .question-counter-top { order:3; }
+
   </style>
 </head>
 
@@ -740,6 +765,7 @@
         <div class="timer-label" id="timerLabel">Time Remaining</div>
         <div class="timer" id="timer">30:00</div>
       </div>
+      <div class="question-counter-top" id="topQuestionCounter">1 of 1 | Part 1</div>
     </div>
 
     <div id="loadingArea" class="empty">Sorular yükleniyor...</div>
@@ -805,9 +831,23 @@
             <div id="taskContent" class="task-box hidden"></div>
 
             <div id="speakingArea" class="hidden">
+              <div class="audio-console" id="speakingAudioConsole">
+                <div class="audio-console-top"><span class="audio-play-mark">▶</span><div class="audio-track"><div class="audio-track-fill" id="speakingTrackFill"></div></div></div>
+                <div class="audio-state" id="speakingConsoleState">Loading</div>
+                <div class="audio-volume"><span>🔊</span><div class="audio-volume-line"></div></div>
+              </div>
               <div class="voice-visualizer" id="voiceVisualizer">
                 <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
                 <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
+              </div>
+
+              <div class="speaking-meter">
+                <div class="speaking-ring" id="speakingRing"></div>
+                <div class="speaking-meter-text">
+                  <div class="speaking-meter-title" id="speakingMeterTitle">Loading</div>
+                  <div class="speaking-wave" id="speakingWave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                </div>
+                <div class="speaking-meter-time" id="speakingMeterTime">00:00</div>
               </div>
 
               <div class="record-status-box">
@@ -1450,13 +1490,13 @@
 
       document.getElementById("micCheckScreen").classList.add("hidden");
       document.getElementById("timerCard").classList.remove("hidden");
-      document.getElementById("examArea").classList.remove("hidden");
+      document.getElementById("examArea").classList.add("hidden");
       currentQuestionIndex =
         Number(localStorage.getItem("currentQuestionIndex")) || 0;
       readingSectionStartIndex = null;
       readingSectionEndIndex = null;
       readingSectionTimeLeft = null;
-      renderQuestion();
+      showSectionBriefing(questions[currentQuestionIndex]);
     }
 
     function bindListeningAudioBehavior(player) {
@@ -1480,6 +1520,16 @@
       stageBox.classList.remove("hidden");
       stageBox.innerText = `Prepare Time: ${seconds} sec`;
       statusBox.innerText = "Get ready to speak...";
+      const meterTitle = document.getElementById("speakingMeterTitle");
+      const meterTime = document.getElementById("speakingMeterTime");
+      const consoleState = document.getElementById("speakingConsoleState");
+      const ring = document.getElementById("speakingRing");
+      const wave = document.getElementById("speakingWave");
+      if (meterTitle) meterTitle.innerText = "Loading";
+      if (meterTime) meterTime.innerText = formatTime(seconds);
+      if (consoleState) consoleState.innerText = "Prepare";
+      if (ring) ring.classList.remove("recording");
+      if (wave) wave.classList.remove("active");
 
       setTimerLabel("Prepare Time");
       setMainTimer(seconds);
@@ -1494,6 +1544,18 @@
       stageBox.innerText = `Recording Time: ${seconds} sec`;
       recBox.classList.remove("hidden");
       statusBox.innerText = "Recording...";
+      const meterTitle = document.getElementById("speakingMeterTitle");
+      const meterTime = document.getElementById("speakingMeterTime");
+      const consoleState = document.getElementById("speakingConsoleState");
+      const ring = document.getElementById("speakingRing");
+      const wave = document.getElementById("speakingWave");
+      const fill = document.getElementById("speakingTrackFill");
+      if (meterTitle) meterTitle.innerText = "Recording";
+      if (meterTime) meterTime.innerText = formatTime(seconds);
+      if (consoleState) consoleState.innerText = "Completed";
+      if (ring) ring.classList.add("recording");
+      if (wave) wave.classList.add("active");
+      if (fill) fill.style.width = "100%";
 
       setTimerLabel("Recording Time");
       setMainTimer(seconds);
@@ -1575,6 +1637,14 @@
 
             document.getElementById("recordStatus").innerText =
               "Recording submitted.";
+            const meterTitle = document.getElementById("speakingMeterTitle");
+            const consoleState = document.getElementById("speakingConsoleState");
+            const ring = document.getElementById("speakingRing");
+            const wave = document.getElementById("speakingWave");
+            if (meterTitle) meterTitle.innerText = "Completed";
+            if (consoleState) consoleState.innerText = "Completed";
+            if (ring) ring.classList.remove("recording");
+            if (wave) wave.classList.remove("active");
 
             document.getElementById("speakingStage").classList.add("hidden");
             document.getElementById("recIndicator").classList.add("hidden");
@@ -1863,6 +1933,8 @@
 
       document.getElementById("questionMeta").innerText =
         "Question " + (currentQuestionIndex + 1) + " of " + questions.length;
+      const topCounter = document.getElementById("topQuestionCounter");
+      if (topCounter) topCounter.innerText = (currentQuestionIndex + 1) + " of " + questions.length + " | " + getSectionName(q);
 
       document.getElementById("questionTypeTitle").innerText = getSubTypeLabel(q.type, q.subType);
       document.getElementById("sectionBadge").innerText = (q.type || "question").toUpperCase();
