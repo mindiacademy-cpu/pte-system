@@ -636,6 +636,112 @@
     .exam-layout {
       margin-top: 130px;
     }
+  
+    /* MINDI exam-console redesign */
+    :root { --exam-teal:#087f8c; --exam-teal-dark:#066b76; --exam-line:#d8dee5; --exam-grey:#6b6f75; }
+    body { background:#f4f2ed; color:#30343a; font-family:Arial,Helvetica,sans-serif; }
+    .top-header { position:fixed; top:0; left:0; width:100%; z-index:10000; background:#747474; color:#fff; padding:0; box-shadow:none; border-bottom:1px solid #666; }
+    .top-header-inner { max-width:none; min-height:58px; padding:0 24px; align-items:center; }
+    .brand-title { font-size:20px; font-weight:400; }
+    .candidate-bar { font-size:12px; color:#f7f7f7; }
+    .main-wrap { max-width:none; margin:0; padding:96px 0 72px; }
+    .status-strip { position:fixed; top:58px; left:0; transform:none; width:100%; height:38px; z-index:9999; display:flex; justify-content:flex-end; align-items:center; gap:18px; margin:0; padding:0 22px; background:var(--exam-teal); border-top:1px solid rgba(255,255,255,.35); }
+    .progress-card { background:transparent; border-radius:0; box-shadow:none; padding:0; min-width:230px; }
+    .progress-label { display:none; }
+    .progress-wrap { height:5px; background:rgba(255,255,255,.35); border-radius:0; }
+    .progress-bar { background:#fff; }
+    .timer-card { display:flex; align-items:center; gap:7px; background:transparent; border-radius:0; box-shadow:none; padding:0; color:#fff; }
+    .timer-card.hidden { display:none !important; }
+    .timer-label { margin:0; color:#fff; font-size:12px; text-transform:none; letter-spacing:0; }
+    .timer { color:#fff; font-size:13px; font-weight:600; }
+    .exam-layout { margin:0; width:100%; }
+    .panel { min-height:calc(100vh - 168px); border-radius:0; box-shadow:none; background:#fff; overflow:visible; }
+    .panel-header { padding:15px 26px 12px; background:#f1f1f1; border-bottom:1px solid #d6d6d6; }
+    .panel-title { display:none; }
+    .panel-subtitle { margin:0; font-size:19px; font-weight:400; color:#50545a; }
+    .panel-body { max-width:1180px; margin:0 auto; padding:28px 34px 92px; }
+    .meta-line { font-size:12px; color:#73777d; margin-bottom:8px; }
+    .section-badge { display:none; }
+    .question-title { font-size:18px; margin:0 0 14px; font-weight:600; color:#333; }
+    .instruction-box { background:transparent; border:0; border-radius:0; padding:0; margin:0 0 24px; }
+    .instruction-label { display:none; }
+    #questionPrompt { font-size:14px; line-height:1.55; color:#34383d; font-weight:600; }
+    .task-box { background:transparent; border:0; border-radius:0; padding:0; margin:18px 0 28px; line-height:1.7; font-size:14px; font-weight:400; }
+    textarea,input[type="text"] { border:1px solid #aeb4ba; border-radius:0; background:#fff; font-size:14px; }
+    textarea:focus,input[type="text"]:focus { border-color:var(--exam-teal); box-shadow:0 0 0 1px var(--exam-teal); }
+    .options { gap:8px; margin-top:22px; }
+    .option-btn { border:1px solid #b9bec3; border-radius:2px; padding:11px 13px; font-size:14px; }
+    .option-btn:hover,.option-btn.selected { border-color:var(--exam-teal); background:#e8f6f7; }
+    .voice-visualizer { max-width:360px; height:86px; margin:20px auto 10px; border:0; border-radius:0; background:linear-gradient(135deg,#178b97,#087783); }
+    .voice-visualizer .bar { width:5px; background:#fff; border-radius:0; }
+    .record-status-box { max-width:360px; margin:0 auto; padding:14px 0; text-align:left; }
+    .speaking-stage { padding:0; border:0; background:transparent; color:#555; border-radius:0; }
+    .status { color:#4d5358; }
+    .button-row { position:fixed; left:0; right:0; bottom:0; z-index:9998; height:62px; margin:0; padding:10px 24px; justify-content:flex-end; align-items:center; background:#dedbd5; border-top:1px solid #c9c6c0; }
+    .action-btn { min-width:92px; min-height:36px; padding:8px 18px; border-radius:18px; background:var(--exam-teal); font-size:14px; font-weight:600; }
+    .action-btn:hover { background:var(--exam-teal-dark); }
+    .action-btn.secondary { background:#777; }
+    .action-btn.danger { background:#b44b4b; }
+    .score-preview { display:none; }
+    .start-screen { max-width:100%; min-height:calc(100vh - 168px); margin:0; padding:55px max(7vw,40px); border-radius:0; box-shadow:none; text-align:left; background:#fff; }
+    .start-screen h1 { font-size:22px; color:#333; font-weight:600; }
+    .start-screen p { max-width:850px; font-size:15px; line-height:1.65; color:#4c5055; }
+    .start-exam-btn { border-radius:18px; background:var(--exam-teal); }
+    .finish-screen { max-width:none; margin:0; padding:0; }
+    .finish-card { min-height:calc(100vh - 168px); border-radius:0; box-shadow:none; padding:70px 30px; }
+    .finish-card h1 { color:var(--exam-teal-dark); }
+    .exam-confirm-overlay { position:fixed; inset:0; z-index:20000; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.28); }
+    .exam-confirm-overlay.hidden { display:none; }
+    .exam-confirm { width:min(470px,calc(100% - 36px)); background:#fff; border:1px solid #bbb; box-shadow:0 12px 35px rgba(0,0,0,.25); }
+    .exam-confirm-head { height:42px; display:flex; justify-content:flex-end; align-items:center; padding:0 14px; border-bottom:1px solid #ddd; font-size:24px; color:#555; }
+    .exam-confirm-body { display:flex; gap:16px; align-items:flex-start; padding:22px; font-size:15px; line-height:1.45; }
+    .exam-confirm-icon { width:34px; height:34px; flex:0 0 34px; display:grid; place-items:center; border-radius:50%; background:#67a958; color:#fff; font-size:22px; font-weight:bold; }
+    .exam-confirm-actions { display:flex; justify-content:flex-end; gap:8px; padding:0 22px 20px; }
+    .exam-confirm-actions button { min-width:72px; padding:8px 14px; border:1px solid #aaa; background:#fff; cursor:pointer; }
+    .exam-confirm-actions .confirm-next { border-color:var(--exam-teal); color:var(--exam-teal-dark); }
+    @media(max-width:700px){ .progress-card{display:none}.panel-body{padding:22px 18px 88px}.brand-title{font-size:16px}.candidate-bar{font-size:10px}.button-row{padding:10px 14px}.action-btn{min-width:78px}.main-wrap{padding-top:96px} }
+
+  
+    /* Section briefing + authentic workstation refinements */
+    .section-briefing { min-height:calc(100vh - 158px); background:#fff; }
+    .section-briefing-title { padding:17px 28px 13px; background:#eeeeec; border-bottom:1px solid #d4d4d1; color:#50545a; font-size:20px; font-weight:400; }
+    .section-briefing-accent { height:38px; background:var(--exam-teal); }
+    .section-briefing-body { padding:34px max(7vw,38px) 95px; }
+    .section-briefing-body h2 { margin:0 0 24px; font-size:19px; color:#35383c; }
+    .section-table { width:min(620px,100%); border-collapse:collapse; font-size:15px; }
+    .section-table th,.section-table td { border:2px solid #4f5458; padding:8px 12px; text-align:center; }
+    .section-table th { font-style:italic; font-weight:500; }
+    .section-briefing-note { margin-top:22px; font-size:14px; color:#555b60; }
+    .section-briefing .button-row { display:flex; }
+    .writing-toolbar { display:flex; gap:22px; align-items:center; margin-top:16px; padding:9px 14px; background:var(--exam-teal); color:#fff; font-size:13px; }
+    .writing-toolbar button { border:0; background:transparent; color:#fff; cursor:pointer; font:inherit; padding:0; }
+    #writingArea textarea,#readingLongInputWrap textarea,#listeningLongInputWrap textarea { margin-top:0; min-height:190px; }
+
+  
+    /* Final polish */
+    .audio-console { width:min(390px,100%); margin:20px auto 26px; padding:22px 24px; background:linear-gradient(135deg,#1593a0,#087884); color:#fff; }
+    .audio-console-top { display:flex; align-items:center; gap:12px; }
+    .audio-play-mark { font-size:20px; line-height:1; }
+    .audio-track { flex:1; height:9px; background:rgba(255,255,255,.3); border:1px solid rgba(255,255,255,.4); }
+    .audio-track-fill { width:0%; height:100%; background:#fff; transition:width .25s linear; }
+    .audio-state { margin:8px 0 0 32px; font-size:12px; }
+    .audio-volume { margin-top:18px; display:flex; align-items:center; gap:12px; }
+    .audio-volume-line { width:130px; height:4px; background:rgba(255,255,255,.75); }
+    .speaking-meter { width:min(390px,100%); margin:18px auto 0; display:flex; align-items:center; gap:16px; }
+    .speaking-ring { width:52px; height:52px; border:5px solid #41ad52; border-radius:50%; position:relative; flex:0 0 52px; }
+    .speaking-ring.recording { border-color:#cf4b4b; }
+    .speaking-ring::after { content:""; position:absolute; inset:9px; border-radius:50%; background:currentColor; opacity:.18; }
+    .speaking-meter-text { flex:1; }
+    .speaking-meter-title { font-size:14px; font-weight:600; color:#4a4f54; margin-bottom:7px; }
+    .speaking-wave { height:22px; display:flex; gap:3px; align-items:center; }
+    .speaking-wave i { width:3px; height:8px; background:#678a94; display:block; }
+    .speaking-wave.active i:nth-child(2n){height:17px}.speaking-wave.active i:nth-child(3n){height:12px}
+    .speaking-meter-time { min-width:48px; text-align:right; color:#555; font-size:13px; }
+    .question-counter-top { font-size:12px; color:#fff; white-space:nowrap; }
+    .status-strip .progress-card { order:2; }
+    .status-strip .timer-card { order:1; }
+    .status-strip .question-counter-top { order:3; }
+
   </style>
 </head>
 
@@ -659,6 +765,7 @@
         <div class="timer-label" id="timerLabel">Time Remaining</div>
         <div class="timer" id="timer">30:00</div>
       </div>
+      <div class="question-counter-top" id="topQuestionCounter">1 of 1 | Part 1</div>
     </div>
 
     <div id="loadingArea" class="empty">Sorular yükleniyor...</div>
@@ -689,6 +796,20 @@
       </div>
     </div>
 
+    <div id="sectionBriefing" class="section-briefing hidden">
+      <div class="section-briefing-title" id="sectionBriefingTitle">PTE Academic Practice Test</div>
+      <div class="section-briefing-accent"></div>
+      <div class="section-briefing-body">
+        <h2 id="sectionBriefingHeading">You are about to begin this section:</h2>
+        <table class="section-table">
+          <thead><tr><th>Part</th><th>Content</th><th>Time Allowed</th></tr></thead>
+          <tbody id="sectionBriefingRows"></tbody>
+        </table>
+        <p class="section-briefing-note">Complete each question carefully. When you move to the next question, you may not be able to return.</p>
+      </div>
+      <div class="button-row"><button class="action-btn" onclick="continueFromSectionBriefing()">Next</button></div>
+    </div>
+
     <div id="examArea" class="hidden">
       <div class="exam-layout">
         <div class="panel">
@@ -710,9 +831,23 @@
             <div id="taskContent" class="task-box hidden"></div>
 
             <div id="speakingArea" class="hidden">
+              <div class="audio-console" id="speakingAudioConsole">
+                <div class="audio-console-top"><span class="audio-play-mark">▶</span><div class="audio-track"><div class="audio-track-fill" id="speakingTrackFill"></div></div></div>
+                <div class="audio-state" id="speakingConsoleState">Loading</div>
+                <div class="audio-volume"><span>🔊</span><div class="audio-volume-line"></div></div>
+              </div>
               <div class="voice-visualizer" id="voiceVisualizer">
                 <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
                 <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
+              </div>
+
+              <div class="speaking-meter">
+                <div class="speaking-ring" id="speakingRing"></div>
+                <div class="speaking-meter-text">
+                  <div class="speaking-meter-title" id="speakingMeterTitle">Loading</div>
+                  <div class="speaking-wave" id="speakingWave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                </div>
+                <div class="speaking-meter-time" id="speakingMeterTime">00:00</div>
               </div>
 
               <div class="record-status-box">
@@ -728,6 +863,13 @@
             </div>
 
             <div id="writingArea" class="hidden">
+              <div class="writing-toolbar">
+                <button type="button" onclick="document.execCommand('cut')">✂ Cut</button>
+                <button type="button" onclick="document.execCommand('copy')">▣ Copy</button>
+                <button type="button" onclick="document.execCommand('paste')">▣ Paste</button>
+                <button type="button" onclick="document.execCommand('undo')">↶ Undo</button>
+                <button type="button" onclick="document.execCommand('redo')">↷ Redo</button>
+              </div>
               <textarea id="writingAnswer" placeholder="Write your answer here..."></textarea>
               <p id="wordCount">0 words</p>
             </div>
@@ -780,12 +922,26 @@
 
             <div class="button-row">
               <button id="stopBtn" class="action-btn secondary hidden" onclick="stopRecording()">Stop Recording</button>
-              <button id="nextBtn" class="action-btn" onclick="nextQuestion()">Next Question</button>
+              <button id="nextBtn" class="action-btn" onclick="requestNextQuestion()">Next</button>
               <button id="finishBtn" class="action-btn danger" onclick="finishExam()" disabled>Finish Exam</button>
             </div>
 
             <div class="score-preview" id="scorePreview">Current saved response count: 0</div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="nextConfirmModal" class="exam-confirm-overlay hidden">
+      <div class="exam-confirm" role="dialog" aria-modal="true" aria-labelledby="nextConfirmText">
+        <div class="exam-confirm-head"><span onclick="closeNextConfirm()" style="cursor:pointer;">×</span></div>
+        <div class="exam-confirm-body">
+          <div class="exam-confirm-icon">?</div>
+          <div id="nextConfirmText">Are you sure you want to move on to the next question?</div>
+        </div>
+        <div class="exam-confirm-actions">
+          <button type="button" onclick="closeNextConfirm()">Close</button>
+          <button type="button" class="confirm-next" onclick="confirmNextQuestion()">Next</button>
         </div>
       </div>
     </div>
@@ -1334,13 +1490,13 @@
 
       document.getElementById("micCheckScreen").classList.add("hidden");
       document.getElementById("timerCard").classList.remove("hidden");
-      document.getElementById("examArea").classList.remove("hidden");
+      document.getElementById("examArea").classList.add("hidden");
       currentQuestionIndex =
         Number(localStorage.getItem("currentQuestionIndex")) || 0;
       readingSectionStartIndex = null;
       readingSectionEndIndex = null;
       readingSectionTimeLeft = null;
-      renderQuestion();
+      showSectionBriefing(questions[currentQuestionIndex]);
     }
 
     function bindListeningAudioBehavior(player) {
@@ -1364,6 +1520,16 @@
       stageBox.classList.remove("hidden");
       stageBox.innerText = `Prepare Time: ${seconds} sec`;
       statusBox.innerText = "Get ready to speak...";
+      const meterTitle = document.getElementById("speakingMeterTitle");
+      const meterTime = document.getElementById("speakingMeterTime");
+      const consoleState = document.getElementById("speakingConsoleState");
+      const ring = document.getElementById("speakingRing");
+      const wave = document.getElementById("speakingWave");
+      if (meterTitle) meterTitle.innerText = "Loading";
+      if (meterTime) meterTime.innerText = formatTime(seconds);
+      if (consoleState) consoleState.innerText = "Prepare";
+      if (ring) ring.classList.remove("recording");
+      if (wave) wave.classList.remove("active");
 
       setTimerLabel("Prepare Time");
       setMainTimer(seconds);
@@ -1378,6 +1544,18 @@
       stageBox.innerText = `Recording Time: ${seconds} sec`;
       recBox.classList.remove("hidden");
       statusBox.innerText = "Recording...";
+      const meterTitle = document.getElementById("speakingMeterTitle");
+      const meterTime = document.getElementById("speakingMeterTime");
+      const consoleState = document.getElementById("speakingConsoleState");
+      const ring = document.getElementById("speakingRing");
+      const wave = document.getElementById("speakingWave");
+      const fill = document.getElementById("speakingTrackFill");
+      if (meterTitle) meterTitle.innerText = "Recording";
+      if (meterTime) meterTime.innerText = formatTime(seconds);
+      if (consoleState) consoleState.innerText = "Completed";
+      if (ring) ring.classList.add("recording");
+      if (wave) wave.classList.add("active");
+      if (fill) fill.style.width = "100%";
 
       setTimerLabel("Recording Time");
       setMainTimer(seconds);
@@ -1459,6 +1637,14 @@
 
             document.getElementById("recordStatus").innerText =
               "Recording submitted.";
+            const meterTitle = document.getElementById("speakingMeterTitle");
+            const consoleState = document.getElementById("speakingConsoleState");
+            const ring = document.getElementById("speakingRing");
+            const wave = document.getElementById("speakingWave");
+            if (meterTitle) meterTitle.innerText = "Completed";
+            if (consoleState) consoleState.innerText = "Completed";
+            if (ring) ring.classList.remove("recording");
+            if (wave) wave.classList.remove("active");
 
             document.getElementById("speakingStage").classList.add("hidden");
             document.getElementById("recIndicator").classList.add("hidden");
@@ -1747,6 +1933,8 @@
 
       document.getElementById("questionMeta").innerText =
         "Question " + (currentQuestionIndex + 1) + " of " + questions.length;
+      const topCounter = document.getElementById("topQuestionCounter");
+      if (topCounter) topCounter.innerText = (currentQuestionIndex + 1) + " of " + questions.length + " | " + getSectionName(q);
 
       document.getElementById("questionTypeTitle").innerText = getSubTypeLabel(q.type, q.subType);
       document.getElementById("sectionBadge").innerText = (q.type || "question").toUpperCase();
@@ -2499,6 +2687,22 @@
       updateSavedCount();
     }
 
+    function requestNextQuestion() {
+      const q = questions[currentQuestionIndex];
+      if (q && q.type === "speaking" && (speakingProcessing || !speakingAudioBase64)) return;
+      if (q && q.type === "listening" && !listeningAudioEnded) return;
+      document.getElementById("nextConfirmModal")?.classList.remove("hidden");
+    }
+
+    function closeNextConfirm() {
+      document.getElementById("nextConfirmModal")?.classList.add("hidden");
+    }
+
+    function confirmNextQuestion() {
+      closeNextConfirm();
+      nextQuestion();
+    }
+
     function nextQuestion(forceAdvance = false) {
       const q = questions[currentQuestionIndex];
 
@@ -2524,9 +2728,15 @@
       }
 
       if (currentQuestionIndex < questions.length - 1) {
+        const previousType = q?.type || "";
         localStorage.setItem("currentQuestionIndex", currentQuestionIndex + 1);
         currentQuestionIndex++;
-        renderQuestion();
+        const nextQ = questions[currentQuestionIndex];
+        if (nextQ && nextQ.type !== previousType) {
+          showSectionBriefing(nextQ);
+        } else {
+          renderQuestion();
+        }
       } else {
         finishExam(true);
       }
@@ -2599,6 +2809,34 @@
           console.error("SAVE EXAM ERROR:", error);
           alert(error.message || "Exam could not be submitted.");
         });
+    }
+
+    let pendingSectionBriefing = false;
+
+    function getSectionName(q) {
+      return q?.type ? q.type.charAt(0).toUpperCase() + q.type.slice(1) : "Exam";
+    }
+
+    function showSectionBriefing(q) {
+      if (!q) return;
+      const section = getSectionName(q);
+      document.getElementById("examArea").classList.add("hidden");
+      document.getElementById("timerCard").classList.add("hidden");
+      document.getElementById("sectionBriefing").classList.remove("hidden");
+      document.getElementById("sectionBriefingTitle").textContent = "PTE Academic Practice - " + section;
+      document.getElementById("sectionBriefingHeading").textContent = "You are about to begin the " + section + " section:";
+      const sectionQuestions = questions.filter(item => item.type === q.type);
+      const labels = [...new Set(sectionQuestions.map(item => item.title || item.subType || section))];
+      document.getElementById("sectionBriefingRows").innerHTML =
+        labels.map((label,i) => `<tr><td>Part ${i+1}</td><td>${label}</td><td>—</td></tr>`).join("");
+      pendingSectionBriefing = true;
+    }
+
+    function continueFromSectionBriefing() {
+      pendingSectionBriefing = false;
+      document.getElementById("sectionBriefing").classList.add("hidden");
+      document.getElementById("examArea").classList.remove("hidden");
+      renderQuestion();
     }
 
     function startExam() {
