@@ -51,29 +51,23 @@ const EXAM_RESULTS_FILE = path.join(__dirname, "exam-results.json");
  * Değerler resmi Pearson algoritması değil,
  * PTE mantığına yakın mock scoring dağılımıdır.
  */
+// Practice-only communicative-skill mapping for the 22 supported PTE task types.
+// These weights are internal approximations and are not Pearson's proprietary scoring weights.
 const SKILL_WEIGHTS = {
   read_aloud: { speaking: 0.7, reading: 0.3 },
   repeat_sentence: { speaking: 0.7, listening: 0.3 },
   describe_image: { speaking: 1.0 },
   re_tell_lecture: { speaking: 0.7, listening: 0.3 },
   answer_short_question: { listening: 1.0 },
-
   summarize_group_discussion: { speaking: 0.7, listening: 0.3 },
   respond_to_a_situation: { speaking: 1.0 },
   summarize_written_text: { writing: 0.7, reading: 0.3 },
   essay: { writing: 1.0 },
-
   reading_writing_fill_blanks: { reading: 0.5, writing: 0.5 },
   reading_mcq_multiple: { reading: 1.0 },
-  reading_mcq_group: { reading: 1.0 },
   reorder_paragraphs: { reading: 1.0 },
   reading_fill_blanks: { reading: 1.0 },
   reading_mcq_single: { reading: 1.0 },
-  reading_word_formation: { reading: 0.7, writing: 0.3 },
-  reading_word_formation_multi: { reading: 0.7, writing: 0.3 },
-  reading_word_formation_passage: { reading: 0.7, writing: 0.3 },
-  reading_short_answer_multi: { reading: 0.8, writing: 0.2 },
-
   summarize_spoken_text: { listening: 0.4, writing: 0.6 },
   listening_mcq_multiple: { listening: 1.0 },
   listening_fill_blanks: { listening: 1.0 },
@@ -81,10 +75,7 @@ const SKILL_WEIGHTS = {
   listening_mcq_single: { listening: 1.0 },
   select_missing_word: { listening: 1.0 },
   highlight_incorrect_words: { listening: 0.8, reading: 0.2 },
-  write_from_dictation: { listening: 0.7, writing: 0.3 },
-  listening_short_answer: { listening: 0.8, writing: 0.2 },
-  listening_short_answer_multi: { listening: 0.8, writing: 0.2 },
-  listening_sequence: { listening: 1.0 }
+  write_from_dictation: { listening: 0.7, writing: 0.3 }
 };
 
 function normalizeText(text) {
