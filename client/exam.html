@@ -2828,7 +2828,14 @@
       const sectionQuestions = questions.filter(item => item.type === q.type);
       const labels = [...new Set(sectionQuestions.map(item => item.title || item.subType || section))];
       document.getElementById("sectionBriefingRows").innerHTML =
-        labels.map((label,i) => `<tr><td>Part ${i+1}</td><td>${label}</td><td>—</td></tr>`).join("");
+        labels.map((label,i) => {
+          const matching = sectionQuestions.filter(item => (item.title || item.subType || section) === label);
+          const totalSeconds = matching.reduce((sum,item) => sum + (Number(item.time) || Number(item.recordTime) || 60), 0);
+          const mins = Math.floor(totalSeconds / 60);
+          const secs = totalSeconds % 60;
+          const allowed = mins + ":" + String(secs).padStart(2,"0");
+          return `<tr><td>Part ${i+1}</td><td>${label}</td><td>${allowed}</td></tr>`;
+        }).join("");
       pendingSectionBriefing = true;
     }
 
@@ -2836,6 +2843,7 @@
       pendingSectionBriefing = false;
       document.getElementById("sectionBriefing").classList.add("hidden");
       document.getElementById("examArea").classList.remove("hidden");
+      document.getElementById("timerCard").classList.remove("hidden");
       renderQuestion();
     }
 
