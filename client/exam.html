@@ -2341,66 +2341,14 @@
       }
 
       else if (q.type === "reading") {
-        if (
-          q.subType === "reading_writing_fill_blanks"
-        ) {
+        if (q.subType === "reading_writing_fill_blanks") {
           const selects = document.querySelectorAll(".fill-dropdown");
           answerPayload.answer = Array.from(selects).map(select => select.value);
         }
-        else if (q.subType === "reading_fill_blanks") {
+        else if (q.subType === "reading_fill_blanks" || q.subType === "reorder_paragraphs") {
           const existing = getExistingAnswer(q.id);
           answerPayload.answer = existing ? existing.answer : [];
         }
-
-        else if (q.subType === "reading_short_answer_multi") {
-          const inputs = document.querySelectorAll(".reading-multi-short-input");
-          answerPayload.answer = Array.from(inputs).map(input => input.value.trim());
-        }
-
-        else if (q.subType === "reorder_paragraphs" || q.subType === "Reorder Paragraphs") {
-          const inputs = document.querySelectorAll(".reorder-input");
-          const positions = Array.from(inputs).map(input => Number(input.value.trim()));
-
-          const ordered = [];
-          positions.forEach((position, index) => {
-            if (position >= 1) {
-              ordered[position - 1] = String(index + 1);
-            }
-          });
-
-          answerPayload.answer = ordered;
-        }
-
-        else if (q.subType === "reading_mcq_group") {
-          const existing = getExistingAnswer(q.id);
-          answerPayload.answer = existing ? existing.answer : [];
-        }
-
-        else if (q.subType === "reading_word_formation") {
-          const inputs = document.querySelectorAll(".word-form-input");
-          answerPayload.answer = Array.from(inputs).map(input => input.value.trim());
-        }
-
-        else if (q.subType === "reading_word_formation_passage") {
-          const inputs = document.querySelectorAll(".word-passage-input");
-          answerPayload.answer = [Array.from(inputs).map(input => input.value.trim())];
-        }
-
-        else if (q.subType === "reading_word_formation_multi") {
-          const inputs = document.querySelectorAll(".word-form-input-multi");
-          const grouped = [];
-
-          inputs.forEach(input => {
-            const row = Number(input.dataset.row);
-            const blank = Number(input.dataset.blank);
-
-            if (!grouped[row]) grouped[row] = ["", ""];
-            grouped[row][blank] = input.value.trim();
-          });
-
-          answerPayload.answer = grouped;
-        }
-
         else {
           const existing = getExistingAnswer(q.id);
           answerPayload.answer = existing ? existing.answer : "";
