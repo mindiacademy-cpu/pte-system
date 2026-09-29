@@ -1236,6 +1236,28 @@ app.delete("/exams/:id", async (req, res) => {
 app.post("/save-exam", async (req, res) => {
   try {
     const body = req.body || {};
+    const examCode = String(body.examCode || "").trim();
+
+    if (!examCode) {
+      return res.status(400).json({ error: "Exam code is required." });
+    }
+
+    // Idempotency guard: do not run expensive scoring/evaluation again if this
+    // exam code has already produced a result.
+    const { data: existingResult, error: existingResultError } = await supabase
+      .from("exam_results")
+      .select("id")
+      .eq("exam_code", examCode)
+      .limit(1);
+
+    if (existingResultError) {
+      console.error("SUPABASE DUPLICATE CHECK ERROR:", existingResultError);
+      return res.status(500).json({ error: "Exam could not be verified before saving." });
+    }
+
+    if (Array.isArray(existingResult) && existingResult.length > 0) {
+      return res.json({ success: true, alreadySaved: true });
+    }
 
     const scoredAnswers = await enrichAnswersWithScores(body.answers);
     const calculatedSummary = buildSummary(scoredAnswers);
