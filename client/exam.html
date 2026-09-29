@@ -2100,6 +2100,12 @@
               const select=document.createElement("select"); select.className="fill-dropdown"; select.dataset.index=index;
               const blank=document.createElement("option"); blank.value=""; blank.textContent=""; select.appendChild(blank);
               (q.options||[]).forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;if(existingAnswers[index]===v)o.selected=true;select.appendChild(o);});
+              select.onchange=()=>{
+                const values=Array.from(wrap.querySelectorAll(".fill-dropdown")).map(el=>el.value);
+                const payload={questionId:q.id,type:q.type,subType:q.subType,title:q.title,prompt:q.prompt,answer:values};
+                const ai=answers.findIndex(x=>x.questionId===q.id); if(ai>=0)answers[ai]=payload; else answers.push(payload);
+                localStorage.setItem("examAnswers",JSON.stringify(answers)); updateSavedCount();
+              };
               wrap.appendChild(select);
             }
           });
@@ -2113,7 +2119,7 @@
           const bank=(q.options||[]).map((word,index)=>({id:index,word}));
           const passage=document.createElement("div"); passage.style.lineHeight="2.5";
           const bankBox=document.createElement("div"); bankBox.className="pte-word-bank";
-          const sync=()=>{const payload={questionId:q.id,type:q.type,subType:q.subType,title:q.title,prompt:q.prompt,answer:[...selected]};const ai=answers.findIndex(x=>x.questionId===q.id);if(ai>=0)answers[ai]=payload;else answers.push(payload);};
+          const sync=()=>{const payload={questionId:q.id,type:q.type,subType:q.subType,title:q.title,prompt:q.prompt,answer:[...selected]};const ai=answers.findIndex(x=>x.questionId===q.id);if(ai>=0)answers[ai]=payload;else answers.push(payload);localStorage.setItem("examAnswers",JSON.stringify(answers));updateSavedCount();};
           const render=()=>{
             passage.innerHTML=""; bankBox.innerHTML="";
             parts.forEach((part,i)=>{
@@ -2227,7 +2233,7 @@
           Array.from(wrap.children).forEach(el=>{ if(el!==nativeBox) el.remove(); });
           if(nativeBox) nativeBox.classList.add("hidden");
           const line=document.createElement("div"); line.className="dynamic-listening-content"; line.style.lineHeight="2.4";
-          parts.forEach((part,i)=>{line.appendChild(document.createTextNode(part));if(i<parts.length-1){const inp=document.createElement("input");inp.type="text";inp.className="blank-input listening-gap";inp.style.width="130px";inp.value=vals[i]||"";line.appendChild(inp);}});
+          parts.forEach((part,i)=>{line.appendChild(document.createTextNode(part));if(i<parts.length-1){const inp=document.createElement("input");inp.type="text";inp.className="blank-input listening-gap";inp.style.width="130px";inp.value=vals[i]||"";inp.oninput=()=>{const values=Array.from(line.querySelectorAll(".listening-gap")).map(el=>el.value.trim());const payload={questionId:q.id,type:q.type,subType:q.subType,title:q.title,prompt:q.prompt,answer:values};const ai=answers.findIndex(x=>x.questionId===q.id);if(ai>=0)answers[ai]=payload;else answers.push(payload);localStorage.setItem("examAnswers",JSON.stringify(answers));updateSavedCount();};line.appendChild(inp);}});
           wrap.appendChild(line);
         }
         else if (q.subType === "highlight_incorrect_words") {
