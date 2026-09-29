@@ -1155,10 +1155,6 @@
       return `writingTimeLeft:${questionId}`;
     }
 
-    function getListeningSstTimerKey(questionId) {
-      return `listeningSstTimeLeft:${questionId}`;
-    }
-
     function startItemCountdown(q, seconds, label, storageKey) {
       const timerBox = document.getElementById("timer");
       const saved = Number(localStorage.getItem(storageKey));
@@ -1232,12 +1228,9 @@
         }
       }
 
-      if (q.type === "listening" && q.subType === "summarize_spoken_text") {
-        startItemCountdown(q, 600, "Summarize Spoken Text Time Remaining", getListeningSstTimerKey(q.id));
-        return;
-      }
+      // Listening items, including Summarize Spoken Text, do not have a published
+      // per-item countdown in current PTE Academic. Keep them under the Listening part.
 
-      // Other Listening items remain governed by the Listening part rather than a fabricated per-item countdown.
       setTimerLabel(q.type === "listening" ? "Listening" : "Section Timing");
       timerBox.innerText = "--:--";
     }
