@@ -1257,7 +1257,8 @@
       document.getElementById("readingTextAnswer").value = "";
       document.getElementById("readingLongAnswer").value = "";
       document.getElementById("listeningTextAnswer").value = "";
-      document.getElementById("listeningAnswer").value = "";
+      const listeningAnswerEl = document.getElementById("listeningAnswer");
+      if (listeningAnswerEl) listeningAnswerEl.value = "";
       document.getElementById("listeningSequenceOptions").innerHTML = "";
       document.getElementById("listeningShortAnswer1").value = "";
       document.getElementById("listeningShortAnswer2").value = "";
@@ -2575,16 +2576,20 @@
         else if (q.subType === "listening_fill_blanks") {
           const wrap=document.getElementById("listeningLongInputWrap");
           wrap.classList.remove("hidden");
-          const box=document.getElementById("listeningAnswer");
           const parts=(q.textContent||"").split("_______");
           const vals=Array.isArray(existing?.answer)?existing.answer:[];
-          wrap.innerHTML="";
-          const line=document.createElement("div"); line.style.lineHeight="2.4";
+          const nativeBox=wrap.querySelector("#listeningAnswer");
+          Array.from(wrap.children).forEach(el=>{ if(el!==nativeBox) el.remove(); });
+          if(nativeBox) nativeBox.classList.add("hidden");
+          const line=document.createElement("div"); line.className="dynamic-listening-content"; line.style.lineHeight="2.4";
           parts.forEach((part,i)=>{line.appendChild(document.createTextNode(part));if(i<parts.length-1){const inp=document.createElement("input");inp.type="text";inp.className="blank-input listening-gap";inp.style.width="130px";inp.value=vals[i]||"";line.appendChild(inp);}});
           wrap.appendChild(line);
         }
         else if (q.subType === "highlight_incorrect_words") {
-          const wrap=document.getElementById("listeningLongInputWrap"); wrap.classList.remove("hidden"); wrap.innerHTML="";
+          const wrap=document.getElementById("listeningLongInputWrap"); wrap.classList.remove("hidden");
+          const nativeBox=wrap.querySelector("#listeningAnswer");
+          Array.from(wrap.children).forEach(el=>{ if(el!==nativeBox) el.remove(); });
+          if(nativeBox) nativeBox.classList.add("hidden");
           const selected=new Set(Array.isArray(existing?.answer)?existing.answer:[]);
           (q.textContent||"").split(/(\s+)/).forEach((token,idx)=>{
             if(/^\s+$/.test(token)){wrap.appendChild(document.createTextNode(token));return;}
@@ -2623,7 +2628,8 @@
         }
         else {
           document.getElementById("listeningLongInputWrap").classList.remove("hidden");
-          document.getElementById("listeningAnswer").value = existing?.answer || "";
+          const nativeBox=document.getElementById("listeningAnswer");
+          if(nativeBox){ nativeBox.classList.remove("hidden"); nativeBox.value = existing?.answer || ""; }
         }
       }
 
