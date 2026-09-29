@@ -849,8 +849,8 @@
   
   <div class="left-header">
     <img src="/logo.png" class="report-logo">
-    <div class="brand-title">PTE Academic</div>
-    <div class="brand-subtitle">Score Report</div>
+    <div class="brand-title">PTE Academic Practice</div>
+    <div class="brand-subtitle">Practice Score Report · Not an official Pearson score report</div>
   </div>
 
   <div class="right-header">
@@ -877,7 +877,7 @@
 
   <div class="info-box">
     <div class="info-label">Surname</div>
-    <div class="info-value">${escapeHtml(exam.candidateSurname || "-")}</div>
+    <div class="info-value">${escapeHtml(getCandidateDisplaySurname(exam) || "-")}</div>
   </div>
 
   <div class="info-box">
@@ -1048,6 +1048,10 @@
 
     function downloadPdfReport(exam) {
       const reportWindow = window.open("", "_blank");
+      if (!reportWindow) {
+        alert("Report window could not be opened. Please allow pop-ups and try again.");
+        return;
+      }
 
       const candidateName = String(exam.candidateName || "Candidate")
         .trim()
