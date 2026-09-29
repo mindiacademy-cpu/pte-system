@@ -293,7 +293,26 @@ body{padding:0;background:var(--paper);color:#34383d}.admin-head{height:58px;bac
 .exam-table{width:100%}.exam-row{display:grid;grid-template-columns:1.2fr 1.4fr 1fr 70px;gap:16px;align-items:center;padding:15px 22px;border-bottom:1px solid #e5e5e2;font-size:13px}.exam-row:last-child{border-bottom:0}.exam-table-head{background:#efefed;color:#666;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:.4px}.code{font-size:15px;color:#273238;letter-spacing:.5px}.status{display:inline-flex;width:max-content;padding:5px 9px;border-radius:12px;font-size:11px;font-weight:bold}.status.available{background:#e5f3f4;color:#066b76}.status.used{background:#ecebea;color:#777}.delete-link{justify-self:end;border:0;background:transparent;color:#a94444;font-weight:bold;cursor:pointer}.delete-link:hover{text-decoration:underline}
 .result-box{border-radius:0;margin:0 0 18px;background:#e8f6f7;border:1px solid #b7dfe2;color:#066b76;display:flex;gap:16px;justify-content:space-between}.error-box{background:#f8eaea;border-color:#e2bcbc;color:#8d3434}.empty{padding:28px}
 @media(max-width:700px){.page-intro{align-items:stretch;flex-direction:column}.generate-btn{width:100%}.exam-table-head{display:none}.exam-row{grid-template-columns:1fr auto;gap:8px}.exam-row span:nth-child(2){grid-column:1}.status{grid-column:1}.delete-link{grid-column:2;grid-row:1/4}}
-</style></head>
+</style>
+<style id="admin-portal-theme">
+:root{--portal-ink:#111827;--portal-muted:#667085;--portal-line:#e7e5e4;--portal-paper:#fbfaf8;--portal-navy:#18233f;--portal-purple:#6b1f7b;--portal-blue:#bfefff}
+html{background:var(--portal-paper)}
+body{margin:0!important;padding:104px 0 60px!important;background:var(--portal-paper)!important;color:var(--portal-ink)!important;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif!important}
+body:before{content:"MİNDİACADEMY   |   PTE Practice · Exam Admin"!important;position:fixed!important;top:0!important;left:0!important;right:0!important;height:78px!important;z-index:1000!important;display:flex!important;align-items:center!important;padding:0 max(32px,calc((100vw - 1180px)/2))!important;background:#fff!important;color:var(--portal-navy)!important;font-size:17px!important;font-weight:700!important;border-bottom:1px solid var(--portal-line)!important}
+body:after{content:""!important;position:fixed!important;top:78px!important;left:0!important;right:0!important;height:5px!important;z-index:999!important;background:linear-gradient(90deg,var(--portal-purple) 0 50%,var(--portal-blue) 50% 100%)!important}
+.container,.container.simplified,#results,h1,.topbar{max-width:1180px!important}
+.card,.card.code-card{background:#fff!important;border:1px solid var(--portal-line)!important;border-radius:16px!important;box-shadow:none!important}
+.card h2,.candidate-title,h1,.page-intro h1{color:var(--portal-navy)!important}
+.btn,.btn-success,.small-btn{background:var(--portal-navy)!important;color:#fff!important;border-radius:10px!important}
+.btn:hover,.btn-success:hover,.small-btn:hover{background:#253252!important}
+input,select,textarea{background:#fff!important;border:1px solid #d7d4d0!important}
+input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!important;box-shadow:0 0 0 2px rgba(107,31,123,.08)!important}
+.q-head{background:var(--portal-navy)!important}.q-type,.eyebrow{color:var(--portal-purple)!important}
+.status.available,.score-box{background:#eefbff!important;color:var(--portal-navy)!important;border-color:#d9f4fb!important}
+.question-type{background:var(--portal-navy)!important}
+@media(max-width:700px){body{padding:100px 14px 40px!important}body:before{padding:0 18px!important;font-size:14px!important}}
+</style>
+</head>
 
 <body>
   <script>
