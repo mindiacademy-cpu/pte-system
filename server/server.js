@@ -199,107 +199,62 @@ function scoreArrayAnswers(userAnswers, correctAnswers, maxScore = 10, splitMode
   return final;
 }
 
+function getCorrectArray(question, splitMode = "line") {
+  if (Array.isArray(question.correctAnswers) && question.correctAnswers.length) return question.correctAnswers;
+  if (Array.isArray(question.answer) && question.answer.length) return question.answer;
+  return toAnswerArray(question.answerKey || question.correctAnswer || question.answer || "", splitMode).filter(Boolean);
+}
+
+function scoreReorderPairs(userAnswers, correctAnswers, maxScore = 10) {
+  const user = toAnswerArray(userAnswers, "line").map(normalizeText);
+  const correct = toAnswerArray(correctAnswers, "comma").map(normalizeText).filter(Boolean);
+  if (correct.length < 2) return 0;
+  let matched = 0;
+  for (let i = 0; i < correct.length - 1; i++) {
+    const pos = user.indexOf(correct[i]);
+    if (pos >= 0 && user[pos + 1] === correct[i + 1]) matched++;
+  }
+  return Math.round((matched / (correct.length - 1)) * maxScore * 100) / 100;
+}
+
+function scoreDictation(userAnswer, correctAnswer, maxScore = 10) {
+  const user = normalizeText(userAnswer).split(" ").filter(Boolean);
+  const correct = normalizeText(correctAnswer).split(" ").filter(Boolean);
+  if (!correct.length) return 0;
+  let matches = 0;
+  const remaining = [...user];
+  for (const word of correct) {
+    const idx = remaining.indexOf(word);
+    if (idx >= 0) { matches++; remaining.splice(idx, 1); }
+  }
+  return Math.round((matches / correct.length) * maxScore * 100) / 100;
+}
+
 function calculateAutoScore(question, submittedAnswer) {
   const maxScore = Number(question.points || 10);
   const subType = question.subType || "";
 
-  if (
-    subType === "reading_mcq_single" ||
-    subType === "listening_mcq_single" ||
-    subType === "highlight_correct_summary" ||
-    subType === "select_missing_word"
-  ) {
-    return scoreSingleChoice(
-      submittedAnswer,
-      question.correctAnswer || question.answer,
-      maxScore
-    );
+  if (["reading_mcq_single","listening_mcq_single","highlight_correct_summary","select_missing_word"].includes(subType)) {
+    return scoreSingleChoice(submittedAnswer, question.correctAnswer || question.answer, maxScore);
   }
-
-  if (
-    subType === "reading_mcq_multiple" ||
-    subType === "listening_mcq_multiple"
-  ) {
-    const correctAnswers = Array.isArray(question.correctAnswers) && question.correctAnswers.length
-      ? question.correctAnswers
-      : Array.isArray(question.answer)
-        ? question.answer
-        : toAnswerArray(question.answer || question.answerKey || "", "line").filter(Boolean);
-
-    return scoreMultipleChoice(submittedAnswer, correctAnswers, maxScore);
+  if (["reading_mcq_multiple","listening_mcq_multiple"].includes(subType)) {
+    return scoreMultipleChoice(submittedAnswer, getCorrectArray(question), maxScore);
   }
-
-  if (subType === "reading_mcq_group") {
-    const userArray = toAnswerArray(submittedAnswer, "line");
-
-    const correctArray =
-      Array.isArray(question.correctAnswers) && question.correctAnswers.length
-        ? question.correctAnswers
-        : toAnswerArray(question.answerKey || question.answer || "", "line");
-
-    return scoreArrayAnswers(userArray, correctArray, maxScore, "line");
+  if (["reading_fill_blanks","reading_writing_fill_blanks","listening_fill_blanks"].includes(subType)) {
+    return scoreArrayAnswers(submittedAnswer, getCorrectArray(question), maxScore, "line");
   }
-
-  if (
-    subType === "reading_fill_blanks" ||
-    subType === "reading_writing_fill_blanks" ||
-    subType === "reading_short_answer_multi" ||
-    subType === "reading_word_formation" ||
-    subType === "reading_word_formation_multi" ||
-    subType === "reading_word_formation_passage" ||
-    subType === "listening_short_answer_multi"
-  ) {
-    console.log("ARRAY BLOCK HIT:", subType);
-    console.log("QUESTION ANSWER FIELD:", question.answer);
-    console.log("SUBMITTED ANSWER FIELD:", submittedAnswer);
-
-    const userArray = toAnswerArray(submittedAnswer, "line");
-    const correctArray = toAnswerArray(question.answer || question.answerKey || "", "line");
-
-    console.log("USER ARRAY AFTER SPLIT:", userArray);
-    console.log("CORRECT ARRAY AFTER SPLIT:", correctArray);
-
-    return scoreArrayAnswers(userArray, correctArray, maxScore, "line");
+  if (subType === "reorder_paragraphs") {
+    return scoreReorderPairs(submittedAnswer, question.answerKey || question.answer || "", maxScore);
   }
-
-  if (
-    subType === "reorder_paragraphs" ||
-    subType === "listening_sequence"
-  ) {
-    console.log("ARRAY BLOCK HIT:", subType);
-    console.log("QUESTION ANSWER FIELD:", question.answer || question.answerKey);
-    console.log("SUBMITTED ANSWER FIELD:", submittedAnswer);
-
-    const userArray = toAnswerArray(submittedAnswer, "line");
-    const correctArray = toAnswerArray(question.answer || question.answerKey || "", "comma");
-
-    console.log("USER ARRAY AFTER SPLIT:", userArray);
-    console.log("CORRECT ARRAY AFTER SPLIT:", correctArray);
-
-    return scoreArrayAnswers(userArray, correctArray, maxScore, "line");
+  if (subType === "write_from_dictation") {
+    return scoreDictation(submittedAnswer, question.answerKey || question.answer || "", maxScore);
   }
-
-  if (
-    subType === "listening_fill_blanks" ||
-    subType === "highlight_incorrect_words" ||
-    subType === "write_from_dictation" ||
-    subType === "listening_short_answer"
-  ) {
-    return scoreTextAnswer(
-      submittedAnswer,
-      question.answer || question.answerKey || "",
-      maxScore
-    );
+  if (subType === "highlight_incorrect_words") {
+    return scoreMultipleChoice(submittedAnswer, getCorrectArray(question), maxScore);
   }
-
-  if (
-    question.type === "writing" ||
-    question.type === "speaking" ||
-    subType === "summarize_spoken_text"
-  ) {
+  if (question.type === "writing" || subType === "summarize_spoken_text") {
     return scoreByKeywords(submittedAnswer, question.keywords || "", maxScore);
   }
-
   return 0;
 }
 
@@ -454,9 +409,10 @@ function buildSummary(answers) {
   const readingScore = scaleToPTE(readingRaw);
   const listeningScore = scaleToPTE(listeningRaw);
 
-  const overallScore = Math.round(
-    (speakingScore + writingScore + readingScore + listeningScore) / 4
-  );
+  // Pearson states Overall is based on performance across the whole test, not the
+  // arithmetic mean of the four communicative-skill scores. This practice engine
+  // therefore scales the accumulated item performance independently.
+  const overallScore = scaleToPTE(overallRaw);
 
   return {
     overall: overallScore,
