@@ -717,6 +717,53 @@ async function transcribeAudioFromUrl(audioUrl) {
   return transcription.text || "";
 }
 
+async function scoreWritingWithAI({ question, responseText, maxScore }) {
+  const text = String(responseText || "").trim();
+  if (!text) return { score:0, feedback:"No written response detected.", traits:{} };
+
+  const subType = question.subType || "";
+  const wordCount = text.split(/\s+/).filter(Boolean).length;
+  if (subType === "summarize_written_text" && (wordCount < 5 || wordCount > 75)) {
+    return { score:0, feedback:"Form requirement not met.", traits:{ form:0 }, wordCount };
+  }
+  if (subType === "essay" && (wordCount < 120 || wordCount > 380)) {
+    return { score:0, feedback:"Form requirement not met.", traits:{ form:0 }, wordCount };
+  }
+  if (subType === "summarize_spoken_text" && (wordCount < 40 || wordCount > 100)) {
+    return { score:0, feedback:"Form requirement not met.", traits:{ form:0 }, wordCount };
+  }
+
+  const traitSpec = subType === "essay"
+    ? "content 0-6, developmentStructureCoherence 0-6, form 0-2, generalLinguisticRange 0-6, grammar 0-2, vocabularyRange 0-2, spelling 0-2"
+    : subType === "summarize_spoken_text"
+      ? "content 0-4, form 0-2, grammar 0-2, vocabulary 0-2, spelling 0-2"
+      : "content 0-4, form 0-1, grammar 0-2, vocabulary 0-2";
+
+  const ai = await openai.responses.create({
+    model:"gpt-4.1-mini",
+    input:`Evaluate this PTE Academic PRACTICE writing response using Pearson's publicly described traits.
+Task: ${subType}
+Prompt/source: ${question.textContent || question.prompt || ""}
+Candidate response: ${text}
+Word count: ${wordCount}
+Traits and maxima: ${traitSpec}
+
+Important: Content 0 means the whole response receives zero. Apply form requirements strictly. For Summarize Written Text, it must be one complete sentence and 5-75 words. For Essay, 200-300 words earns full form credit; 120-199 or 301-380 is reduced form credit. For Summarize Spoken Text, 50-70 words earns full form credit; 40-49 or 71-100 is reduced form credit.
+Return ONLY JSON: {"traits":{},"feedback":""}`
+  });
+  const parsed=safeJsonParse(ai.output_text||"")||{};
+  const traits=parsed.traits||{};
+  const maxima = subType==="essay"
+    ? {content:6,developmentStructureCoherence:6,form:2,generalLinguisticRange:6,grammar:2,vocabularyRange:2,spelling:2}
+    : subType==="summarize_spoken_text"
+      ? {content:4,form:2,grammar:2,vocabulary:2,spelling:2}
+      : {content:4,form:1,grammar:2,vocabulary:2};
+  if(Number(traits.content||0)<=0) return {score:0,feedback:parsed.feedback||"Content criterion not met.",traits,wordCount};
+  let earned=0, possible=0;
+  for(const [k,m] of Object.entries(maxima)){earned+=Math.max(0,Math.min(m,Number(traits[k]||0)));possible+=m;}
+  return {score:Math.round((earned/possible)*maxScore*100)/100,feedback:parsed.feedback||"",traits,wordCount};
+}
+
 async function enrichAnswersWithScores(answers) {
   const safeAnswers = Array.isArray(answers) ? answers : [];
 
@@ -737,19 +784,12 @@ async function enrichAnswersWithScores(answers) {
     let transcript = answer.transcript || "";
 
     if (answer.type === "speaking") {
-      if (!transcript && answer.speakingAudio) {
-        transcript = await transcribeAudioFromUrl(answer.speakingAudio);
-      }
-
-      const aiScore = await scoreSpeakingWithAI({
-        question,
-        transcript,
-        maxScore
-      });
-
-      autoScore = aiScore.score;
-      aiFeedback = aiScore.feedback;
-      aiDetails = aiScore;
+      if (!transcript && answer.speakingAudio) transcript = await transcribeAudioFromUrl(answer.speakingAudio);
+      const aiScore = await scoreSpeakingWithAI({ question, transcript, maxScore });
+      autoScore = aiScore.score; aiFeedback = aiScore.feedback; aiDetails = aiScore;
+    } else if (answer.type === "writing" || answer.subType === "summarize_spoken_text") {
+      const aiScore = await scoreWritingWithAI({ question, responseText: answer.answer, maxScore });
+      autoScore = aiScore.score; aiFeedback = aiScore.feedback; aiDetails = aiScore;
     } else {
       autoScore = calculateAutoScore(question, answer.answer);
     }
