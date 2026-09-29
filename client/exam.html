@@ -368,6 +368,82 @@
       margin-top: 12px;
     }
 
+    .pte-fill-passage {
+      font-size: 15px;
+      line-height: 2.65;
+      color: #1f2937;
+    }
+
+    .pte-blank-slot {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 112px;
+      min-height: 30px;
+      margin: 0 5px;
+      padding: 3px 10px;
+      vertical-align: middle;
+      border: 1px solid #9ca3af;
+      border-radius: 2px;
+      background: #ffffff;
+      color: #1f2937;
+      font-size: 14px;
+      line-height: 1.2;
+      cursor: pointer;
+    }
+
+    .pte-blank-slot:empty::after {
+      content: "\00a0";
+    }
+
+    .pte-blank-slot:hover {
+      border-color: #168894;
+      background: #f7fcfc;
+    }
+
+    .pte-word-bank {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+      padding-top: 12px;
+    }
+
+    .pte-bank-word {
+      min-height: 30px;
+      padding: 4px 10px;
+      border: 1px solid #aeb5bc;
+      border-radius: 2px;
+      background: #f5f5f5;
+      color: #252a2e;
+      font: inherit;
+      font-size: 13px;
+      cursor: grab;
+    }
+
+    .pte-bank-word:hover {
+      border-color: #168894;
+      background: #eef9fa;
+    }
+
+    @media (max-width: 768px) {
+      .pte-fill-passage {
+        font-size: 14px;
+        line-height: 2.8;
+      }
+
+      .pte-blank-slot {
+        min-width: 92px;
+        min-height: 32px;
+        margin: 2px 3px;
+      }
+
+      .pte-bank-word {
+        min-height: 36px;
+        padding: 6px 10px;
+      }
+    }
+
     .listening-audio-box {
       margin-bottom: 12px;
     }
@@ -2293,7 +2369,7 @@
           const selected=Array.isArray(existing?.answer)?[...existing.answer]:Array(parts.length-1).fill("");
           while(selected.length<parts.length-1) selected.push("");
           const bank=(q.options||[]).map((word,index)=>({id:index,word}));
-          const passage=document.createElement("div"); passage.style.lineHeight="2.5";
+          const passage=document.createElement("div"); passage.className="pte-fill-passage";
           const bankBox=document.createElement("div"); bankBox.className="pte-word-bank";
           const sync=()=>{const payload={questionId:q.id,type:q.type,subType:q.subType,title:q.title,prompt:q.prompt,answer:[...selected]};const ai=answers.findIndex(x=>x.questionId===q.id);if(ai>=0)answers[ai]=payload;else answers.push(payload);localStorage.setItem("examAnswers",JSON.stringify(answers));updateSavedCount();};
           const render=()=>{
@@ -2301,7 +2377,7 @@
             parts.forEach((part,i)=>{
               passage.appendChild(document.createTextNode(part));
               if(i<parts.length-1){
-                const slot=document.createElement("span"); slot.className="pte-blank-slot"; slot.dataset.blank=i; slot.textContent=selected[i]||"Drop word";
+                const slot=document.createElement("span"); slot.className="pte-blank-slot"; slot.dataset.blank=i; slot.textContent=selected[i]||""; slot.setAttribute("aria-label", selected[i] ? "Selected word: " + selected[i] : "Empty answer slot");
                 slot.ondragover=e=>e.preventDefault();
                 slot.ondrop=e=>{e.preventDefault();const id=Number(e.dataTransfer.getData("text/plain"));const item=bank.find(x=>x.id===id);if(item){selected[i]=item.word;sync();render();}};
                 slot.onclick=()=>{if(selected[i]){selected[i]="";sync();render();}};
