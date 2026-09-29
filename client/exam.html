@@ -2040,8 +2040,8 @@
         speakingLocked = false;
         speakingProcessing = false;
         speakingFlowRunning = false;
-        speakingAudioBase64 = "";
-        speakingTranscript = "";
+        speakingAudioBase64 = existing?.speakingAudio || "";
+        speakingTranscript = existing?.transcript || existing?.answer || "";
 
         document.getElementById("speakingArea").classList.remove("hidden");
         document.getElementById("speakingStage").classList.remove("hidden");
@@ -2070,8 +2070,21 @@
 `;
         }
 
-        setNextButtonDisabled(true);
-        startSpeakingFlow();
+        if (speakingAudioBase64) {
+          document.getElementById("recordStatus").innerText = "Recording already saved.";
+          document.getElementById("speakingStage").classList.add("hidden");
+          const audioBox = document.getElementById("audioBox");
+          audioBox.classList.remove("hidden");
+          audioBox.innerHTML = '<p style="margin:0;color:#047857;font-weight:bold;">Recording saved successfully.</p>';
+          const meterTitle = document.getElementById("speakingMeterTitle");
+          const consoleState = document.getElementById("speakingConsoleState");
+          if (meterTitle) meterTitle.innerText = "Completed";
+          if (consoleState) consoleState.innerText = "Completed";
+          setNextButtonDisabled(false);
+        } else {
+          setNextButtonDisabled(true);
+          startSpeakingFlow();
+        }
       }
 
       else if (q.type === "writing") {
