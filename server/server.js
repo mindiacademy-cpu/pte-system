@@ -254,7 +254,16 @@ function calculateAutoScore(question, submittedAnswer) {
     return scoreDictation(submittedAnswer, question.answerKey || question.answer || "", maxScore);
   }
   if (subType === "highlight_incorrect_words") {
-    return scoreMultipleChoice(submittedAnswer, getCorrectArray(question), maxScore);
+    const selected = toAnswerArray(submittedAnswer, "line").map(String);
+    const transcriptWords = String(question.textContent || "").trim().split(/\s+/).filter(Boolean);
+    const authored = getCorrectArray(question).map(String);
+    const correctIndexes = authored.map(value => {
+      if (/^\d+$/.test(value)) return value;
+      const normalizedTarget = normalizeText(value);
+      const index = transcriptWords.findIndex(word => normalizeText(word) === normalizedTarget);
+      return index >= 0 ? String(index) : value;
+    });
+    return scoreMultipleChoice(selected, correctIndexes, maxScore);
   }
   if (question.type === "writing" || subType === "summarize_spoken_text") {
     return scoreByKeywords(submittedAnswer, question.keywords || "", maxScore);
