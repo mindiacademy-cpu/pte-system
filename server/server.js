@@ -333,9 +333,9 @@ function normalizeQuestion(q) {
     prompt: q.prompt || "",
     points: Number(q.points || getDefaultPoints(safeSubType)),
 
-    time: Number(q.time || 60),
-    prepareTime: Number(q.prepareTime || 25),
-    recordTime: Number(q.recordTime || 40),
+    time: Number(q.time ?? 60),
+    prepareTime: Number(q.prepareTime ?? 25),
+    recordTime: Number(q.recordTime ?? 40),
 
     audioUrl: q.audioUrl || "",
     imageUrl: q.imageUrl || "",
