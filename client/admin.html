@@ -310,6 +310,23 @@
         .replace(/>/g, "&gt;");
     }
 
+    function formatTaskName(subType) {
+      const labels = {
+        read_aloud:"Read Aloud", repeat_sentence:"Repeat Sentence", describe_image:"Describe Image",
+        re_tell_lecture:"Re-tell Lecture", answer_short_question:"Answer Short Question",
+        summarize_group_discussion:"Summarize Group Discussion", respond_to_a_situation:"Respond to a Situation",
+        summarize_written_text:"Summarize Written Text", essay:"Write Essay",
+        reading_writing_fill_blanks:"Fill in the Blanks (Dropdown)", reading_mcq_multiple:"Multiple Choice, Multiple Answers",
+        reorder_paragraphs:"Reorder Paragraphs", reading_fill_blanks:"Fill in the Blanks (Drag and Drop)",
+        reading_mcq_single:"Multiple Choice, Single Answer", summarize_spoken_text:"Summarize Spoken Text",
+        listening_mcq_multiple:"Multiple Choice, Multiple Answers", listening_fill_blanks:"Fill in the Blanks (Type In)",
+        highlight_correct_summary:"Highlight Correct Summary", listening_mcq_single:"Multiple Choice, Single Answer",
+        select_missing_word:"Select Missing Word", highlight_incorrect_words:"Highlight Incorrect Words",
+        write_from_dictation:"Write From Dictation"
+      };
+      return labels[subType] || subType || "-";
+    }
+
     function formatTraitName(key) {
       const labels = {
         content:"Content", pronunciation:"Pronunciation", oralFluency:"Oral Fluency",
@@ -1266,7 +1283,7 @@
               html += `
     <div class="question">
       <div class="question-top">
-        <div class="question-type">${answer.type || "-"}</div>
+        <div class="question-type">${formatTaskName(answer.subType)} <span style="font-weight:400;color:#6b7280;">· ${answer.type || "-"}</span></div>
         <div class="question-score">
   Auto: ${answer.autoScore ?? 0} |
   Final: ${answer.finalScore ?? answer.autoScore ?? 0} / ${answer.maxScore || 10}
@@ -1280,7 +1297,10 @@
 
   `;
 
-              if (answer.answer) {
+              const hasAnswer = Array.isArray(answer.answer)
+                ? answer.answer.length > 0
+                : (answer.answer !== undefined && answer.answer !== null && String(answer.answer).length > 0);
+              if (hasAnswer) {
                 let formattedAnswer = "-";
 
                 if (Array.isArray(answer.answer)) {
