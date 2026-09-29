@@ -310,6 +310,27 @@
         .replace(/>/g, "&gt;");
     }
 
+    function formatTraitName(key) {
+      const labels = {
+        content:"Content", pronunciation:"Pronunciation", oralFluency:"Oral Fluency",
+        form:"Form", grammar:"Grammar", vocabulary:"Vocabulary", vocabularyRange:"Vocabulary Range",
+        spelling:"Spelling", developmentStructureCoherence:"Development, Structure & Coherence",
+        generalLinguisticRange:"General Linguistic Range"
+      };
+      return labels[key] || key;
+    }
+
+    function buildTraitHtml(answer) {
+      const d = answer && answer.aiDetails;
+      if (!d) return "";
+      const traits = d.traits && typeof d.traits === "object"
+        ? d.traits
+        : { content:d.content, pronunciation:d.pronunciation, oralFluency:d.oralFluency };
+      const rows = Object.entries(traits).filter(([,v]) => v !== undefined && v !== null);
+      if (!rows.length) return "";
+      return `<div class="question-block"><div class="label">Practice Scoring Traits</div><pre>${rows.map(([k,v]) => `${formatTraitName(k)}: ${v}`).join("\n")}${d.wordCount != null ? `\nWord Count: ${d.wordCount}` : ""}</pre></div>`;
+    }
+
     function formatFinishedAt(value) {
       if (!value) return "-";
 
@@ -1211,8 +1232,9 @@
             html += `
     <div class="score-box">
       <div class="score-main">
-        Overall Score: ${exam.summary.overall ?? 0}
+        PTE Academic Practice Score: ${exam.summary.overall ?? 0}
       </div>
+      <div class="score-sub" style="margin-bottom:8px;">Practice estimate — not an official Pearson score.</div>
       <div class="score-sub">
         Speaking: ${exam.summary.speaking ?? 0} |
         Writing: ${exam.summary.writing ?? 0} |
@@ -1299,6 +1321,8 @@
       </div>
     `;
               }
+
+              html += buildTraitHtml(answer);
 
               // 🔥 EN ÖNEMLİ SATIR
               html += `
