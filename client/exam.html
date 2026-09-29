@@ -1963,10 +1963,6 @@
         reorder_paragraphs: "Reorder Paragraphs",
         reading_fill_blanks: "Fill in the Blanks (Drag and Drop)",
         reading_writing_fill_blanks: "Fill in the Blanks (Dropdown)",
-        reading_word_formation: "Reading Word Formation",
-        reading_mcq_group: "Reading MCQ Group",
-        reading_word_formation_multi: "Reading Word Formation (Multi)",
-        reading_word_formation_passage: "Reading Word Formation Passage",
 
         summarize_spoken_text: "Summarize Spoken Text",
         listening_mcq_single: "Listening MCQ Single",
@@ -1976,9 +1972,6 @@
         select_missing_word: "Select Missing Word",
         highlight_incorrect_words: "Highlight Incorrect Words",
         write_from_dictation: "Write From Dictation",
-        listening_short_answer: "Listening Short Answer",
-        listening_short_answer_multi: "Listening Short Answer (Multi)",
-        listening_sequence: "Listening Sequence"
       };
 
       return labels[subType] || (type ? type.toUpperCase() : "QUESTION");
@@ -2026,7 +2019,6 @@
       if (
         questionText &&
         q.subType !== "write_from_dictation" &&
-        q.subType !== "listening_short_answer_multi" &&
         q.subType !== "reorder_paragraphs"
       ) {
         taskContent.classList.remove("hidden");
@@ -2491,8 +2483,7 @@
 
         if (
           q.textContent &&
-          q.subType !== "write_from_dictation" &&
-          q.subType !== "listening_short_answer_multi"
+          q.subType !== "write_from_dictation"
         ) {
           taskContent.classList.remove("hidden");
           taskContent.innerText = q.textContent;
