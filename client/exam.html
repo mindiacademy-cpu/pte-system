@@ -2151,6 +2151,7 @@
             const payload = { questionId:q.id,type:q.type,subType:q.subType,title:q.title,prompt:q.prompt,answer:order.map(v => String(v + 1)) };
             const ai = answers.findIndex(item => item.questionId === q.id);
             if (ai >= 0) answers[ai] = payload; else answers.push(payload);
+            localStorage.setItem("examAnswers", JSON.stringify(answers));
             updateSavedCount();
           };
           const draw = () => {
