@@ -376,6 +376,18 @@
       });
     }
 
+    function getPtePart(q) {
+      if (q.type === "speaking" || q.type === "writing") return "Part 1";
+      if (q.type === "reading") return "Part 2";
+      if (q.type === "listening") return "Part 3";
+      return "-";
+    }
+
+    function getTaskDisplay(q) {
+      if (q.type === "speaking") return `P:${q.prepareTime || 0}s / R:${q.recordTime || 0}s`;
+      return "Section timed";
+    }
+
     function renderQuestionSelectionList() {
       const container = document.getElementById("questionSelectionList");
       const filteredQuestions = getFilteredQuestions();
@@ -398,9 +410,9 @@
 
         row.innerHTML = `
           <input type="checkbox" class="question-check" value="${q.id}" ${checked}>
-          <span class="q-type">${q.type || "-"}</span>
+          <span class="q-type">${getPtePart(q)} · ${q.type || "-"}</span>
           <span class="q-title" title="${(q.title || "").replace(/"/g, "&quot;")}">${q.title || "-"}</span>
-          <span class="q-time">${q.type === "speaking" ? `P:${q.prepareTime || 0}s / R:${q.recordTime || 40}s` : `${q.time || 60}s`}</span>
+          <span class="q-time">${getTaskDisplay(q)}</span>
         `;
 
         const checkbox = row.querySelector(".question-check");
