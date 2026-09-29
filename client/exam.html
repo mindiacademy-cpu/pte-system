@@ -1670,12 +1670,54 @@
       }
     }
 
+    function getSpeakingTiming(q) {
+      const sub = (q?.subType || "").toLowerCase();
+      const defaults = {
+        read_aloud: { prepare: 35, record: 40, playPrompt: false },
+        repeat_sentence: { prepare: 0, record: 15, playPrompt: true },
+        describe_image: { prepare: 25, record: 40, playPrompt: false },
+        re_tell_lecture: { prepare: 10, record: 40, playPrompt: true },
+        answer_short_question: { prepare: 0, record: 10, playPrompt: true },
+        summarize_group_discussion: { prepare: 10, record: 120, playPrompt: true },
+        respond_to_a_situation: { prepare: 10, record: 40, playPrompt: true }
+      };
+      const d = defaults[sub] || { prepare: 0, record: 40, playPrompt: false };
+      return {
+        prepare: Number(q?.prepareTime ?? d.prepare),
+        record: Number(q?.recordTime ?? d.record),
+        playPrompt: d.playPrompt && !!q?.audioUrl
+      };
+    }
+
+    function playSpeakingPromptOnce(q) {
+      return new Promise(resolve => {
+        if (!q?.audioUrl) { resolve(); return; }
+        const state = document.getElementById("speakingConsoleState");
+        const fill = document.getElementById("speakingTrackFill");
+        const audio = new Audio(q.audioUrl);
+        if (state) state.innerText = "Playing";
+        if (fill) fill.style.width = "0%";
+        audio.ontimeupdate = () => {
+          if (fill && audio.duration) fill.style.width = Math.min(100,(audio.currentTime/audio.duration)*100) + "%";
+        };
+        const done = () => {
+          if (fill) fill.style.width = "100%";
+          if (state) state.innerText = "Completed";
+          resolve();
+        };
+        audio.onended = done;
+        audio.onerror = done;
+        audio.play().catch(done);
+      });
+    }
+
     function startSpeakingFlow() {
       if (speakingFlowRunning) return;
 
       const q = questions[currentQuestionIndex];
-      const prepareTime = Number(q.prepareTime || 0);
-      const recordTime = Number(q.recordTime || 40);
+      const timing = getSpeakingTiming(q);
+      const prepareTime = timing.prepare;
+      const recordTime = timing.record;
 
       speakingFlowRunning = true;
       speakingLocked = true;
@@ -1693,6 +1735,17 @@
 
       setNextButtonDisabled(true);
 
+      if (timing.playPrompt) {
+        const state = document.getElementById("speakingConsoleState");
+        if (state) state.innerText = "Loading";
+        playSpeakingPromptOnce(q).then(() => beginSpeakingCountdown(prepareTime, recordTime));
+        return;
+      }
+
+      beginSpeakingCountdown(prepareTime, recordTime);
+    }
+
+    function beginSpeakingCountdown(prepareTime, recordTime) {
       if (prepareTime > 0) {
         let prepare = prepareTime;
         showPrepareStage(prepare);
