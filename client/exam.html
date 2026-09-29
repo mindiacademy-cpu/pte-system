@@ -880,7 +880,67 @@
     .status-strip .timer-card { order:1; }
     .status-strip .question-counter-top { order:3; }
 
-  </style>
+  
+    /* Speaking UI: keep only one compact microphone/status area.
+       The main teal timer bar already shows Prepare/Recording time. */
+    #speakingArea .audio-console,
+    #speakingArea .speaking-meter,
+    #speakingArea .speaking-stage,
+    #speakingArea .audio-box {
+      display: none !important;
+    }
+
+    #speakingArea .voice-visualizer {
+      width: min(390px, 100%);
+      height: 46px;
+      margin: 22px auto 8px;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: #f4f6f7;
+      border: 1px solid #cfd5d8;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    #speakingArea .voice-visualizer .bar {
+      width: 5px;
+      height: 12px;
+      margin: 0;
+      background: #168a9a;
+      border-radius: 2px;
+    }
+
+    #speakingArea .record-status-box {
+      width: min(390px, 100%);
+      min-height: 28px;
+      margin: 0 auto 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+    }
+
+    #speakingArea .record-status-box .status {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: #4a4f54;
+    }
+
+    #speakingArea .rec-indicator {
+      margin: 0;
+    }
+
+    @media (max-width: 700px) {
+      #speakingArea .voice-visualizer,
+      #speakingArea .record-status-box {
+        width: 100%;
+      }
+    }
+</style>
 </head>
 
 <body>
@@ -1191,6 +1251,34 @@
 
     const candidateName = localStorage.getItem("candidateName") || "";
     const candidateSurname = localStorage.getItem("candidateSurname") || "";
+
+    // Older sessions may contain the surname inside candidateName as well.
+    // Normalize it here so the header and saved result never show it twice.
+    function normalizeCandidateName(nameValue, surnameValue) {
+      let cleanName = (nameValue || "").trim().replace(/\\s+/g, " ");
+      const cleanSurname = (surnameValue || "").trim().replace(/\\s+/g, " ");
+      if (!cleanSurname) return { firstName: cleanName, surname: "" };
+
+      const surnameParts = cleanSurname.split(" ");
+      let nameParts = cleanName.split(" ").filter(Boolean);
+
+      while (nameParts.length >= surnameParts.length) {
+        const tail = nameParts.slice(-surnameParts.length).join(" ");
+        if (tail.localeCompare(cleanSurname, undefined, { sensitivity: "base" }) !== 0) break;
+        nameParts = nameParts.slice(0, -surnameParts.length);
+      }
+
+      return {
+        firstName: nameParts.join(" ").trim() || cleanName,
+        surname: cleanSurname
+      };
+    }
+
+    const normalizedCandidate = normalizeCandidateName(candidateName, candidateSurname);
+    const candidateDisplayName = [normalizedCandidate.firstName, normalizedCandidate.surname]
+      .filter(Boolean)
+      .join(" ");
+
     const candidatePhone = localStorage.getItem("candidatePhone") || "";
     const candidateEmail = localStorage.getItem("candidateEmail") || "";
     const kvkkApproval = localStorage.getItem("kvkkApproval") || "";
@@ -2668,8 +2756,8 @@
       }
 
       const examData = {
-        candidateName: localStorage.getItem("candidateName") || "",
-        candidateSurname: localStorage.getItem("candidateSurname") || "",
+        candidateName: normalizedCandidate.firstName,
+        candidateSurname: normalizedCandidate.surname,
         candidatePhone: localStorage.getItem("candidatePhone") || "",
         candidateEmail: localStorage.getItem("candidateEmail") || "",
         candidateId: localStorage.getItem("candidateId") || "",
@@ -2790,7 +2878,7 @@
         const candidateInfoBox = document.getElementById("candidateInfo");
 
         if (candidateInfoBox) {
-          const displayName = localStorage.getItem("candidateName") || "-";
+          const displayName = candidateDisplayName || "-";
           const displayExamCode = localStorage.getItem("examCode") || examCode || "-";
 
           candidateInfoBox.innerText = `${displayName} | Exam: ${displayExamCode}`;
@@ -2809,7 +2897,7 @@
         }
 
         if (candidateInfoBox) {
-          const displayName = localStorage.getItem("candidateName") || "-";
+          const displayName = candidateDisplayName || "-";
           const displayExamCode = localStorage.getItem("examCode") || examCode || "-";
 
           candidateInfoBox.innerText = `${displayName} | Exam: ${displayExamCode}`;
