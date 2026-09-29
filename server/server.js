@@ -1016,13 +1016,14 @@ app.post("/create-exam", async (req, res) => {
       return res.status(400).json({ error: "No questions selected" });
     }
 
-    const allQuestions = readJson(QUESTIONS_FILE).map(normalizeQuestion);
+    const allQuestions = readJson(QUESTIONS_FILE)
+      .map(migrateQuestionForCurrentPte)
+      .filter(Boolean);
 
     const selectedQuestions = questions
       .map(item => {
         const selectedId =
           typeof item === "object" && item !== null ? String(item.id || "") : String(item);
-
         return allQuestions.find(q => String(q.id) === selectedId);
       })
       .filter(Boolean);
@@ -1033,15 +1034,27 @@ app.post("/create-exam", async (req, res) => {
 
     const sectionOrder = {
       speaking: 1,
-      writing: 2,
-      reading: 3,
-      listening: 4
+      writing: 1,
+      reading: 2,
+      listening: 3
+    };
+
+    const taskOrder = {
+      read_aloud:1, repeat_sentence:2, describe_image:3, re_tell_lecture:4,
+      answer_short_question:5, summarize_group_discussion:6, respond_to_a_situation:7,
+      summarize_written_text:8, essay:9,
+      reading_writing_fill_blanks:10, reading_mcq_multiple:11, reorder_paragraphs:12,
+      reading_fill_blanks:13, reading_mcq_single:14,
+      summarize_spoken_text:15, listening_mcq_multiple:16, listening_fill_blanks:17,
+      highlight_correct_summary:18, listening_mcq_single:19, select_missing_word:20,
+      highlight_incorrect_words:21, write_from_dictation:22
     };
 
     const sortedQuestions = selectedQuestions.sort((a, b) => {
       const orderA = sectionOrder[String(a.type || "").toLowerCase()] || 999;
       const orderB = sectionOrder[String(b.type || "").toLowerCase()] || 999;
-      return orderA - orderB;
+      if (orderA !== orderB) return orderA - orderB;
+      return (taskOrder[a.subType] || 999) - (taskOrder[b.subType] || 999);
     });
 
     const examCode = "EX" + Math.floor(100000 + Math.random() * 900000);
