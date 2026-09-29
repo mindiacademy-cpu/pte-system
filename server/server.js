@@ -1409,6 +1409,16 @@ app.put("/exam-results/:resultId/manual-score", async (req, res) => {
       return res.status(400).json({ error: "Invalid score." });
     }
 
+    const answerMaxScore = Number(answers[answerIndex].maxScore || 10);
+    if (
+      parsedManualScore !== null &&
+      (parsedManualScore < 0 || parsedManualScore > answerMaxScore)
+    ) {
+      return res.status(400).json({
+        error: `Manual score must be between 0 and ${answerMaxScore}.`
+      });
+    }
+
     answers[answerIndex] = {
       ...answers[answerIndex],
       manualScore: parsedManualScore,
