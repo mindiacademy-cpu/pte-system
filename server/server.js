@@ -1160,7 +1160,7 @@ app.get("/exams/code/:examCode", async (req, res) => {
       id: updated.id,
       examCode: updated.exam_code,
       title: updated.title,
-      questions: updated.questions || [],
+      questions: (updated.questions || []).map(migrateQuestionForCurrentPte).filter(Boolean),
       createdAt: updated.created_at,
       used: updated.used,
       usedAt: updated.used_at
