@@ -2217,38 +2217,6 @@
         else if (q.subType === "listening_mcq_multiple") {
           renderOptions("listeningOptions", q.options || [], existing?.answer || [], true, "selectListeningMultiple");
         }
-        else if (q.subType === "listening_sequence") {
-          document.getElementById("listeningSequenceWrap").classList.remove("hidden");
-
-          const optionsBox = document.getElementById("listeningSequenceOptions");
-          const existingAnswer = existing?.answer || [];
-
-          optionsBox.innerHTML = "";
-
-          (q.options || []).forEach((opt, index) => {
-            const row = document.createElement("div");
-            row.style.display = "flex";
-            row.style.justifyContent = "space-between";
-            row.style.alignItems = "center";
-            row.style.gap = "12px";
-            row.style.marginBottom = "10px";
-
-            row.innerHTML = `
-      <div style="flex:1;">${index + 1}. ${opt}</div>
-      <input
-        type="number"
-        min="1"
-        max="${q.options.length}"
-        data-index="${index}"
-        class="sequence-order-input"
-        value="${existingAnswer[index] || ""}"
-        style="width:70px; padding:8px; border:1px solid #d1d5db; border-radius:8px;"
-      >
-    `;
-
-            optionsBox.appendChild(row);
-          });
-        }
         else if (q.subType === "listening_fill_blanks") {
           const wrap=document.getElementById("listeningLongInputWrap");
           wrap.classList.remove("hidden");
@@ -2280,29 +2248,6 @@
         else if (q.subType === "write_from_dictation") {
           document.getElementById("listeningTextInputWrap").classList.remove("hidden");
           document.getElementById("listeningTextAnswer").value = existing?.answer || "";
-        }
-        else if (q.subType === "listening_short_answer_multi") {
-          document.getElementById("listeningMultiShortWrap").classList.remove("hidden");
-
-          const questionLines = parseMultiShortQuestions(
-            q.textContent || q.text || q.content || ""
-          );
-
-          document.getElementById("listeningShortLabel1").innerText =
-            questionLines[0] || "Question 1";
-
-          document.getElementById("listeningShortLabel2").innerText =
-            questionLines[1] || "Question 2";
-
-          const existingMultiAnswer = Array.isArray(existing?.answer)
-            ? existing.answer
-            : [];
-
-          document.getElementById("listeningShortAnswer1").value =
-            existingMultiAnswer[0] || "";
-
-          document.getElementById("listeningShortAnswer2").value =
-            existingMultiAnswer[1] || "";
         }
         else {
           document.getElementById("listeningLongInputWrap").classList.remove("hidden");
@@ -2356,9 +2301,7 @@
       }
 
       else if (q.type === "listening") {
-        if (
-          q.subType === "write_from_dictation"
-        ) {
+        if (q.subType === "write_from_dictation") {
           answerPayload.answer = document.getElementById("listeningTextAnswer").value.trim();
         }
         else if (q.subType === "listening_fill_blanks") {
@@ -2368,23 +2311,9 @@
           const existing = getExistingAnswer(q.id);
           answerPayload.answer = existing ? existing.answer : [];
         }
-
-        else if (q.subType === "listening_sequence") {
-          const inputs = document.querySelectorAll(".sequence-order-input");
-          answerPayload.answer = Array.from(inputs).map(input => input.value.trim());
-        }
-
-        else if (q.subType === "listening_short_answer_multi") {
-          answerPayload.answer = [
-            document.getElementById("listeningShortAnswer1").value.trim(),
-            document.getElementById("listeningShortAnswer2").value.trim()
-          ];
-        }
-
         else if (q.subType === "summarize_spoken_text") {
           answerPayload.answer = document.getElementById("listeningAnswer").value.trim();
         }
-
         else {
           const existing = getExistingAnswer(q.id);
           answerPayload.answer = existing ? existing.answer : "";
