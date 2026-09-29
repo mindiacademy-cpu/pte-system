@@ -1560,7 +1560,7 @@
       document.getElementById("prompt").value = question.prompt || "";
       document.getElementById("points").value = question.points || getDefaultPoints(question.subType || "");
       delete document.getElementById("points").dataset.manuallyEdited;
-      document.getElementById("time").value = question.time || 60;
+      document.getElementById("time").value = question.time ?? 60;
       document.getElementById("prepareTime").value = question.prepareTime || 0;
       document.getElementById("recordTime").value = question.recordTime || 40;
       document.getElementById("audioUrl").value = question.audioUrl || "";
