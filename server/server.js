@@ -890,10 +890,37 @@ app.get("/question-admin", (req, res) => {
   res.sendFile(path.join(__dirname, "../client", "question-admin.html"));
 });
 
+const OFFICIAL_PTE_SUBTYPES = new Set([
+  "read_aloud","repeat_sentence","describe_image","re_tell_lecture","answer_short_question",
+  "summarize_group_discussion","respond_to_a_situation","summarize_written_text","essay",
+  "reading_writing_fill_blanks","reading_mcq_multiple","reorder_paragraphs","reading_fill_blanks","reading_mcq_single",
+  "summarize_spoken_text","listening_mcq_multiple","listening_fill_blanks","highlight_correct_summary",
+  "listening_mcq_single","select_missing_word","highlight_incorrect_words","write_from_dictation"
+]);
+
+function migrateQuestionForCurrentPte(question) {
+  const q = normalizeQuestion(question);
+  if (!OFFICIAL_PTE_SUBTYPES.has(q.subType)) return null;
+  if (q.type === "reading" || q.type === "listening") q.time = 0;
+  if (q.type !== "speaking") { q.prepareTime = 0; q.recordTime = 0; }
+  if (q.subType === "read_aloud") { q.prepareTime = 35; q.recordTime = 40; }
+  if (q.subType === "repeat_sentence") { q.prepareTime = 0; q.recordTime = 15; }
+  if (q.subType === "describe_image") { q.prepareTime = 25; q.recordTime = 40; }
+  if (q.subType === "re_tell_lecture") { q.prepareTime = 10; q.recordTime = 40; }
+  if (q.subType === "answer_short_question") { q.prepareTime = 0; q.recordTime = 10; }
+  if (q.subType === "summarize_group_discussion") { q.prepareTime = 10; q.recordTime = 120; }
+  if (q.subType === "respond_to_a_situation") { q.prepareTime = 10; q.recordTime = 40; }
+  if (q.subType === "reading_fill_blanks" || q.subType === "reading_writing_fill_blanks" || q.subType === "listening_fill_blanks") {
+    q.textContent = String(q.textContent || "").replace(/_{3,}/g, "_______");
+    if (!q.correctAnswers.length && q.correctAnswer) q.correctAnswers = String(q.correctAnswer).split(",").map(v => v.trim()).filter(Boolean);
+    q.evaluationType = "correctAnswers";
+  }
+  return q;
+}
+
 app.get("/questions", (req, res) => {
   const questions = readJson(QUESTIONS_FILE);
-  const normalized = questions.map(normalizeQuestion);
-  res.json(normalized);
+  res.json(questions.map(migrateQuestionForCurrentPte).filter(Boolean));
 });
 
 app.post("/upload-audio", upload.single("audio"), (req, res) => {
