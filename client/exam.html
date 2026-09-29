@@ -1500,7 +1500,7 @@
     }
 
     function bindListeningAudioBehavior(player) {
-      player.onended = () => {
+      const fill = document.getElementById("listeningTrackFill");\n      const state = document.getElementById("listeningAudioState");\n      if (fill) fill.style.width = "0%";\n      if (state) state.innerText = "Audio will play automatically once.";\n      player.ontimeupdate = () => { if (fill && player.duration) fill.style.width = Math.min(100, (player.currentTime / player.duration) * 100) + "%"; if (state && !player.paused && !player.ended) state.innerText = "Playing"; };\n      player.onended = () => {\n        if (fill) fill.style.width = "100%";\n        if (state) state.innerText = "Completed";
         listeningAudioEnded = true;
         setNextButtonDisabled(false);
 
