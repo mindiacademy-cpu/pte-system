@@ -56,10 +56,10 @@ const SKILL_WEIGHTS = {
   repeat_sentence: { speaking: 0.7, listening: 0.3 },
   describe_image: { speaking: 1.0 },
   re_tell_lecture: { speaking: 0.7, listening: 0.3 },
-  answer_short_question: { listening: 0.6, speaking: 0.4 },
+  answer_short_question: { listening: 1.0 },
 
-  summarize_group_discussion: { writing: 0.7, reading: 0.3 },
-  respond_to_a_situation: { writing: 0.7, reading: 0.3 },
+  summarize_group_discussion: { speaking: 0.7, listening: 0.3 },
+  respond_to_a_situation: { speaking: 1.0 },
   summarize_written_text: { writing: 0.7, reading: 0.3 },
   essay: { writing: 1.0 },
 
@@ -679,30 +679,28 @@ function safeJsonParse(text) {
 
 async function scoreSpeakingWithAI({ question, transcript, maxScore }) {
   if (!transcript || !transcript.trim()) {
-    return { score:0, feedback:"No speaking response detected.", content:0, pronunciation:0, oralFluency:0 };
+    return { score:0, feedback:"No speaking response detected.", content:0, pronunciation:null, oralFluency:null, scoringNote:"Audio traits not estimated from transcript." };
   }
   const response = await openai.responses.create({
     model: "gpt-4.1-mini",
-    input: `You are evaluating a PTE Academic PRACTICE speaking response using Pearson's publicly described traits.
+    input: `Evaluate CONTENT only for this PTE Academic PRACTICE speaking response.
 Task: ${question.subType || "speaking"}
 Prompt: ${question.prompt || ""}
 Source content: ${question.textContent || question.answerKey || ""}
 Candidate transcript: ${transcript}
 
-Return ONLY JSON:
-{"content":0,"pronunciation":0,"oralFluency":0,"feedback":""}
-
-Use a 0-5 practice rubric for each trait. Content must reflect the task: Read Aloud checks prompt words; Repeat Sentence checks reproduced word sequences; open speaking tasks check relevance/coverage. Pronunciation and oralFluency are estimates from available evidence and must not be presented as official Pearson scores. Be strict. Empty, irrelevant or meaningless responses receive zero content.`
+Return ONLY JSON: {"content":0,"feedback":""}
+Use a strict 0-5 practice content rubric. Read Aloud checks prompt words; Repeat Sentence checks reproduced word sequences; open speaking tasks check relevance and coverage. Empty, irrelevant or meaningless responses receive zero. Do not score pronunciation or oral fluency from transcript text.`
   });
   const parsed = safeJsonParse(response.output_text || "") || {};
   const content = Math.max(0,Math.min(5,Number(parsed.content||0)));
-  const pronunciation = Math.max(0,Math.min(5,Number(parsed.pronunciation||0)));
-  const oralFluency = Math.max(0,Math.min(5,Number(parsed.oralFluency||parsed.fluency||0)));
-  const ratio = (content + pronunciation + oralFluency) / 15;
   return {
-    score: Math.round(Math.max(0,Math.min(maxScore,ratio*maxScore))*100)/100,
-    content, pronunciation, oralFluency,
-    feedback: parsed.feedback || ""
+    score: Math.round((content / 5) * maxScore * 100) / 100,
+    content,
+    pronunciation:null,
+    oralFluency:null,
+    feedback: parsed.feedback || "",
+    scoringNote:"Practice content score only. Pronunciation and Oral Fluency require analysis of the actual audio signal and are not inferred from transcript."
   };
 }
 
