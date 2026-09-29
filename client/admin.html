@@ -390,6 +390,31 @@ h1{max-width:1080px;margin:0 auto 22px;text-align:left;color:#333;font-size:22px
       });
     }
 
+    function formatExamDate(value) {
+      if (!value) return "-";
+      return new Date(value).toLocaleDateString("tr-TR", {
+        timeZone: "Europe/Istanbul",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+      });
+    }
+
+    function formatExamTime(value) {
+      if (!value) return "-";
+      return new Date(value).toLocaleTimeString("tr-TR", {
+        timeZone: "Europe/Istanbul",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+    }
+
+    function formatPeriod(start, end) {
+      const date = formatExamDate(start || end);
+      return `${date} · ${formatExamTime(start)} – ${formatExamTime(end)} · ${getDuration(start, end)}`;
+    }
+
     function getDuration(start, end) {
       if (!start || !end) return "-";
 
@@ -933,7 +958,7 @@ h1{max-width:1080px;margin:0 auto 22px;text-align:left;color:#333;font-size:22px
   <div class="info-box">
   <div class="info-label">Period</div>
 
-  <div class="info-value" style="line-height:1.3;">${formatFinishedAt(exam.startedAt)} → ${formatFinishedAt(exam.finishedAt)} (${getDuration(exam.startedAt, exam.finishedAt)})</div>
+  <div class="info-value" style="line-height:1.3;">${formatPeriod(exam.startedAt, exam.finishedAt)}</div>
 </div>
 
 </div>
@@ -1286,7 +1311,7 @@ h1{max-width:1080px;margin:0 auto 22px;text-align:left;color:#333;font-size:22px
 
   <div class="meta-item">
   <div class="label">Period</div>
-  <div class="meta-value" style="line-height:1.2;">${formatFinishedAt(exam.startedAt)} → ${formatFinishedAt(exam.finishedAt)} (${getDuration(exam.startedAt, exam.finishedAt)})</div>
+  <div class="meta-value" style="line-height:1.2;">${formatPeriod(exam.startedAt, exam.finishedAt)}</div>
 </div>
 
 </div>
