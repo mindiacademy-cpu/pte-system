@@ -875,9 +875,26 @@ const OFFICIAL_PTE_SUBTYPES = new Set([
   "listening_mcq_single","select_missing_word","highlight_incorrect_words","write_from_dictation"
 ]);
 
+const PTE_SUBTYPE_SECTION = {
+  read_aloud:"speaking", repeat_sentence:"speaking", describe_image:"speaking",
+  re_tell_lecture:"speaking", answer_short_question:"speaking",
+  summarize_group_discussion:"speaking", respond_to_a_situation:"speaking",
+  summarize_written_text:"writing", essay:"writing",
+  reading_writing_fill_blanks:"reading", reading_mcq_multiple:"reading",
+  reorder_paragraphs:"reading", reading_fill_blanks:"reading", reading_mcq_single:"reading",
+  summarize_spoken_text:"listening", listening_mcq_multiple:"listening",
+  listening_fill_blanks:"listening", highlight_correct_summary:"listening",
+  listening_mcq_single:"listening", select_missing_word:"listening",
+  highlight_incorrect_words:"listening", write_from_dictation:"listening"
+};
+
+function isValidPteTypeSubtype(type, subType) {
+  return PTE_SUBTYPE_SECTION[String(subType || "")] === String(type || "").toLowerCase();
+}
+
 function migrateQuestionForCurrentPte(question) {
   const q = normalizeQuestion(question);
-  if (!OFFICIAL_PTE_SUBTYPES.has(q.subType)) return null;
+  if (!OFFICIAL_PTE_SUBTYPES.has(q.subType) || !isValidPteTypeSubtype(q.type, q.subType)) return null;
   if (q.type === "reading" || q.type === "listening") q.time = 0;
   if (q.type !== "speaking") { q.prepareTime = 0; q.recordTime = 0; }
   if (q.subType === "read_aloud") { q.prepareTime = 35; q.recordTime = 40; }
@@ -946,8 +963,9 @@ app.post("/questions", (req, res) => {
       });
     }
 
-    if (!OFFICIAL_PTE_SUBTYPES.has(String(req.body.subType || ""))) {
-      return res.status(400).json({ error: "Unsupported PTE Academic task type." });
+    if (!OFFICIAL_PTE_SUBTYPES.has(String(req.body.subType || "")) ||
+        !isValidPteTypeSubtype(req.body.type, req.body.subType)) {
+      return res.status(400).json({ error: "PTE task type does not match its section." });
     }
 
     const newQuestion = migrateQuestionForCurrentPte({
@@ -1000,8 +1018,10 @@ app.put("/questions/:id", (req, res) => {
     }
 
     const requestedSubType = String(req.body.subType || questions[index].subType || "");
-    if (!OFFICIAL_PTE_SUBTYPES.has(requestedSubType)) {
-      return res.status(400).json({ error: "Unsupported PTE Academic task type." });
+    const requestedType = String(req.body.type || questions[index].type || "").toLowerCase();
+    if (!OFFICIAL_PTE_SUBTYPES.has(requestedSubType) ||
+        !isValidPteTypeSubtype(requestedType, requestedSubType)) {
+      return res.status(400).json({ error: "PTE task type does not match its section." });
     }
 
     const updatedQuestion = migrateQuestionForCurrentPte({
