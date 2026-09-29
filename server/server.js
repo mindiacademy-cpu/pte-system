@@ -1189,7 +1189,9 @@ app.get("/exams", async (req, res) => {
       questions: item.questions || [],
       createdAt: item.created_at,
       used: item.used,
-      usedAt: item.used_at
+      usedAt: item.used_at,
+      expiresAt: item.created_at ? new Date(new Date(item.created_at).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString() : null,
+      active: item.used !== true && !!item.created_at && (Date.now() < new Date(item.created_at).getTime() + 7 * 24 * 60 * 60 * 1000)
     }));
 
     res.json(exams);
@@ -1217,6 +1219,15 @@ app.get("/exams/code/:examCode", async (req, res) => {
     if (data.used === true) {
       return res.status(400).json({
         error: "This exam code has already been used."
+      });
+    }
+
+    const expiresAt = data.created_at
+      ? new Date(new Date(data.created_at).getTime() + 7 * 24 * 60 * 60 * 1000)
+      : null;
+    if (!expiresAt || Date.now() >= expiresAt.getTime()) {
+      return res.status(410).json({
+        error: "This exam code has expired. Exam codes are active for 7 days."
       });
     }
 
