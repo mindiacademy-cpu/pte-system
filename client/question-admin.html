@@ -574,14 +574,9 @@
         essay: "Essay",
         reading_mcq_single: "Reading MCQ Single",
         reading_mcq_multiple: "Reading MCQ Multiple",
-        reading_mcq_group: "Reading MCQ Group",
-        reading_word_formation: "Reading Word Formation",
         reorder_paragraphs: "Reorder Paragraphs",
         reading_fill_blanks: "Reading Fill in the Blanks",
         reading_writing_fill_blanks: "Reading & Writing Fill in the Blanks",
-        reading_short_answer_multi: "Reading Short Answer (Multi)",
-        reading_word_formation_multi: "Reading Word Formation (Multi)",
-        reading_word_formation_passage: "Reading Word Formation Passage",
         summarize_spoken_text: "Summarize Spoken Text",
         listening_mcq_single: "Listening MCQ Single",
         listening_mcq_multiple: "Listening MCQ Multiple",
@@ -590,9 +585,6 @@
         select_missing_word: "Select Missing Word",
         highlight_incorrect_words: "Highlight Incorrect Words",
         write_from_dictation: "Write From Dictation",
-        listening_short_answer_multi: "Listening Short Answer (Multi)",
-        listening_short_answer: "Listening Short Answer",
-        listening_sequence: "Listening Sequence"
       };
 
       return labels[subType] || subType || "-";
@@ -827,12 +819,7 @@
           correctAnswerWrap.classList.remove("hidden");
         }
 
-        if (subType === "reading_word_formation") {
-          textContentWrap.classList.remove("hidden");
-          answerKeyWrap.classList.remove("hidden");
-        }
-
-        if (subType === "reading_word_formation_passage") {
+if (subType === "reading_word_formation_passage") {
           textContentWrap.classList.remove("hidden");
           answerKeyWrap.classList.remove("hidden");
         }
@@ -843,13 +830,7 @@
           correctAnswersWrap.classList.remove("hidden");
         }
 
-        if (subType === "reading_mcq_group") {
-          textContentWrap.classList.remove("hidden");
-          optionsWrap.classList.remove("hidden");
-          correctAnswersWrap.classList.remove("hidden");
-        }
-
-        if (subType === "reorder_paragraphs") {
+if (subType === "reorder_paragraphs") {
           textContentWrap.classList.remove("hidden");
           answerKeyWrap.classList.remove("hidden");
         }
@@ -866,18 +847,9 @@
           correctAnswersWrap.classList.remove("hidden");
         }
 
-        if (subType === "reading_short_answer_multi") {
-          textContentWrap.classList.remove("hidden");
-          answerKeyWrap.classList.remove("hidden");
-        }
-      }
+}
 
-      if (subType === "reading_word_formation") {
-        textContentWrap.classList.remove("hidden");
-        answerKeyWrap.classList.remove("hidden");
-      }
-
-      if (subType === "reading_word_formation_multi") {
+if (subType === "reading_word_formation_multi") {
         textContentWrap.classList.remove("hidden");
         answerKeyWrap.classList.remove("hidden");
       }
@@ -929,20 +901,12 @@
           answerKeyWrap.classList.remove("hidden");
         }
 
-        if (subType === "listening_short_answer") {
-          answerKeyWrap.classList.remove("hidden");
-        }
-
-        if (subType === "listening_short_answer_multi") {
+if (subType === "listening_short_answer_multi") {
           textContentWrap.classList.remove("hidden");
           answerKeyWrap.classList.remove("hidden");
         }
 
-        if (subType === "listening_sequence") {
-          optionsWrap.classList.remove("hidden");
-          answerKeyWrap.classList.remove("hidden");
-        }
-      }
+}
     }
 
     function handleTypeChange() {
@@ -1117,13 +1081,9 @@
 
       let options = [];
 
-      if (subType === "reading_mcq_group") {
-        options = optionsText ? parseGroupedOptions(optionsText) : [];
-      } else {
-        options = optionsText
-          ? optionsText.split("\n").map(item => item.trim()).filter(Boolean)
-          : [];
-      }
+      options = optionsText
+        ? optionsText.split("\n").map(item => item.trim()).filter(Boolean)
+        : [];
 
       const evaluationType = document.getElementById("evaluationType").value;
       const keywords = document.getElementById("keywords").value.trim();
@@ -1225,18 +1185,7 @@
           }
         }
 
-        if (subType === "reading_word_formation_passage") {
-          if (!textContent) {
-            alert("Reading Word Formation Passage için metin gir.");
-            return null;
-          }
-          if (!answerKey) {
-            alert("Reading Word Formation Passage için answer key gir.");
-            return null;
-          }
-        }
-
-        if (subType === "reading_mcq_group") {
+if (subType === "reading_mcq_group") {
           if (!options.length) {
             alert("Group options gir.");
             return null;
@@ -1262,25 +1211,7 @@
         }
       }
 
-      if (subType === "reading_short_answer_multi") {
-        if (!textContent) {
-          alert("Reading Short Answer (Multi) için soru metni gir.");
-          return null;
-        }
-        if (!answerKey) {
-          alert("Reading Short Answer (Multi) için answer key gir.");
-          return null;
-        }
-      }
-
-      if (subType === "reading_word_formation") {
-        if (!answerKey) {
-          alert("Reading Word Formation için answer key gir.");
-          return null;
-        }
-      }
-
-      if (subType === "reading_word_formation_multi") {
+if (subType === "reading_word_formation_multi") {
         if (!textContent) {
           alert("Reading Word Formation (Multi) için soru metni gir.");
           return null;
@@ -1365,31 +1296,14 @@
           }
         }
 
-        if (subType === "listening_short_answer") {
-          if (!answerKey) {
-            alert("Listening Short Answer için answer key gir.");
-            return null;
-          }
-        }
-
-        if (subType === "listening_short_answer_multi") {
+if (subType === "listening_short_answer_multi") {
           if (!answerKey) {
             alert("Listening Short Answer (Multi) için answer key gir.");
             return null;
           }
         }
 
-        if (subType === "listening_sequence") {
-          if (!options.length) {
-            alert("Options gir.");
-            return null;
-          }
-          if (!answerKey) {
-            alert("Sıralama gir.");
-            return null;
-          }
-        }
-      }
+}
 
       const payload = {
         type,
@@ -1419,14 +1333,6 @@
         payload.answer = answerKey;
       } else if (type === "reading" && (subType === "reading_fill_blanks" || subType === "reading_writing_fill_blanks")) {
         payload.answer = correctAnswer;
-      } else if (type === "reading" && subType === "reading_word_formation") {
-        payload.answer = answerKey;
-      } else if (type === "reading" && subType === "reading_word_formation_multi") {
-        payload.answer = answerKey;
-      } else if (type === "reading" && subType === "reading_short_answer_multi") {
-        payload.answer = answerKey;
-      } else if (type === "reading" && subType === "reading_mcq_group") {
-        payload.answer = correctAnswers;
       } else if (type === "listening" && subType === "listening_mcq_single") {
         payload.answer = correctAnswer;
       } else if (type === "listening" && subType === "listening_mcq_multiple") {
@@ -1568,13 +1474,7 @@
       document.getElementById("audioFile").value = "";
       document.getElementById("imageFile").value = "";
       document.getElementById("textContent").value = question.textContent || "";
-      if (question.subType === "reading_mcq_group") {
-        document.getElementById("options").value = (question.options || [])
-          .map(group => (group || []).join("\n"))
-          .join("\n\n");
-      } else {
-        document.getElementById("options").value = (question.options || []).join("\n");
-      }
+      document.getElementById("options").value = (question.options || []).join("\n");
       document.getElementById("evaluationType").value = question.evaluationType || "keywords";
       document.getElementById("keywords").value = question.keywords || "";
       document.getElementById("answerKey").value = question.answerKey || "";
