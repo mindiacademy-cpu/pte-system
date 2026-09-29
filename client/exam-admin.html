@@ -338,12 +338,24 @@ body{padding-top:104px!important}
 .exam-row{background:#fff!important}
 .generate-btn,.list-head .btn{background:var(--portal-navy)!important;border-radius:10px!important}
 </style>
+  <link rel="stylesheet" href="/admin-portal.css">
 </head>
 
-<body>
+<body class="exam-admin-page">
   <script>
     if (localStorage.getItem("adminLogged") !== "true") window.location.href = "admin-login.html";
   </script>
+  <header class="portal-page-header">
+    <div class="portal-page-header-inner">
+      <a class="portal-brand-link" href="admin-index.html" aria-label="Admin workspace">
+        <img src="/mylogo.png" class="portal-brand-logo" alt="MİNDİ Academy">
+      </a>
+      <span class="portal-brand-divider" aria-hidden="true"></span>
+      <div class="portal-brand-title">PTE Practice · Exam Admin</div>
+      <a class="portal-home-link" href="admin-index.html">Admin workspace <span aria-hidden="true">→</span></a>
+    </div>
+  </header>
+  <div class="portal-accent" aria-hidden="true"></div>
   <main class="container simplified">
     <div class="page-intro">
       <div>

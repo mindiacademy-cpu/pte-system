@@ -450,9 +450,10 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
 }
 </style>
 <style>#typeFilter{background-color:#fff!important;color-scheme:light!important;-webkit-appearance:none!important;appearance:none!important;box-shadow:none!important}.toolbar,.toolbar>div{background:#fff!important}</style>
+  <link rel="stylesheet" href="/admin-portal.css">
 </head>
 
-<body>
+<body class="question-admin-page">
 
   <script>
     if (localStorage.getItem("adminLogged") !== "true") {
@@ -461,6 +462,17 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
   </script>
 
   <!-- sayfa içeriği -->
+  <header class="portal-page-header">
+    <div class="portal-page-header-inner">
+      <a class="portal-brand-link" href="admin-index.html" aria-label="Admin workspace">
+        <img src="/mylogo.png" class="portal-brand-logo" alt="MİNDİ Academy">
+      </a>
+      <span class="portal-brand-divider" aria-hidden="true"></span>
+      <div class="portal-brand-title">PTE Practice · Question Admin</div>
+      <a class="portal-home-link" href="admin-index.html">Admin workspace <span aria-hidden="true">→</span></a>
+    </div>
+  </header>
+  <div class="portal-accent" aria-hidden="true"></div>
   <div class="container">
     <h1>PTE Question Admin Panel</h1>
 

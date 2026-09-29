@@ -1,0 +1,231 @@
+/* Shared visual system for the PTE administration pages. */
+:root {
+  --portal-ink: #111827;
+  --portal-muted: #667085;
+  --portal-line: #e7e5e4;
+  --portal-paper: #fbfaf8;
+  --portal-navy: #18233f;
+  --portal-purple: #6b1f7b;
+  --portal-blue: #bfefff;
+  --portal-blue-soft: #eefbff;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { min-height: 100%; background: var(--portal-paper) !important; }
+body {
+  min-height: 100vh;
+  margin: 0 !important;
+  padding: 0 0 60px !important;
+  background: var(--portal-paper) !important;
+  color: var(--portal-ink) !important;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif !important;
+}
+body::before, body::after { content: none !important; display: none !important; }
+
+.portal-page-header { background: #fff; border-bottom: 1px solid var(--portal-line); }
+.portal-page-header-inner {
+  width: min(100% - 56px, 1180px);
+  min-height: 78px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.portal-brand-link { display: inline-flex; align-items: center; flex: 0 0 auto; }
+.portal-brand-logo { display: block; width: auto; height: 34px; }
+.portal-brand-divider { width: 1px; height: 30px; background: #dedbd7; }
+.portal-brand-title { color: var(--portal-navy); font-size: 17px; font-weight: 700; letter-spacing: -.2px; }
+.portal-home-link {
+  margin-left: auto;
+  color: var(--portal-navy);
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+  border: 1px solid #d7d4d0;
+  border-radius: 999px;
+  padding: 9px 14px;
+  white-space: nowrap;
+}
+.portal-home-link:hover { background: #f7f5f2; }
+.portal-accent { height: 5px; background: linear-gradient(90deg, var(--portal-purple) 0 50%, var(--portal-blue) 50% 100%); }
+
+body > h1, .container, .container.simplified, #results, .topbar {
+  width: min(100% - 56px, 1180px) !important;
+  max-width: 1180px !important;
+}
+body > h1 {
+  margin: 0 auto 22px !important;
+  padding-top: 44px;
+  text-align: left !important;
+  color: var(--portal-navy) !important;
+  font-size: 32px !important;
+  line-height: 1.2;
+  letter-spacing: -.7px;
+}
+.container { margin: 0 auto !important; }
+.container:not(.simplified) { padding: 44px 0 0 !important; }
+.container.simplified { padding: 44px 0 0 !important; }
+.question-admin-page .container > h1 {
+  margin: 0 0 22px !important;
+  text-align: left !important;
+  color: var(--portal-navy) !important;
+  font-size: 32px !important;
+  letter-spacing: -.7px;
+}
+
+.card, .card.code-card, #results .card {
+  background: #fff !important;
+  border: 1px solid var(--portal-line) !important;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+}
+.card h2, .candidate-title, h1, .page-intro h1 { color: var(--portal-navy) !important; }
+.page-intro { border-bottom: 1px solid var(--portal-line) !important; }
+.eyebrow, .q-type { color: var(--portal-purple) !important; }
+
+.btn, .btn-success, .small-btn, .generate-btn {
+  background: var(--portal-navy) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+.btn:hover, .btn-success:hover, .small-btn:hover, .generate-btn:hover { background: #253252 !important; }
+.btn-download { background: var(--portal-purple) !important; }
+.btn-pdf { background: #8c3444 !important; }
+.btn-delete, .small-btn-danger { background: #8c3444 !important; }
+
+input, select, textarea {
+  color: var(--portal-ink) !important;
+  background-color: #fff !important;
+  border: 1px solid #d7d4d0 !important;
+  border-radius: 9px !important;
+  box-shadow: none !important;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--portal-purple) !important;
+  box-shadow: 0 0 0 2px rgba(107, 31, 123, .08) !important;
+  outline: none !important;
+}
+select {
+  color-scheme: light !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  padding-right: 38px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23667085' stroke-width='1.5'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 12px 8px !important;
+}
+select option { color: var(--portal-ink); background: #fff; }
+
+/* Question bank: keep the filter itself white and remove the gray toolbar panel. */
+.question-admin-page .toolbar {
+  grid-template-columns: minmax(0, 1fr) 210px !important;
+  align-items: end !important;
+  gap: 16px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.question-admin-page .toolbar > div { background: transparent !important; }
+.question-admin-page #typeFilter {
+  display: block;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 44px !important;
+  margin: 0 !important;
+  padding: 0 38px 0 12px !important;
+  background-color: #fff !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23667085' stroke-width='1.5'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 12px 8px !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  box-shadow: none !important;
+}
+.question-admin-page #type, .question-admin-page #subType {
+  height: 44px !important;
+  line-height: normal !important;
+  background-color: #fff !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23667085' stroke-width='1.5'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 12px 8px !important;
+}
+.question-admin-page .question-list { border-color: var(--portal-line) !important; border-radius: 12px !important; }
+.question-admin-page .q-head { background: var(--portal-navy) !important; }
+.question-admin-page .q-row { background: #fff !important; border-bottom-color: var(--portal-line) !important; }
+.question-admin-page .q-row:hover { background: #f8f6fb !important; }
+.question-admin-page .hint-box { background: #f5eef7 !important; color: #4d3152 !important; border: 1px solid #eadced !important; border-radius: 10px !important; }
+.question-admin-page .status-box { background: var(--portal-blue-soft) !important; color: var(--portal-navy) !important; border: 1px solid #d9f4fb !important; border-radius: 10px !important; }
+.question-admin-page #hiwSelector { background: #fff !important; border-radius: 10px !important; }
+
+/* Results toolbar and its sort control: no gray strip behind the controls. */
+.results-admin-page > h1 { margin-top: 0 !important; }
+.results-admin-page .topbar {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+  margin: 0 auto 24px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  text-align: left !important;
+}
+.results-admin-page #searchInput { width: min(360px, 100%) !important; height: 42px !important; margin: 0 !important; padding: 0 14px !important; }
+.results-admin-page #sortSelect {
+  width: 150px !important;
+  min-width: 150px !important;
+  height: 42px !important;
+  margin: 0 !important;
+  padding: 0 38px 0 12px !important;
+  border: 1px solid #d7d4d0 !important;
+  border-radius: 9px !important;
+  color: var(--portal-ink) !important;
+  background-color: #fff !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23667085' stroke-width='1.5'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 12px 8px !important;
+  color-scheme: light !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  box-shadow: none !important;
+}
+.results-admin-page #results { margin: 0 auto !important; }
+.results-admin-page #results .meta-item { background: #f8f7fb !important; border-color: var(--portal-line) !important; }
+.results-admin-page #results .score-box { background: var(--portal-blue-soft) !important; border-color: #d9f4fb !important; }
+.results-admin-page #results .question-review-toggle { background: var(--portal-blue-soft) !important; color: var(--portal-navy) !important; border-color: #d9f4fb !important; }
+.results-admin-page #results .question { background: #fff !important; border-color: var(--portal-line) !important; }
+.results-admin-page #results .question-type { background: var(--portal-navy) !important; }
+
+/* Exam code list: white rows and a soft brand tint only for the table heading. */
+.exam-admin-page .page-intro { align-items: end !important; }
+.exam-admin-page .page-intro h1 { margin: 5px 0 8px !important; text-align: left !important; font-size: 32px !important; }
+.exam-admin-page .card.code-card { padding: 0 !important; overflow: hidden !important; }
+.exam-admin-page .list-head { background: #fff !important; border-bottom: 1px solid var(--portal-line) !important; }
+.exam-admin-page .exam-table-head { background: #f5eef7 !important; color: var(--portal-purple) !important; }
+.exam-admin-page .exam-row { background: #fff !important; border-bottom-color: var(--portal-line) !important; }
+.exam-admin-page .status.available { background: var(--portal-blue-soft) !important; color: var(--portal-navy) !important; }
+.exam-admin-page .status.used { background: #f5eef7 !important; color: var(--portal-purple) !important; }
+.exam-admin-page .result-box { background: var(--portal-blue-soft) !important; border: 1px solid #d9f4fb !important; color: var(--portal-navy) !important; border-radius: 12px !important; padding: 16px 18px !important; }
+.exam-admin-page .error-box { background: #fff4f3 !important; border-color: #f1d0cb !important; color: #8c3444 !important; }
+
+@media (max-width: 700px) {
+  .portal-page-header-inner { width: min(100% - 36px, 1180px); min-height: 70px; gap: 12px; }
+  .portal-brand-logo { height: 28px; }
+  .portal-brand-divider { display: none; }
+  .portal-brand-title { font-size: 14px; }
+  .portal-home-link { padding: 8px 10px; font-size: 12px; }
+  body > h1, .container, .container.simplified, #results, .topbar { width: min(100% - 36px, 1180px) !important; }
+  body > h1 { padding-top: 32px; font-size: 27px !important; }
+  .container:not(.simplified), .container.simplified { padding: 32px 0 0 !important; }
+  .question-admin-page .toolbar { grid-template-columns: 1fr !important; }
+  .results-admin-page .topbar { align-items: stretch !important; }
+  .results-admin-page #searchInput, .results-admin-page #sortSelect { width: 100% !important; }
+}

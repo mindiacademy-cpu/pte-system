@@ -317,9 +317,10 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
 #sortSelect:focus{border-color:var(--portal-purple)!important;box-shadow:0 0 0 2px rgba(107,31,123,.08)!important;outline:none!important}
 </style>
 <style>#sortSelect{background-color:#fff!important;color-scheme:light!important;-webkit-appearance:none!important;appearance:none!important;box-shadow:none!important}</style>
+  <link rel="stylesheet" href="/admin-portal.css">
 </head>
 
-<body>
+<body class="results-admin-page">
 
   <script>
     if (localStorage.getItem("adminLogged") !== "true") {
@@ -328,6 +329,18 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
   </script>
 
   <!-- sayfa içeriği -->
+
+  <header class="portal-page-header">
+    <div class="portal-page-header-inner">
+      <a class="portal-brand-link" href="admin-index.html" aria-label="Admin workspace">
+        <img src="/mylogo.png" class="portal-brand-logo" alt="MİNDİ Academy">
+      </a>
+      <span class="portal-brand-divider" aria-hidden="true"></span>
+      <div class="portal-brand-title">PTE Practice · Results</div>
+      <a class="portal-home-link" href="admin-index.html">Admin workspace <span aria-hidden="true">→</span></a>
+    </div>
+  </header>
+  <div class="portal-accent" aria-hidden="true"></div>
 
   <h1>PTE Admin Panel</h1>
 
