@@ -1051,35 +1051,15 @@ app.delete("/questions/:id", (req, res) => {
 
 app.post("/create-exam", async (req, res) => {
   try {
-    const { title, questions } = req.body;
-
-    if (!title || !questions || !questions.length) {
-      return res.status(400).json({ error: "No questions selected" });
-    }
-
     const allQuestions = readJson(QUESTIONS_FILE)
       .map(migrateQuestionForCurrentPte)
       .filter(Boolean);
 
-    const selectedQuestions = questions
-      .map(item => {
-        const selectedId =
-          typeof item === "object" && item !== null ? String(item.id || "") : String(item);
-        return allQuestions.find(q => String(q.id) === selectedId);
-      })
-      .filter(Boolean);
-
-    if (!selectedQuestions.length) {
-      return res.status(400).json({ error: "Selected questions not found." });
+    if (!allQuestions.length) {
+      return res.status(400).json({ error: "Question bank is empty." });
     }
 
-    const sectionOrder = {
-      speaking: 1,
-      writing: 1,
-      reading: 2,
-      listening: 3
-    };
-
+    const sectionOrder = { speaking: 1, writing: 1, reading: 2, listening: 3 };
     const taskOrder = {
       read_aloud:1, repeat_sentence:2, describe_image:3, re_tell_lecture:4,
       answer_short_question:5, summarize_group_discussion:6, respond_to_a_situation:7,
@@ -1091,35 +1071,40 @@ app.post("/create-exam", async (req, res) => {
       highlight_incorrect_words:21, write_from_dictation:22
     };
 
-    const sortedQuestions = selectedQuestions.sort((a, b) => {
-      const orderA = sectionOrder[String(a.type || "").toLowerCase()] || 999;
-      const orderB = sectionOrder[String(b.type || "").toLowerCase()] || 999;
-      if (orderA !== orderB) return orderA - orderB;
-      return (taskOrder[a.subType] || 999) - (taskOrder[b.subType] || 999);
+    const grouped = new Map();
+    allQuestions.forEach(q => {
+      const key = q.subType;
+      if (!grouped.has(key)) grouped.set(key, []);
+      grouped.get(key).push(q);
+    });
+
+    // Build automatically: use one randomly selected item from every task type
+    // currently represented in the bank, then keep official PTE part/task order.
+    const examQuestions = [...grouped.values()].map(pool =>
+      pool[Math.floor(Math.random() * pool.length)]
+    ).sort((a, b) => {
+      const sectionDiff = (sectionOrder[String(a.type || "").toLowerCase()] || 999) -
+        (sectionOrder[String(b.type || "").toLowerCase()] || 999);
+      return sectionDiff || (taskOrder[a.subType] || 999) - (taskOrder[b.subType] || 999);
     });
 
     const examCode = "EX" + Math.floor(100000 + Math.random() * 900000);
+    const title = "PTE Practice Exam";
 
-    const { error } = await supabase.from("exams").insert([
-      {
-        exam_code: examCode,
-        title,
-        questions: sortedQuestions,
-        used: false,
-        used_at: null
-      }
-    ]);
+    const { error } = await supabase.from("exams").insert([{
+      exam_code: examCode,
+      title,
+      questions: examQuestions,
+      used: false,
+      used_at: null
+    }]);
 
     if (error) {
       console.error("SUPABASE CREATE EXAM ERROR:", error);
       return res.status(500).json({ error: "Exam could not be created." });
     }
 
-    res.json({
-      success: true,
-      examCode
-    });
-
+    res.json({ success: true, examCode, questionCount: examQuestions.length });
   } catch (error) {
     console.error("POST /create-exam error:", error);
     res.status(500).json({ error: "Exam could not be created." });
