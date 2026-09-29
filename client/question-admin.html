@@ -652,7 +652,7 @@
         document.getElementById("prepareTime").value = Number(config.prepare || 0);
         document.getElementById("recordTime").value = Number(config.record || 40);
       } else {
-        document.getElementById("time").value = Number(config.time || 60);
+        document.getElementById("time").value = Number(config.time ?? 60);
       }
 
       const pointsInput = document.getElementById("points");
@@ -1058,9 +1058,11 @@
       const prompt = document.getElementById("prompt").value.trim();
       const points = Number(document.getElementById("points").value) || 10;
 
-      const time = Number(document.getElementById("time").value) || 60;
+      const rawTime = Number(document.getElementById("time").value);
+      const time = (type === "reading" || type === "listening") ? 0 : (Number.isFinite(rawTime) && rawTime >= 0 ? rawTime : 60);
       const prepareTime = Number(document.getElementById("prepareTime").value) || 0;
-      const recordTime = Number(document.getElementById("recordTime").value) || 40;
+      const rawRecordTime = Number(document.getElementById("recordTime").value);
+      const recordTime = type === "speaking" ? (Number.isFinite(rawRecordTime) && rawRecordTime >= 0 ? rawRecordTime : 40) : 0;
 
       const audioUrl = document.getElementById("audioUrl").value.trim();
       const imageUrl = document.getElementById("imageUrl").value.trim();
