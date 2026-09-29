@@ -910,6 +910,55 @@ app.get("/questions", (req, res) => {
   res.json(questions.map(migrateQuestionForCurrentPte).filter(Boolean));
 });
 
+app.post("/admin/generate-question-audio", async (req, res) => {
+  try {
+    const questions = readJson(QUESTIONS_FILE);
+    const audioTaskTypes = new Set([
+      "repeat_sentence","re_tell_lecture","answer_short_question",
+      "summarize_group_discussion","respond_to_a_situation",
+      "listening_fill_blanks","highlight_correct_summary",
+      "select_missing_word","highlight_incorrect_words"
+    ]);
+
+    const targets = questions.filter(q =>
+      audioTaskTypes.has(String(q.subType || "")) &&
+      !String(q.audioUrl || "").trim() &&
+      String(q.textContent || "").trim()
+    );
+
+    if (!targets.length) return res.json({ success:true, generated:0 });
+
+    const uploadPath = path.join(__dirname, "uploads");
+    if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath, { recursive:true });
+
+    let generated = 0;
+    const failures = [];
+    for (const q of targets) {
+      try {
+        const speech = await openai.audio.speech.create({
+          model: "gpt-4o-mini-tts",
+          voice: "alloy",
+          input: String(q.textContent).trim()
+        });
+        const buffer = Buffer.from(await speech.arrayBuffer());
+        const filename = "pte-" + String(q.id).replace(/[^a-zA-Z0-9_-]/g, "") + ".mp3";
+        fs.writeFileSync(path.join(uploadPath, filename), buffer);
+        q.audioUrl = "/uploads/" + filename;
+        generated++;
+      } catch (error) {
+        console.error("QUESTION AUDIO GENERATION ERROR:", q.id, error);
+        failures.push({ id:q.id, title:q.title, error:error.message || "Audio generation failed" });
+      }
+    }
+
+    writeJson(QUESTIONS_FILE, questions);
+    res.status(failures.length ? 207 : 200).json({ success:failures.length === 0, generated, failures });
+  } catch (error) {
+    console.error("POST /admin/generate-question-audio error:", error);
+    res.status(500).json({ error:"Question audio could not be generated." });
+  }
+});
+
 app.post("/upload-audio", upload.single("audio"), (req, res) => {
   try {
     if (!req.file) {
