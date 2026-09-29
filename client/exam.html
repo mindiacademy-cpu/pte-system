@@ -2549,12 +2549,29 @@
             optionsBox.appendChild(row);
           });
         }
-        else if (
-          q.subType === "listening_fill_blanks" ||
-          q.subType === "highlight_incorrect_words" ||
-          q.subType === "write_from_dictation" ||
-          q.subType === "listening_short_answer"
-        ) {
+        else if (q.subType === "listening_fill_blanks") {
+          const wrap=document.getElementById("listeningLongInputWrap");
+          wrap.classList.remove("hidden");
+          const box=document.getElementById("listeningAnswer");
+          const parts=(q.textContent||"").split("_______");
+          const vals=Array.isArray(existing?.answer)?existing.answer:[];
+          wrap.innerHTML="";
+          const line=document.createElement("div"); line.style.lineHeight="2.4";
+          parts.forEach((part,i)=>{line.appendChild(document.createTextNode(part));if(i<parts.length-1){const inp=document.createElement("input");inp.type="text";inp.className="blank-input listening-gap";inp.style.width="130px";inp.value=vals[i]||"";line.appendChild(inp);}});
+          wrap.appendChild(line);
+        }
+        else if (q.subType === "highlight_incorrect_words") {
+          const wrap=document.getElementById("listeningLongInputWrap"); wrap.classList.remove("hidden"); wrap.innerHTML="";
+          const selected=new Set(Array.isArray(existing?.answer)?existing.answer:[]);
+          (q.textContent||"").split(/(\s+)/).forEach((token,idx)=>{
+            if(/^\s+$/.test(token)){wrap.appendChild(document.createTextNode(token));return;}
+            const s=document.createElement("span");s.textContent=token;s.dataset.word=token;s.style.cursor="pointer";s.style.padding="2px";
+            if(selected.has(idx))s.style.background="#f4df62";
+            s.onclick=()=>{if(selected.has(idx)){selected.delete(idx);s.style.background="";}else{selected.add(idx);s.style.background="#f4df62";} const payload={questionId:q.id,type:q.type,subType:q.subType,title:q.title,prompt:q.prompt,answer:[...selected]};const ai=answers.findIndex(x=>x.questionId===q.id);if(ai>=0)answers[ai]=payload;else answers.push(payload);};
+            wrap.appendChild(s);
+          });
+        }
+        else if (q.subType === "write_from_dictation") {
           document.getElementById("listeningTextInputWrap").classList.remove("hidden");
           document.getElementById("listeningTextAnswer").value = existing?.answer || "";
         }
@@ -2685,12 +2702,16 @@
 
       else if (q.type === "listening") {
         if (
-          q.subType === "listening_fill_blanks" ||
-          q.subType === "highlight_incorrect_words" ||
-          q.subType === "write_from_dictation" ||
-          q.subType === "listening_short_answer"
+          q.subType === "write_from_dictation"
         ) {
           answerPayload.answer = document.getElementById("listeningTextAnswer").value.trim();
+        }
+        else if (q.subType === "listening_fill_blanks") {
+          answerPayload.answer = Array.from(document.querySelectorAll(".listening-gap")).map(input => input.value.trim());
+        }
+        else if (q.subType === "highlight_incorrect_words") {
+          const existing = getExistingAnswer(q.id);
+          answerPayload.answer = existing ? existing.answer : [];
         }
 
         else if (q.subType === "listening_sequence") {
