@@ -332,6 +332,35 @@
         display: none;
       }
     }
+      /* PTE workstation / MİNDİ admin visual system */
+    :root{--pte-teal:#087f8c;--pte-teal-dark:#066b76;--pte-grey:#747474;--pte-paper:#f4f2ed;--pte-line:#d4d4d1;--pte-text:#34383d}
+    body{padding:96px 0 60px;background:var(--pte-paper);color:var(--pte-text);font-family:Arial,Helvetica,sans-serif}
+    body:before{content:"PTE Practice · Question Administration";position:fixed;top:0;left:0;right:0;height:58px;z-index:1000;display:flex;align-items:center;padding:0 24px;background:var(--pte-grey);color:#fff;font-size:20px}
+    body:after{content:"";position:fixed;top:58px;left:0;right:0;height:38px;z-index:999;background:var(--pte-teal)}
+    .container{max-width:1180px;padding:32px 24px 0}
+    h1{text-align:left;color:#333;font-size:22px;font-weight:600;margin:0 0 22px}
+    .layout{gap:22px}
+    .card{border-radius:0;box-shadow:none;border:1px solid var(--pte-line);padding:26px;background:#fff}
+    .card h2{color:#3e4348;font-size:18px;font-weight:600;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid #dedede}
+    label{color:#555b60;font-size:12px;margin-top:13px;font-weight:600}
+    input,select,textarea{padding:10px 11px;border:1px solid #aeb4ba;border-radius:0;font-size:13px}
+    input:focus,select:focus,textarea:focus{border-color:var(--pte-teal);box-shadow:0 0 0 1px var(--pte-teal)}
+    textarea{min-height:92px}
+    .btn{border-radius:18px;padding:9px 16px;font-size:13px;background:var(--pte-teal)}
+    .btn:hover,.btn-success:hover{background:var(--pte-teal-dark)}
+    .btn-success{background:var(--pte-teal)}.btn-secondary{background:#777}.btn-secondary:hover{background:#626262}
+    .btn-warning{background:#9a7420}.btn-warning:hover{background:#806019}.btn-danger{background:#a94444}
+    .hint-box{border-radius:0;background:#f2f2f0;border:1px solid #d6d6d3;color:#555b60}
+    .status-box{border-radius:0;background:#e8f6f7;border:1px solid #b7dfe2;color:var(--pte-teal-dark)}
+    .toolbar{background:#f1f1ef;border:1px solid #d8d8d5;padding:14px;margin-bottom:14px}
+    .question-list{border-radius:0;border-color:#c9cdcf}
+    .q-head{background:var(--pte-teal);color:#fff}
+    .q-row{border-bottom-color:#e2e2df}.q-row:hover{background:#f4f8f8}
+    .q-type{color:var(--pte-teal-dark)}
+    .small-btn{border-radius:14px;background:var(--pte-teal)}.small-btn:hover{background:var(--pte-teal-dark)}
+    .small-btn-warning{background:#9a7420}.small-btn-danger{background:#a94444}
+    #hiwSelector{border-radius:0!important;background:#fafafa!important}
+    @media(max-width:700px){body:before{font-size:16px}.container{padding:22px 16px}.card{padding:18px}}
   </style>
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 </head>
