@@ -1033,18 +1033,6 @@ if (type === "listening") {
       }
     }
 
-    function parseGroupedOptions(optionsText) {
-      return optionsText
-        .split("\n\n")
-        .map(group =>
-          group
-            .split("\n")
-            .map(item => item.trim())
-            .filter(Boolean)
-        )
-        .filter(group => group.length);
-    }
-
     function collectPayload() {
       const type = document.getElementById("type").value;
       const subType = document.getElementById("subType").value;
@@ -1526,7 +1514,7 @@ if (type === "listening") {
         SubType: question.subType || "",
         Title: question.title || "",
         Points: question.points || getDefaultPoints(question.subType || ""),
-        Time: question.type === "speaking" ? "" : (question.time || ""),
+        Time: (question.type === "reading" || question.type === "listening") ? "" : (question.time ?? ""),
         Prepare_Time: question.type === "speaking" ? (question.prepareTime || 0) : "",
         Record_Time: question.type === "speaking" ? (question.recordTime || 0) : "",
         Prompt: question.prompt || "",
