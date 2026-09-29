@@ -815,13 +815,13 @@
         if (subType === "reading_fill_blanks") {
           textContentWrap.classList.remove("hidden");
           optionsWrap.classList.remove("hidden");
-          correctAnswerWrap.classList.remove("hidden");
+          correctAnswersWrap.classList.remove("hidden");
         }
 
         if (subType === "reading_writing_fill_blanks") {
           textContentWrap.classList.remove("hidden");
           optionsWrap.classList.remove("hidden");
-          correctAnswerWrap.classList.remove("hidden");
+          correctAnswersWrap.classList.remove("hidden");
         }
 
         if (subType === "reading_short_answer_multi") {
@@ -863,7 +863,7 @@
 
         if (subType === "listening_fill_blanks") {
           textContentWrap.classList.remove("hidden");
-          answerKeyWrap.classList.remove("hidden");
+          correctAnswersWrap.classList.remove("hidden");
         }
 
         if (subType === "highlight_correct_summary") {
@@ -878,7 +878,7 @@
 
         if (subType === "highlight_incorrect_words") {
           textContentWrap.classList.remove("hidden");
-          answerKeyWrap.classList.remove("hidden");
+          correctAnswersWrap.classList.remove("hidden");
         }
 
         if (subType === "write_from_dictation") {
@@ -1208,14 +1208,10 @@
         }
 
         if (subType === "reading_fill_blanks" || subType === "reading_writing_fill_blanks") {
-          if (!options.length) {
-            alert("Options gir.");
-            return null;
-          }
-          if (!correctAnswer) {
-            alert("Correct answer gir.");
-            return null;
-          }
+          const blankCount = (textContent.match(/_______/g) || []).length;
+          if (!textContent || blankCount === 0) { alert("Metinde en az bir _______ boşluğu olmalı."); return null; }
+          if (!options.length) { alert("Kelime/seçenek listesini gir."); return null; }
+          if (correctAnswers.length !== blankCount) { alert("Correct Answers sayısı boşluk sayısıyla aynı olmalı."); return null; }
         }
       }
 
@@ -1288,10 +1284,9 @@
         }
 
         if (subType === "listening_fill_blanks") {
-          if (!answerKey) {
-            alert("Listening Fill in the Blanks için answer key gir.");
-            return null;
-          }
+          const blankCount = (textContent.match(/_______/g) || []).length;
+          if (!textContent || blankCount === 0) { alert("Listening Fill in the Blanks metninde _______ kullan."); return null; }
+          if (correctAnswers.length !== blankCount) { alert("Correct Answers sayısı boşluk sayısıyla aynı olmalı."); return null; }
         }
 
         if (subType === "highlight_correct_summary" || subType === "select_missing_word") {
