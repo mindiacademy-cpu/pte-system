@@ -734,14 +734,22 @@ async function scoreWritingWithAI({ question, responseText, maxScore }) {
 
   const subType = question.subType || "";
   const wordCount = text.split(/\s+/).filter(Boolean).length;
-  if (subType === "summarize_written_text" && (wordCount < 5 || wordCount > 75)) {
-    return { score:0, feedback:"Form requirement not met.", traits:{ form:0 }, wordCount };
+  if (subType === "summarize_written_text") {
+    const sentenceCount = (text.match(/[.!?]+(?=\s|$)/g) || []).length;
+    const allCaps = /[A-Z]/.test(text) && !/[a-z]/.test(text);
+    if (wordCount < 5 || wordCount > 75 || sentenceCount > 1 || allCaps) {
+      return { score:0, feedback:"Summarize Written Text form requirement not met.", traits:{ form:0 }, wordCount };
+    }
   }
   if (subType === "essay" && (wordCount < 120 || wordCount > 380)) {
-    return { score:0, feedback:"Form requirement not met.", traits:{ form:0 }, wordCount };
+    return { score:0, feedback:"Essay form requirement not met.", traits:{ form:0 }, wordCount };
   }
-  if (subType === "summarize_spoken_text" && (wordCount < 40 || wordCount > 100)) {
-    return { score:0, feedback:"Form requirement not met.", traits:{ form:0 }, wordCount };
+  if (subType === "summarize_spoken_text") {
+    const allCaps = /[A-Z]/.test(text) && !/[a-z]/.test(text);
+    const hasPunctuation = /[.!?,;:]/.test(text);
+    if (wordCount < 40 || wordCount > 100 || allCaps || !hasPunctuation) {
+      return { score:0, feedback:"Summarize Spoken Text form requirement not met.", traits:{ form:0 }, wordCount };
+    }
   }
 
   const traitSpec = subType === "essay"
