@@ -693,7 +693,7 @@
       const correctAnswerWrap = document.getElementById("correctAnswerWrap");
       const correctAnswersWrap = document.getElementById("correctAnswersWrap");
 
-      generalTimeWrap.classList.remove("hidden");
+      generalTimeWrap.classList.toggle("hidden", type === "reading" || type === "listening");
       speakingTimeWrap.classList.add("hidden");
       prepareTimeBox.classList.add("hidden");
       audioWrap.classList.add("hidden");
@@ -1301,8 +1301,12 @@
         }
 
         if (subType === "highlight_incorrect_words") {
-          if (!answerKey) {
-            alert("Highlight Incorrect Words için answer key gir.");
+          if (!textContent) {
+            alert("Highlight Incorrect Words için ekranda gösterilecek transcript metnini gir.");
+            return null;
+          }
+          if (!correctAnswers.length) {
+            alert("Highlight Incorrect Words için yanlış kelimeleri Correct Answers alanına her satıra bir kelime gelecek şekilde gir.");
             return null;
           }
         }
