@@ -253,10 +253,44 @@
     .secondary-btn {
       background: #6b7280;
     }
+      /* Match the PTE workstation interface */
+    :root{--exam-teal:#087f8c;--exam-teal-dark:#066b76;--exam-grey:#747474;--exam-line:#d8dee5;--exam-paper:#f4f2ed}
+    body{background:var(--exam-paper);color:#30343a;font-family:Arial,Helvetica,sans-serif}
+    .login-shell{min-height:100vh;padding:96px 20px 70px}
+    .login-top{position:fixed;top:0;left:0;right:0;height:58px;background:var(--exam-grey);z-index:20;color:#fff;display:flex;align-items:center;padding:0 24px;font-size:20px}
+    .login-accent{position:fixed;top:58px;left:0;right:0;height:38px;background:var(--exam-teal);z-index:20}
+    .container{width:520px;max-width:calc(100% - 32px);margin:54px auto 0;background:#fff;padding:34px 38px;border-radius:0;box-shadow:none;border:1px solid #d4d4d1;text-align:left}
+    .subtitle{font-size:12px;color:#73777d;margin-bottom:7px;text-transform:uppercase;letter-spacing:.5px}
+    h2{margin:0 0 24px;color:#333;font-size:22px;font-weight:600}
+    input{padding:12px 13px;margin-top:10px;border:1px solid #aeb4ba;border-radius:0;font-size:14px;background:#fff}
+    input:focus{border-color:var(--exam-teal);box-shadow:0 0 0 1px var(--exam-teal)}
+    .consent-row{font-size:12px;color:#555b60}.link-text{color:var(--exam-teal-dark)}
+    button{border-radius:18px;background:var(--exam-teal);font-size:14px;padding:11px 16px}
+    button:hover,.headset-btn:hover,.cookie-btn:hover{background:var(--exam-teal-dark)}
+    #loading{color:var(--exam-teal)}
+    .headset-overlay,.kvkk-modal{background:rgba(0,0,0,.28);backdrop-filter:none}
+    .headset-modal{max-width:520px;border-radius:0;padding:0;background:#fff;border:1px solid #bbb;box-shadow:0 12px 35px rgba(0,0,0,.25);text-align:left}
+    .headset-modal:before{content:"PTE Practice · Equipment Check";display:block;background:#eee;border-bottom:1px solid #d5d5d5;padding:13px 20px;font-size:16px;color:#4d5156}
+    .headset-text{font-size:14px;line-height:1.55;color:#34383d;margin:0;padding:26px 24px 16px}
+    .headset-btn{width:auto;min-width:110px;margin:0 24px 22px;float:right;background:var(--exam-teal);border-radius:18px;padding:9px 18px;font-size:14px}
+    .kvkk-content{width:850px;border-radius:0;padding:0;max-height:88vh;border:1px solid #aaa;box-shadow:0 12px 35px rgba(0,0,0,.25)}
+    .tabs{gap:0;margin:0;background:#eee;border-bottom:1px solid #ccc;grid-template-columns:repeat(6,1fr)}
+    .tabs button{border-radius:0;padding:12px 7px;background:#eee;color:#444;border-right:1px solid #d3d3d3;font-size:11px}
+    .tabs button.active{background:var(--exam-teal);color:#fff}
+    #tabContent{max-height:56vh;border:0;border-radius:0;padding:25px 28px;background:#fff;font-size:13px;color:#3f4448}
+    #tabContent h3{color:#333;font-size:17px}
+    .modal-actions{margin:0;padding:12px 18px;background:#dedbd5;border-top:1px solid #c9c6c0;justify-content:flex-end}
+    .modal-actions button{width:auto;min-width:120px}.secondary-btn{background:#777}
+    .cookie-popup{background:#747474!important;border-top:38px solid var(--exam-teal);box-shadow:none!important;padding:13px 24px!important}
+    .cookie-btn{background:var(--exam-teal)!important;border-radius:18px!important;width:auto!important;margin:0!important;padding:9px 18px!important}
+    @media(max-width:700px){.login-top{font-size:16px}.container{padding:26px 20px}.tabs{grid-template-columns:repeat(2,1fr)}.kvkk-content{max-height:92vh}.modal-actions{flex-direction:column}.modal-actions button{width:100%}}
   </style>
 </head>
 
 <body>
+  <div class="login-top">PTE Academic Practice · MİNDİ Academy</div>
+  <div class="login-accent"></div>
+  <div class="login-shell">
   <div id="headsetModal" class="headset-overlay">
 
     <div class="headset-modal">
@@ -330,7 +364,7 @@
     </div>
   </div>
 
-  <script>
+  </div>\n\n  <script>
     window.addEventListener("pageshow", function () {
       document.getElementById("name").value = "";
       document.getElementById("surname").value = "";
