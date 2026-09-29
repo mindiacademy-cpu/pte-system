@@ -819,12 +819,7 @@
           correctAnswerWrap.classList.remove("hidden");
         }
 
-if (subType === "reading_word_formation_passage") {
-          textContentWrap.classList.remove("hidden");
-          answerKeyWrap.classList.remove("hidden");
-        }
-
-        if (subType === "reading_mcq_multiple") {
+if (subType === "reading_mcq_multiple") {
           textContentWrap.classList.remove("hidden");
           optionsWrap.classList.remove("hidden");
           correctAnswersWrap.classList.remove("hidden");
@@ -849,12 +844,7 @@ if (subType === "reorder_paragraphs") {
 
 }
 
-if (subType === "reading_word_formation_multi") {
-        textContentWrap.classList.remove("hidden");
-        answerKeyWrap.classList.remove("hidden");
-      }
-
-      if (type === "listening") {
+if (type === "listening") {
         audioWrap.classList.remove("hidden");
 
         if (subType === "summarize_spoken_text") {
@@ -898,11 +888,6 @@ if (subType === "reading_word_formation_multi") {
         }
 
         if (subType === "write_from_dictation") {
-          answerKeyWrap.classList.remove("hidden");
-        }
-
-if (subType === "listening_short_answer_multi") {
-          textContentWrap.classList.remove("hidden");
           answerKeyWrap.classList.remove("hidden");
         }
 
@@ -1185,18 +1170,7 @@ if (subType === "listening_short_answer_multi") {
           }
         }
 
-if (subType === "reading_mcq_group") {
-          if (!options.length) {
-            alert("Group options gir.");
-            return null;
-          }
-          if (!correctAnswers.length) {
-            alert("Correct answers gir.");
-            return null;
-          }
-        }
-
-        if (subType === "reorder_paragraphs") {
+if (subType === "reorder_paragraphs") {
           if (!answerKey) {
             alert("Reorder Paragraphs için answer key gir.");
             return null;
@@ -1211,18 +1185,7 @@ if (subType === "reading_mcq_group") {
         }
       }
 
-if (subType === "reading_word_formation_multi") {
-        if (!textContent) {
-          alert("Reading Word Formation (Multi) için soru metni gir.");
-          return null;
-        }
-        if (!answerKey) {
-          alert("Reading Word Formation (Multi) için answer key gir.");
-          return null;
-        }
-      }
-
-      if (type === "listening") {
+if (type === "listening") {
         if (!audioUrl) {
           alert("Listening için audio URL gir.");
           return null;
@@ -1292,13 +1255,6 @@ if (subType === "reading_word_formation_multi") {
         if (subType === "write_from_dictation") {
           if (!answerKey) {
             alert("Write From Dictation için answer key gir.");
-            return null;
-          }
-        }
-
-if (subType === "listening_short_answer_multi") {
-          if (!answerKey) {
-            alert("Listening Short Answer (Multi) için answer key gir.");
             return null;
           }
         }
