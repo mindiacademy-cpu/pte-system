@@ -1934,7 +1934,7 @@
       document.getElementById("questionMeta").innerText =
         "Question " + (currentQuestionIndex + 1) + " of " + questions.length;
       const topCounter = document.getElementById("topQuestionCounter");
-      if (topCounter) topCounter.innerText = (currentQuestionIndex + 1) + " of " + questions.length + " | " + getSectionName(q);
+      if (topCounter) topCounter.innerText = (currentQuestionIndex + 1) + " of " + questions.length + " | " + getPartNumber(q);
 
       document.getElementById("questionTypeTitle").innerText = getSubTypeLabel(q.type, q.subType);
       document.getElementById("sectionBadge").innerText = (q.type || "question").toUpperCase();
@@ -2814,10 +2814,14 @@
     let pendingSectionBriefing = false;
 
     function getSectionName(q) {
-      return q?.type ? q.type.charAt(0).toUpperCase() + q.type.slice(1) : "Exam";
+      if (!q) return "Exam";
+      if (q.type === "speaking" || q.type === "writing") return "Speaking & Writing";
+      if (q.type === "reading") return "Reading";
+      if (q.type === "listening") return "Listening";
+      return "Exam";
     }
 
-    function showSectionBriefing(q) {
+    function getPartNumber(q) { if (!q) return ""; if (q.type === "speaking" || q.type === "writing") return "Part 1"; if (q.type === "reading") return "Part 2"; if (q.type === "listening") return "Part 3"; return ""; }\n    function samePteSection(a,b) { return !!a && !!b && getPartNumber(a) === getPartNumber(b); }\n\n    function showSectionBriefing(q) {
       if (!q) return;
       const section = getSectionName(q);
       document.getElementById("examArea").classList.add("hidden");
