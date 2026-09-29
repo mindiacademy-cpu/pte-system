@@ -977,8 +977,23 @@ platformun düzgün çalışmasını engelleyebilir.
           return;
         }
 
-        localStorage.setItem("candidateName", name + " " + surname);
-        localStorage.setItem("candidateSurname", surname);
+        // Keep first name and surname in separate fields. If the user also typed
+        // the surname at the end of the name field, remove that duplicate once.
+        const cleanSurname = surname.trim();
+        let cleanName = name.trim();
+        if (cleanSurname) {
+          const nameParts = cleanName.split(/\\s+/);
+          const surnameParts = cleanSurname.split(/\\s+/);
+          if (nameParts.length >= surnameParts.length) {
+            const tail = nameParts.slice(-surnameParts.length).join(" ");
+            if (tail.localeCompare(cleanSurname, undefined, { sensitivity: "base" }) === 0) {
+              cleanName = nameParts.slice(0, -surnameParts.length).join(" ").trim() || cleanName;
+            }
+          }
+        }
+
+        localStorage.setItem("candidateName", cleanName);
+        localStorage.setItem("candidateSurname", cleanSurname);
         localStorage.setItem("candidatePhone", phone);
         localStorage.setItem("candidateEmail", email);
         localStorage.setItem("candidateId", phone);
