@@ -1945,13 +1945,13 @@
 
 
         summarize_written_text: "Summarize Written Text",
-        essay: "Essay",
+        essay: "Write Essay",
 
         reading_mcq_single: "Reading MCQ Single",
         reading_mcq_multiple: "Reading MCQ Multiple",
         reorder_paragraphs: "Reorder Paragraphs",
-        reading_fill_blanks: "Reading Fill in the Blanks",
-        reading_writing_fill_blanks: "Reading & Writing Fill in the Blanks",
+        reading_fill_blanks: "Fill in the Blanks (Drag and Drop)",
+        reading_writing_fill_blanks: "Fill in the Blanks (Dropdown)",
         reading_word_formation: "Reading Word Formation",
         reading_mcq_group: "Reading MCQ Group",
         reading_word_formation_multi: "Reading Word Formation (Multi)",
@@ -1960,7 +1960,7 @@
         summarize_spoken_text: "Summarize Spoken Text",
         listening_mcq_single: "Listening MCQ Single",
         listening_mcq_multiple: "Listening MCQ Multiple",
-        listening_fill_blanks: "Listening Fill in the Blanks",
+        listening_fill_blanks: "Fill in the Blanks (Type In)",
         highlight_correct_summary: "Highlight Correct Summary",
         select_missing_word: "Select Missing Word",
         highlight_incorrect_words: "Highlight Incorrect Words",
@@ -2951,12 +2951,14 @@
             return (q.textContent || "").trim().length > 0;
           }
 
-          // bozuk listening sequence sorusunu da alma
-          if (sub === "listening_sequence" || sub === "listening sequence") {
-            return Array.isArray(q.options) && q.options.length > 0;
-          }
-
-          return true;
+          const official = new Set([
+            "read_aloud","repeat_sentence","describe_image","re_tell_lecture","answer_short_question",
+            "summarize_group_discussion","respond_to_a_situation","summarize_written_text","essay",
+            "reading_writing_fill_blanks","reading_mcq_multiple","reorder_paragraphs","reading_fill_blanks","reading_mcq_single",
+            "summarize_spoken_text","listening_mcq_multiple","listening_fill_blanks","highlight_correct_summary",
+            "listening_mcq_single","select_missing_word","highlight_incorrect_words","write_from_dictation"
+          ]);
+          return official.has(sub);
         });
 
 
