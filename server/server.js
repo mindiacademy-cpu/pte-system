@@ -23,6 +23,12 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 app.use(cors());
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+app.get(["/admin-login", "/admin-login.html"], (req, res) => {
+  res.sendFile(path.join(__dirname, "../client", "admin-login-portal.html"));
+});
+app.get("/admin-login-legacy", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client", "admin-login.html"));
+});
 app.use(express.static(path.join(__dirname, "../client")));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
