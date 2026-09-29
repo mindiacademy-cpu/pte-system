@@ -313,7 +313,7 @@ body{padding:0;background:var(--paper);color:#34383d}.admin-head{height:58px;bac
     <div id="examCreateResult"></div>
     <section class="card code-card">
       <div class="list-head">
-        <div><h2>Sınav Kodları</h2><p>Her kod tek kullanımlıktır.</p></div>
+        <div><h2>Sınav Kodları</h2><p>Her kod tek kullanımlıktır ve oluşturulduğu tarihten itibaren 7 gün aktiftir.</p></div>
         <button class="btn btn-secondary" onclick="loadExams()">Yenile</button>
       </div>
       <div id="examList" class="exam-table"></div>
@@ -384,8 +384,8 @@ body{padding:0;background:var(--paper);color:#34383d}.admin-head{height:58px;bac
       container.innerHTML =
         '<div class="exam-row exam-table-head"><span>Sınav Kodu</span><span>Oluşturulma</span><span>Durum</span><span></span></div>' +
         exams.map(exam => {
-          const status = exam.used ? "Kullanıldı" : "Kullanılabilir";
-          const statusClass = exam.used ? "used" : "available";
+          const status = exam.active ? "Aktif" : "Pasif";
+          const statusClass = exam.active ? "available" : "used";
           return '<div class="exam-row">' +
             '<strong class="code">' + escapeHtml(exam.examCode || "-") + '</strong>' +
             '<span>' + formatDate(exam.createdAt) + '</span>' +
