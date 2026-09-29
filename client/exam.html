@@ -2618,11 +2618,14 @@
 
       else if (q.type === "reading") {
         if (
-          q.subType === "reading_fill_blanks" ||
           q.subType === "reading_writing_fill_blanks"
         ) {
           const selects = document.querySelectorAll(".fill-dropdown");
           answerPayload.answer = Array.from(selects).map(select => select.value);
+        }
+        else if (q.subType === "reading_fill_blanks") {
+          const existing = getExistingAnswer(q.id);
+          answerPayload.answer = existing ? existing.answer : [];
         }
 
         else if (q.subType === "reading_short_answer_multi") {
