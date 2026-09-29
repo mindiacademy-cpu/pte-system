@@ -2738,6 +2738,7 @@
         answers.push(answerPayload);
       }
 
+      localStorage.setItem("examAnswers", JSON.stringify(answers));
       updateSavedCount();
     }
 
