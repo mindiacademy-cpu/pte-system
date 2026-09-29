@@ -1078,11 +1078,21 @@ app.post("/create-exam", async (req, res) => {
       grouped.get(key).push(q);
     });
 
-    // Build automatically: use one randomly selected item from every task type
-    // currently represented in the bank, then keep official PTE part/task order.
-    const examQuestions = [...grouped.values()].map(pool =>
-      pool[Math.floor(Math.random() * pool.length)]
-    ).sort((a, b) => {
+    const requiredTaskTypes = [...OFFICIAL_PTE_SUBTYPES];
+    const missingTaskTypes = requiredTaskTypes.filter(taskType => !grouped.has(taskType));
+    if (missingTaskTypes.length) {
+      return res.status(400).json({
+        error: "A complete practice exam cannot be created because the question bank is missing task types.",
+        missingTaskTypes
+      });
+    }
+
+    // Build automatically: one randomly selected item from every current PTE
+    // task type, then keep the established PTE part/task order.
+    const examQuestions = requiredTaskTypes.map(taskType => {
+      const pool = grouped.get(taskType);
+      return pool[Math.floor(Math.random() * pool.length)];
+    }).sort((a, b) => {
       const sectionDiff = (sectionOrder[String(a.type || "").toLowerCase()] || 999) -
         (sectionOrder[String(b.type || "").toLowerCase()] || 999);
       return sectionDiff || (taskOrder[a.subType] || 999) - (taskOrder[b.subType] || 999);
