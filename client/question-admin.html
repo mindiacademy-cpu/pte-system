@@ -1247,7 +1247,7 @@ if (type === "listening") {
             return null;
           }
           if (!correctAnswers.length) {
-            alert("Highlight Incorrect Words için yanlış kelimeleri Correct Answers alanına her satıra bir kelime gelecek şekilde gir.");
+            alert("Highlight Incorrect Words için transcript üzerindeki yanlış kelimeleri seç.");
             return null;
           }
         }
@@ -1288,7 +1288,7 @@ if (type === "listening") {
       } else if (type === "reading" && subType === "reorder_paragraphs") {
         payload.answer = answerKey;
       } else if (type === "reading" && (subType === "reading_fill_blanks" || subType === "reading_writing_fill_blanks")) {
-        payload.answer = correctAnswer;
+        payload.answer = correctAnswers;
       } else if (type === "listening" && subType === "listening_mcq_single") {
         payload.answer = correctAnswer;
       } else if (type === "listening" && subType === "listening_mcq_multiple") {
