@@ -2575,12 +2575,14 @@
           const nativeBox=wrap.querySelector("#listeningAnswer");
           Array.from(wrap.children).forEach(el=>{ if(el!==nativeBox) el.remove(); });
           if(nativeBox) nativeBox.classList.add("hidden");
-          const selected=new Set(Array.isArray(existing?.answer)?existing.answer:[]);
-          (q.textContent||"").split(/(\s+)/).forEach((token,idx)=>{
+          const selected=new Set(Array.isArray(existing?.answer)?existing.answer.map(String):[]);
+          let visibleWordIndex=0;
+          (q.textContent||"").split(/(\s+)/).forEach(token=>{
             if(/^\s+$/.test(token)){wrap.appendChild(document.createTextNode(token));return;}
-            const s=document.createElement("span");s.textContent=token;s.dataset.word=token;s.style.cursor="pointer";s.style.padding="2px";
-            if(selected.has(idx))s.style.background="#f4df62";
-            s.onclick=()=>{if(selected.has(idx)){selected.delete(idx);s.style.background="";}else{selected.add(idx);s.style.background="#f4df62";} const payload={questionId:q.id,type:q.type,subType:q.subType,title:q.title,prompt:q.prompt,answer:[...selected]};const ai=answers.findIndex(x=>x.questionId===q.id);if(ai>=0)answers[ai]=payload;else answers.push(payload);};
+            const key=String(visibleWordIndex++);
+            const s=document.createElement("span");s.textContent=token;s.dataset.wordIndex=key;s.style.cursor="pointer";s.style.padding="2px";
+            if(selected.has(key))s.style.background="#f4df62";
+            s.onclick=()=>{if(selected.has(key)){selected.delete(key);s.style.background="";}else{selected.add(key);s.style.background="#f4df62";} const payload={questionId:q.id,type:q.type,subType:q.subType,title:q.title,prompt:q.prompt,answer:[...selected]};const ai=answers.findIndex(x=>x.questionId===q.id);if(ai>=0)answers[ai]=payload;else answers.push(payload);localStorage.setItem("examAnswers",JSON.stringify(answers));};
             wrap.appendChild(s);
           });
         }
