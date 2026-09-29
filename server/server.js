@@ -666,71 +666,33 @@ function safeJsonParse(text) {
 
 async function scoreSpeakingWithAI({ question, transcript, maxScore }) {
   if (!transcript || !transcript.trim()) {
-    return {
-      score: 0,
-      feedback: "No speaking response detected.",
-      fluency: 0,
-      pronunciation: 0,
-      content: 0
-    };
+    return { score:0, feedback:"No speaking response detected.", content:0, pronunciation:0, oralFluency:0 };
   }
-
   const response = await openai.responses.create({
     model: "gpt-4.1-mini",
-    input: `
-You are scoring a PTE-style speaking response.
-
-Question type: ${question.subType || question.type || "speaking"}
-Question title: ${question.title || ""}
+    input: `You are evaluating a PTE Academic PRACTICE speaking response using Pearson's publicly described traits.
+Task: ${question.subType || "speaking"}
 Prompt: ${question.prompt || ""}
-Question content: ${question.textContent || ""}
+Source content: ${question.textContent || question.answerKey || ""}
+Candidate transcript: ${transcript}
 
-Candidate transcript:
-${transcript}
+Return ONLY JSON:
+{"content":0,"pronunciation":0,"oralFluency":0,"feedback":""}
 
-Score the response from 0 to ${maxScore}.
-
-Return ONLY valid JSON in this exact format:
-{
-  "score": number,
-  "fluency": number,
-  "pronunciation": number,
-  "content": number,
-  "feedback": "short explanation"
-}
-
-Rules:
-- score must be between 0 and ${maxScore}
-- fluency, pronunciation and content must be between 0 and 10
-- be strict but fair
-- if the answer is unrelated, score low
-- if transcript is empty or meaningless, score 0
-`
+Use a 0-5 practice rubric for each trait. Content must reflect the task: Read Aloud checks prompt words; Repeat Sentence checks reproduced word sequences; open speaking tasks check relevance/coverage. Pronunciation and oralFluency are estimates from available evidence and must not be presented as official Pearson scores. Be strict. Empty, irrelevant or meaningless responses receive zero content.`
   });
-
-  const rawText = response.output_text || "";
-  const parsed = safeJsonParse(rawText);
-
-  if (!parsed) {
-    return {
-      score: 0,
-      feedback: "AI scoring failed.",
-      fluency: 0,
-      pronunciation: 0,
-      content: 0
-    };
-  }
-
-  const score = Math.max(0, Math.min(Number(maxScore), Number(parsed.score || 0)));
-
+  const parsed = safeJsonParse(response.output_text || "") || {};
+  const content = Math.max(0,Math.min(5,Number(parsed.content||0)));
+  const pronunciation = Math.max(0,Math.min(5,Number(parsed.pronunciation||0)));
+  const oralFluency = Math.max(0,Math.min(5,Number(parsed.oralFluency||parsed.fluency||0)));
+  const ratio = (content + pronunciation + oralFluency) / 15;
   return {
-    score,
-    fluency: Number(parsed.fluency || 0),
-    pronunciation: Number(parsed.pronunciation || 0),
-    content: Number(parsed.content || 0),
+    score: Math.round(Math.max(0,Math.min(maxScore,ratio*maxScore))*100)/100,
+    content, pronunciation, oralFluency,
     feedback: parsed.feedback || ""
   };
 }
+
 async function transcribeAudioFromUrl(audioUrl) {
   if (!audioUrl) return "";
 
