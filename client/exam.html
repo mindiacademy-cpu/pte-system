@@ -1185,8 +1185,87 @@
     let currentQuestionIndex = 0;
     let answers = [];
 
-    const examStartedAt = localStorage.getItem("examStartedAt") || new Date().toISOString();
-    localStorage.setItem("examStartedAt", examStartedAt);
+    const EXAM_INACTIVITY_LIMIT_MS = 15 * 60 * 1000;
+    const EXAM_MAX_DURATION_MS = 3 * 60 * 60 * 1000;
+    let examStartedAt = localStorage.getItem("examStartedAt") || "";
+    let examSessionInterval = null;
+
+    function initializeExamSession() {
+      if (!examStartedAt) {
+        examStartedAt = new Date().toISOString();
+        localStorage.setItem("examStartedAt", examStartedAt);
+      }
+      localStorage.setItem("examLastActiveAt", new Date().toISOString());
+    }
+
+    function isExamSessionExpired() {
+      if (localStorage.getItem("examStarted") !== "true") return false;
+      if (localStorage.getItem("examSessionExpired") === "true") return true;
+
+      const startedAtMs = Date.parse(localStorage.getItem("examStartedAt") || "");
+      const lastActiveAtMs = Date.parse(
+        localStorage.getItem("examLastActiveAt") || localStorage.getItem("examStartedAt") || ""
+      );
+      const now = Date.now();
+
+      if (Number.isFinite(startedAtMs) && now - startedAtMs > EXAM_MAX_DURATION_MS) return true;
+      if (Number.isFinite(lastActiveAtMs) && now - lastActiveAtMs > EXAM_INACTIVITY_LIMIT_MS) return true;
+      return false;
+    }
+
+    function expireExamSession() {
+      if (examSubmissionInProgress) return;
+
+      localStorage.setItem("examSessionExpired", "true");
+      clearInterval(examSessionInterval);
+
+      ["startScreen", "micCheckScreen", "examArea", "sectionBriefing"].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.classList.add("hidden");
+      });
+
+      const loadingArea = document.getElementById("loadingArea");
+      if (loadingArea) {
+        loadingArea.style.display = "block";
+        loadingArea.innerText = "Sınav oturumunun süresi doldu. Kaydedilen yanıtlar gönderiliyor...";
+      }
+
+      finishExam(true, true);
+    }
+
+    function touchExamSession() {
+      if (localStorage.getItem("examStarted") === "true" && !document.hidden) {
+        localStorage.setItem("examLastActiveAt", new Date().toISOString());
+      }
+    }
+
+    function startExamSessionTracking() {
+      clearInterval(examSessionInterval);
+      touchExamSession();
+      examSessionInterval = setInterval(() => {
+        if (isExamSessionExpired()) {
+          clearInterval(examSessionInterval);
+          expireExamSession();
+          return;
+        }
+        touchExamSession();
+      }, 15000);
+    }
+
+    document.addEventListener("visibilitychange", () => {
+      if (localStorage.getItem("examStarted") !== "true") return;
+
+      if (document.hidden) {
+        localStorage.setItem("examLastActiveAt", new Date().toISOString());
+        return;
+      }
+
+      if (isExamSessionExpired() && questions.length) {
+        expireExamSession();
+      } else {
+        touchExamSession();
+      }
+    });
 
     const examFlow = [
       "read_aloud",
@@ -2732,14 +2811,14 @@
 
     let examSubmissionInProgress = false;
 
-    function finishExam(skipConfirm = false) {
+    function finishExam(skipConfirm = false, skipCurrentAnswerSave = false) {
       if (examSubmissionInProgress) return;
       if (!skipConfirm) {
         const ok = confirm("Are you sure you want to finish the exam?");
         if (!ok) return;
       }
 
-      saveCurrentAnswer();
+      if (!skipCurrentAnswerSave) saveCurrentAnswer();
       examSubmissionInProgress = true;
       const finishButton = document.getElementById("finishBtn");
       const nextButton = document.getElementById("nextBtn");
@@ -2749,6 +2828,7 @@
       stopVoiceAnimation();
       stopMicCheckAnimation();
       clearInterval(timerInterval);
+      clearInterval(examSessionInterval);
 
       if (examMicStream) {
         examMicStream.getTracks().forEach(track => track.stop());
@@ -2863,7 +2943,9 @@
     }
 
     function startExam() {
+      initializeExamSession();
       localStorage.setItem("examStarted", "true");
+      startExamSessionTracking();
 
       document.getElementById("startScreen").classList.add("hidden");
       document.getElementById("micCheckScreen").classList.remove("hidden");
@@ -2956,6 +3038,13 @@
 
           currentQuestionIndex = Math.min(Number(localStorage.getItem("currentQuestionIndex")) || 0, questions.length - 1);
           answers = JSON.parse(localStorage.getItem("examAnswers") || "[]");
+
+          if (isExamSessionExpired()) {
+            expireExamSession();
+            return;
+          }
+
+          startExamSessionTracking();
           showSectionBriefing(questions[currentQuestionIndex]);
         } else {
           document.getElementById("startScreen").classList.remove("hidden");
