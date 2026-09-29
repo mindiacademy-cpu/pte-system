@@ -1113,12 +1113,13 @@
       finishBtn.disabled = currentQuestionIndex !== questions.length - 1;
     }
 
-    function getReadingSectionTotalTime(start, end) {
-      let total = 0;
-      for (let i = start; i <= end; i++) {
-        total += Number(questions[i]?.time || 60);
-      }
-      return total;
+    function getReadingSectionTotalTime() {
+      const saved = Number(localStorage.getItem("readingSectionDurationSeconds"));
+      return saved > 0 ? saved : 30 * 60;
+    }
+
+    function persistReadingTime() {
+      if (readingSectionTimeLeft !== null) localStorage.setItem("readingSectionTimeLeft", String(readingSectionTimeLeft));
     }
 
     function goToAfterReadingSection() {
@@ -1136,6 +1137,7 @@
 
       if (q.type === "reading") {
         readingSectionTimeLeft = 0;
+        localStorage.removeItem("readingSectionTimeLeft");
         goToAfterReadingSection();
         return;
       }
@@ -1181,7 +1183,8 @@
         if (isNewReadingSection) {
           readingSectionStartIndex = bounds.start;
           readingSectionEndIndex = bounds.end;
-          readingSectionTimeLeft = getReadingSectionTotalTime(bounds.start, bounds.end);
+          const savedReading = Number(localStorage.getItem("readingSectionTimeLeft"));
+          readingSectionTimeLeft = savedReading > 0 ? savedReading : getReadingSectionTotalTime();
         }
 
         setTimerLabel("Reading Time Remaining");
@@ -1189,6 +1192,7 @@
 
         timerInterval = setInterval(() => {
           readingSectionTimeLeft--;
+          persistReadingTime();
           timerBox.innerText = formatTime(readingSectionTimeLeft);
 
           if (readingSectionTimeLeft <= 0) {
@@ -1885,6 +1889,7 @@
       else answers.push(payload);
 
       toggleSelectedOption("#readingOptions .option-btn", option, false);
+      localStorage.setItem("examAnswers", JSON.stringify(answers));
       updateSavedCount();
     }
 
@@ -2789,6 +2794,7 @@
       stopVoiceAnimation();
       clearInterval(timerInterval);
 
+      if (q && q.type === "reading") persistReadingTime();
       if (q && q.type !== "reading") {
         readingSectionStartIndex = null;
         readingSectionEndIndex = null;
@@ -3022,7 +3028,9 @@
           document.getElementById("examArea").classList.remove("hidden");
           document.getElementById("finishScreen").classList.add("hidden");
 
-          renderQuestion();
+          currentQuestionIndex = Math.min(Number(localStorage.getItem("currentQuestionIndex")) || 0, questions.length - 1);
+          answers = JSON.parse(localStorage.getItem("examAnswers") || "[]");
+          showSectionBriefing(questions[currentQuestionIndex]);
         } else {
           document.getElementById("startScreen").classList.remove("hidden");
           document.getElementById("micCheckScreen").classList.add("hidden");
