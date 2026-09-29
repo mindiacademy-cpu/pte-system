@@ -978,7 +978,8 @@
     let currentQuestionIndex = 0;
     let answers = [];
 
-    const examStartedAt = new Date().toISOString();
+    const examStartedAt = localStorage.getItem("examStartedAt") || new Date().toISOString();
+    localStorage.setItem("examStartedAt", examStartedAt);
 
     const examFlow = [
       "read_aloud",
@@ -1203,24 +1204,10 @@
         return;
       }
 
-      setTimerLabel("Time Remaining");
-      time = Number(q.time);
-
-      if (!time || isNaN(time)) {
-        time = 60;
-      }
-
-      timerBox.innerText = formatTime(time);
-
-      timerInterval = setInterval(() => {
-        time--;
-        timerBox.innerText = formatTime(time);
-
-        if (time <= 0) {
-          clearInterval(timerInterval);
-          handleTimerExpiry();
-        }
-      }, 1000);
+      // Reading is the only fixed section countdown configured for this practice form.
+      // Writing/Listening must not silently fall back to a fabricated 60-second item timer.
+      setTimerLabel(q.type === "listening" ? "Listening" : "Section Timing");
+      timerBox.innerText = "--:--";
     }
 
     function clearSpeakingTimers() {
