@@ -469,7 +469,7 @@
       return `
     <html>
     <head>
-      <title>PTE Academic Score Report</title>
+      <title>PTE Academic Practice Score Report</title>
       <style>
         * { box-sizing: border-box; }
         body {
@@ -878,14 +878,14 @@
 
 </div>
 
-<div class="section-title">Score Summary</div>
+<div class="section-title">Practice Score Summary</div>
 
         <div class="score-summary">
           <div class="overall-row">
             <div class="overall-left">
-              <div class="overall-label">Overall Score</div>
+              <div class="overall-label">PTE Academic Practice Score</div>
               <div class="overall-score">${overall}</div>
-              <div class="overall-note">Performance across all communicative skills</div>
+              <div class="overall-note">Practice estimate — not an official Pearson score. Speaking pronunciation and oral fluency are not inferred from transcript text.</div>
             </div>
           </div>
 
@@ -1038,7 +1038,7 @@
         ? `${candidateName}_${candidateSurname}`
         : candidateName;
 
-      const fileName = `PTE_SCORE_REPORT_${fullName}`;
+      const fileName = `PTE_PRACTICE_SCORE_REPORT_${fullName}`;
 
       let html = buildPdfHtml(exam);
 
