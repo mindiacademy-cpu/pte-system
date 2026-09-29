@@ -213,16 +213,18 @@ function scoreDictation(userAnswer, correctAnswer, maxScore = 10) {
   const correct = normalizeText(correctAnswer).split(" ").filter(Boolean);
   if (!correct.length) return 0;
 
-  // Longest common subsequence: credits correctly spelled words while preserving sentence order.
-  const dp = Array.from({ length: correct.length + 1 }, () => Array(user.length + 1).fill(0));
-  for (let i = 1; i <= correct.length; i++) {
-    for (let j = 1; j <= user.length; j++) {
-      dp[i][j] = correct[i - 1] === user[j - 1]
-        ? dp[i - 1][j - 1] + 1
-        : Math.max(dp[i - 1][j], dp[i][j - 1]);
+  // Published PTE guidance awards WFD content credit per correct, correctly
+  // spelled word. Use multiset matching so repeated words cannot over-score.
+  const remaining = [...user];
+  let matched = 0;
+  for (const word of correct) {
+    const index = remaining.indexOf(word);
+    if (index >= 0) {
+      matched++;
+      remaining.splice(index, 1);
     }
   }
-  return Math.round((dp[correct.length][user.length] / correct.length) * maxScore * 100) / 100;
+  return Math.round((matched / correct.length) * maxScore * 100) / 100;
 }
 
 function calculateAutoScore(question, submittedAnswer) {
