@@ -2732,7 +2732,7 @@
         localStorage.setItem("currentQuestionIndex", currentQuestionIndex + 1);
         currentQuestionIndex++;
         const nextQ = questions[currentQuestionIndex];
-        if (nextQ && nextQ.type !== previousType) {
+        if (nextQ && !samePteSection(nextQ, q)) {
           showSectionBriefing(nextQ);
         } else {
           renderQuestion();
@@ -2821,7 +2821,27 @@
       return "Exam";
     }
 
-    function getPartNumber(q) { if (!q) return ""; if (q.type === "speaking" || q.type === "writing") return "Part 1"; if (q.type === "reading") return "Part 2"; if (q.type === "listening") return "Part 3"; return ""; }\n    function samePteSection(a,b) { return !!a && !!b && getPartNumber(a) === getPartNumber(b); }\n\n    function showSectionBriefing(q) {
+    function getPartNumber(q) {
+      if (!q) return "";
+      if (q.type === "speaking" || q.type === "writing") return "Part 1";
+      if (q.type === "reading") return "Part 2";
+      if (q.type === "listening") return "Part 3";
+      return "";
+    }
+
+    function samePteSection(a, b) {
+      return !!a && !!b && getPartNumber(a) === getPartNumber(b);
+    }
+
+    function getOfficialSectionDuration(q) {
+      if (!q) return "";
+      if (q.type === "speaking" || q.type === "writing") return "76–84 minutes";
+      if (q.type === "reading") return "23–30 minutes";
+      if (q.type === "listening") return "31–39 minutes";
+      return "";
+    }
+
+    function showSectionBriefing(q) {
       if (!q) return;
       const section = getSectionName(q);
       document.getElementById("examArea").classList.add("hidden");
@@ -2829,17 +2849,8 @@
       document.getElementById("sectionBriefing").classList.remove("hidden");
       document.getElementById("sectionBriefingTitle").textContent = "PTE Academic Practice - " + section;
       document.getElementById("sectionBriefingHeading").textContent = "You are about to begin the " + section + " section:";
-      const sectionQuestions = questions.filter(item => item.type === q.type);
-      const labels = [...new Set(sectionQuestions.map(item => item.title || item.subType || section))];
       document.getElementById("sectionBriefingRows").innerHTML =
-        labels.map((label,i) => {
-          const matching = sectionQuestions.filter(item => (item.title || item.subType || section) === label);
-          const totalSeconds = matching.reduce((sum,item) => sum + (Number(item.time) || Number(item.recordTime) || 60), 0);
-          const mins = Math.floor(totalSeconds / 60);
-          const secs = totalSeconds % 60;
-          const allowed = mins + ":" + String(secs).padStart(2,"0");
-          return `<tr><td>Part ${i+1}</td><td>${label}</td><td>${allowed}</td></tr>`;
-        }).join("");
+        `<tr><td>${getPartNumber(q)}</td><td>${section}</td><td>${getOfficialSectionDuration(q)}</td></tr>`;
       pendingSectionBriefing = true;
     }
 
