@@ -441,7 +441,7 @@
         <div id="optionsWrap" class="hidden">
           <label for="options">Options</label>
           <textarea id="options"
-            placeholder="Normal sorularda: her seçenek bir satır&#10;&#10;Reading MCQ Group için: aynı grubun seçeneklerini alt alta yaz, yeni grup için bir boş satır bırak"></textarea>
+            placeholder="Her seçenek bir satır. Fill in the Blanks için kelime bankasındaki tüm seçenekleri ayrı satırlara yaz."></textarea>
         </div>
 
         <div id="textContentWrap" class="hidden">
@@ -476,7 +476,7 @@
         </div>
 
         <div class="hint-box">
-          Listening ve Reading’de prepare time yoktur. Prepare alanı sadece gerekli Speaking task’lerinde görünür.
+          Reading ve Listening sorularında soru başına süre girilmez; bölüm süresi kullanılır. Boşlukları metinde tam olarak _______ ile göster. Dropdown/Drag & Drop/Type In sorularında doğru cevapları Correct Answers alanına boşluk sırasına göre, her satıra bir cevap gelecek şekilde yaz.
         </div>
 
         <div id="statusBox"></div>
@@ -524,42 +524,34 @@
 
     const subtypeMap = {
       speaking: [
-        { value: "read_aloud", label: "Read Aloud", prepare: 25, record: 40, hasPrepare: true, evaluation: "keywords" },
-        { value: "repeat_sentence", label: "Repeat Sentence", prepare: 0, record: 15, hasPrepare: false, evaluation: "answerKey" },
-        { value: "describe_image", label: "Describe Image", prepare: 25, record: 40, hasPrepare: true, evaluation: "keywords" },
-        { value: "re_tell_lecture", label: "Re-tell Lecture", prepare: 10, record: 40, hasPrepare: true, evaluation: "keywords" },
-        { value: "answer_short_question", label: "Answer Short Question", prepare: 0, record: 10, hasPrepare: false, evaluation: "answerKey" },
-        { value: "summarize_group_discussion", label: "Summarize Group Discussion", prepare: 0, record: 40, hasPrepare: false, evaluation: "keywords" },
-        { value: "respond_to_a_situation", label: "Respond to a Situation", prepare: 0, record: 40, hasPrepare: false, evaluation: "keywords" }
+        { value:"read_aloud", label:"Read Aloud", prepare:35, record:40, hasPrepare:true, evaluation:"keywords" },
+        { value:"repeat_sentence", label:"Repeat Sentence", prepare:0, record:15, hasPrepare:false, evaluation:"answerKey" },
+        { value:"describe_image", label:"Describe Image", prepare:25, record:40, hasPrepare:true, evaluation:"keywords" },
+        { value:"re_tell_lecture", label:"Retell Lecture", prepare:10, record:40, hasPrepare:true, evaluation:"keywords" },
+        { value:"answer_short_question", label:"Answer Short Question", prepare:0, record:10, hasPrepare:false, evaluation:"answerKey" },
+        { value:"summarize_group_discussion", label:"Summarize Group Discussion", prepare:10, record:120, hasPrepare:true, evaluation:"keywords" },
+        { value:"respond_to_a_situation", label:"Respond to a Situation", prepare:10, record:40, hasPrepare:true, evaluation:"keywords" }
       ],
       writing: [
-        { value: "summarize_written_text", label: "Summarize Written Text", time: 600, evaluation: "keywords" },
-        { value: "essay", label: "Essay", time: 1200, evaluation: "answerKey" }
+        { value:"summarize_written_text", label:"Summarize Written Text", time:600, evaluation:"keywords" },
+        { value:"essay", label:"Write Essay", time:1200, evaluation:"keywords" }
       ],
       reading: [
-        { value: "reading_mcq_single", label: "Reading MCQ Single", time: 60, evaluation: "correctAnswer" },
-        { value: "reading_mcq_multiple", label: "Reading MCQ Multiple", time: 60, evaluation: "correctAnswers" },
-        { value: "reading_mcq_group", label: "Reading MCQ Group", time: 90, evaluation: "correctAnswers" },
-        { value: "reorder_paragraphs", label: "Reorder Paragraphs", time: 90, evaluation: "answerKey" },
-        { value: "reading_fill_blanks", label: "Reading Fill in the Blanks", time: 60, evaluation: "correctAnswer" },
-        { value: "reading_writing_fill_blanks", label: "Reading & Writing Fill in the Blanks", time: 60, evaluation: "correctAnswer" },
-        { value: "reading_word_formation", label: "Reading Word Formation", time: 60, evaluation: "answerKey" },
-        { value: "reading_short_answer_multi", label: "Reading Short Answer (Multi)", time: 120, evaluation: "answerKey" },
-        { value: "reading_word_formation_multi", label: "Reading Word Formation (Multi)", time: 90, evaluation: "answerKey" },
-        { value: "reading_word_formation_passage", label: "Reading Word Formation Passage", time: 120, evaluation: "answerKey" }
+        { value:"reading_writing_fill_blanks", label:"Fill in the Blanks (Dropdown)", time:0, evaluation:"correctAnswers" },
+        { value:"reading_mcq_multiple", label:"Multiple Choice, Multiple Answers", time:0, evaluation:"correctAnswers" },
+        { value:"reorder_paragraphs", label:"Reorder Paragraph", time:0, evaluation:"answerKey" },
+        { value:"reading_fill_blanks", label:"Fill in the Blanks (Drag and Drop)", time:0, evaluation:"correctAnswers" },
+        { value:"reading_mcq_single", label:"Multiple Choice, Single Answer", time:0, evaluation:"correctAnswer" }
       ],
       listening: [
-        { value: "summarize_spoken_text", label: "Summarize Spoken Text", time: 600, evaluation: "keywords" },
-        { value: "listening_mcq_single", label: "Listening MCQ Single", time: 60, evaluation: "correctAnswer" },
-        { value: "listening_mcq_multiple", label: "Listening MCQ Multiple", time: 60, evaluation: "correctAnswers" },
-        { value: "listening_fill_blanks", label: "Listening Fill in the Blanks", time: 60, evaluation: "answerKey" },
-        { value: "highlight_correct_summary", label: "Highlight Correct Summary", time: 60, evaluation: "correctAnswer" },
-        { value: "select_missing_word", label: "Select Missing Word", time: 60, evaluation: "correctAnswer" },
-        { value: "highlight_incorrect_words", label: "Highlight Incorrect Words", time: 60, evaluation: "answerKey" },
-        { value: "write_from_dictation", label: "Write From Dictation", time: 60, evaluation: "answerKey" },
-        { value: "listening_short_answer_multi", label: "Listening Short Answer (Multi)", time: 120, evaluation: "answerKey" },
-        { value: "listening_short_answer", label: "Listening Short Answer", time: 60, evaluation: "answerKey" },
-        { value: "listening_sequence", label: "Listening Sequence", time: 60, evaluation: "answerKey" }
+        { value:"summarize_spoken_text", label:"Summarize Spoken Text", time:0, evaluation:"keywords" },
+        { value:"listening_mcq_multiple", label:"Multiple Choice, Multiple Answers", time:0, evaluation:"correctAnswers" },
+        { value:"listening_fill_blanks", label:"Fill in the Blanks (Type In)", time:0, evaluation:"correctAnswers" },
+        { value:"highlight_correct_summary", label:"Highlight Correct Summary", time:0, evaluation:"correctAnswer" },
+        { value:"listening_mcq_single", label:"Multiple Choice, Single Answer", time:0, evaluation:"correctAnswer" },
+        { value:"select_missing_word", label:"Select Missing Word", time:0, evaluation:"correctAnswer" },
+        { value:"highlight_incorrect_words", label:"Highlight Incorrect Words", time:0, evaluation:"correctAnswers" },
+        { value:"write_from_dictation", label:"Write from Dictation", time:0, evaluation:"answerKey" }
       ]
     };
 
