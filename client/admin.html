@@ -294,8 +294,16 @@
       return "webm";
     }
 
+    function getCandidateDisplayName(exam) {
+      return String(exam?.candidateName || "").trim();
+    }
+
+    function getCandidateDisplaySurname(exam) {
+      return String(exam?.candidateSurname || "").trim();
+    }
+
     function createDownloadName(exam, answer, answerIndex) {
-      const candidate = (exam.candidateName || "candidate").replace(/\s+/g, "_");
+      const candidate = [getCandidateDisplayName(exam), getCandidateDisplaySurname(exam)].filter(Boolean).join("_").replace(/\s+/g, "_") || "candidate";
       const examCode = exam.examCode || "exam";
       const qTitle = (answer.title || ("speaking_" + (answerIndex + 1))).replace(/[^\w\-]+/g, "_");
       const ext = getAudioExtensionFromDataUrl(answer.speakingAudio);
@@ -863,9 +871,7 @@
   <div class="info-box">
   <div class="info-label">Name</div>
   <div class="info-value">${escapeHtml(
-        exam.candidateSurname && exam.candidateName?.endsWith(exam.candidateSurname)
-          ? exam.candidateName.slice(0, -exam.candidateSurname.length).trim()
-          : exam.candidateName || "-"
+        getCandidateDisplayName(exam) || "-"
       )}</div>
 </div>
 
@@ -1053,7 +1059,7 @@
         .replace(/\s+/g, "_")
         .replace(/[^\p{L}\p{N}_-]/gu, "");
 
-      const fullName = candidateSurname
+      const fullName = candidateSurname && !candidateName.endsWith(`_${candidateSurname}`)
         ? `${candidateName}_${candidateSurname}`
         : candidateName;
 
@@ -1216,12 +1222,12 @@
 
   <div class="meta-item">
     <div class="label">Name</div>
-    <div class="meta-value">${exam.candidateName?.split(" ")[0] || "-"}</div>
+    <div class="meta-value">${escapeHtml(getCandidateDisplayName(exam) || "-")}</div>
   </div>
 
   <div class="meta-item">
     <div class="label">Surname</div>
-    <div class="meta-value">${exam.candidateName?.split(" ").slice(1).join(" ") || "-"}</div>
+    <div class="meta-value">${escapeHtml(getCandidateDisplaySurname(exam) || "-")}</div>
   </div>
 
   <div class="meta-item">
