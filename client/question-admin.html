@@ -1606,6 +1606,21 @@ if (type === "listening") {
     resetForm();
     loadQuestions();
   </script>
-</body>
+<script>
+async function generateMissingAudio(){
+  const btn=document.getElementById("generateAudioBtn");
+  if(!btn)return;
+  btn.disabled=true; btn.textContent="Sesler oluşturuluyor...";
+  try{
+    const r=await fetch("/admin/generate-question-audio",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});
+    const d=await r.json();
+    if(!r.ok && r.status!==207) throw new Error(d.error||"Sesler oluşturulamadı.");
+    const failed=Array.isArray(d.failures)?d.failures.length:0;
+    alert((d.generated||0)+" ses dosyası oluşturuldu."+ (failed ? " "+failed+" dosya oluşturulamadı." : ""));
+    location.reload();
+  }catch(e){alert(e.message||"Sesler oluşturulamadı.");}
+  finally{btn.disabled=false;btn.textContent="Eksik Sesleri Oluştur";}
+}
+</script></body>
 
-</html>
+</html<button type="button" id="generateAudioBtn" class="btn btn-secondary" onclick="generateMissingAudio()">Eksik Sesleri Oluştur</button>>
