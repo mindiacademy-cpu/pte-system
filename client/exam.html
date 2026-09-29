@@ -737,7 +737,7 @@
     .speaking-wave i { width:3px; height:8px; background:#678a94; display:block; }
     .speaking-wave.active i:nth-child(2n){height:17px}.speaking-wave.active i:nth-child(3n){height:12px}
     .speaking-meter-time { min-width:48px; text-align:right; color:#555; font-size:13px; }
-    .question-counter-top { font-size:12px; color:#fff; white-space:nowrap; }
+    .question-counter-top { font-size:12px; color:#fff; white-space:nowrap; }\n    .pte-reorder-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.pte-reorder-column{min-height:220px;padding:14px;background:#f4f5f5;border:1px solid #c9cdcf}.pte-reorder-column h4{margin:0 0 12px;font-size:13px;color:#555}.pte-reorder-item{padding:12px;margin:8px 0;background:#fff;border:1px solid #aeb5b8;cursor:grab;line-height:1.45}.pte-reorder-item.selected{outline:2px solid #168aa0}.pte-reorder-controls{display:flex;gap:8px;margin-top:10px}.pte-reorder-controls button{border:1px solid #8b9498;background:#fff;padding:6px 10px;cursor:pointer}@media(max-width:700px){.pte-reorder-grid{grid-template-columns:1fr}}
     .status-strip .progress-card { order:2; }
     .status-strip .timer-card { order:1; }
     .status-strip .question-counter-top { order:3; }
@@ -2434,57 +2434,39 @@
         else if (q.subType === "reorder_paragraphs") {
           const wrap = document.getElementById("reorderWrap");
           wrap.classList.remove("hidden");
-
-          // textarea alanını kullanma
           document.getElementById("readingLongInputWrap").classList.add("hidden");
-
-          // üstteki taskContent'i de gizle
           taskContent.classList.add("hidden");
           taskContent.innerHTML = "";
 
-          const paragraphs = (q.textContent || "")
-            .split("\n")
-            .map(p => p.trim())
-            .filter(p => p);
+          const paragraphs = (q.textContent || "").split("\n").map(p => p.trim()).filter(Boolean);
+          let order = Array.isArray(existing?.answer) && existing.answer.length
+            ? existing.answer.map(v => Number(v) - 1).filter(v => v >= 0 && v < paragraphs.length)
+            : [];
 
-          const existingAnswer = Array.isArray(existing?.answer) ? existing.answer : [];
+          wrap.innerHTML = '<div class="pte-reorder-grid"><div class="pte-reorder-column"><h4>Source</h4><div id="reorderSource"></div></div><div class="pte-reorder-column"><h4>Target</h4><div id="reorderTarget"></div><div class="pte-reorder-controls"><button type="button" id="reorderUp">↑</button><button type="button" id="reorderDown">↓</button><button type="button" id="reorderBack">←</button></div></div></div>';
+          let selected = null;
 
-          wrap.innerHTML = "";
-
-          paragraphs.forEach((text, index) => {
-            const row = document.createElement("div");
-            row.style.display = "flex";
-            row.style.alignItems = "center";
-            row.style.justifyContent = "space-between";
-            row.style.gap = "16px";
-            row.style.marginBottom = "14px";
-
-            const textBox = document.createElement("div");
-            textBox.style.flex = "1";
-            textBox.style.fontSize = "15px";
-            textBox.style.lineHeight = "1.6";
-            textBox.textContent = `${index + 1}. ${text}`;
-
-            const input = document.createElement("input");
-            input.type = "number";
-            input.min = "1";
-            input.max = String(paragraphs.length);
-            input.className = "reorder-input";
-            input.dataset.index = index;
-            input.value = existingAnswer[index] || "";
-            input.style.width = "72px";
-            input.style.minWidth = "72px";
-            input.style.height = "40px";
-            input.style.padding = "8px";
-            input.style.border = "1px solid #d1d5db";
-            input.style.borderRadius = "8px";
-            input.style.textAlign = "center";
-            input.style.background = "#fff";
-
-            row.appendChild(textBox);
-            row.appendChild(input);
-            wrap.appendChild(row);
-          });
+          const sync = () => {
+            const payload = { questionId:q.id,type:q.type,subType:q.subType,title:q.title,prompt:q.prompt,answer:order.map(v => String(v + 1)) };
+            const ai = answers.findIndex(item => item.questionId === q.id);
+            if (ai >= 0) answers[ai] = payload; else answers.push(payload);
+            updateSavedCount();
+          };
+          const draw = () => {
+            const source = document.getElementById("reorderSource"), target = document.getElementById("reorderTarget");
+            source.innerHTML = ""; target.innerHTML = "";
+            paragraphs.forEach((txt,idx) => {
+              if (order.includes(idx)) return;
+              const el=document.createElement("div"); el.className="pte-reorder-item"; el.textContent=txt; el.onclick=()=>{order.push(idx);selected=idx;draw();sync();}; source.appendChild(el);
+            });
+            order.forEach(idx => {
+              const el=document.createElement("div"); el.className="pte-reorder-item"+(selected===idx?" selected":""); el.textContent=paragraphs[idx]; el.onclick=()=>{selected=idx;draw();}; target.appendChild(el);
+            });
+          };
+          document.getElementById("reorderUp").onclick=()=>{const p=order.indexOf(selected);if(p>0){[order[p-1],order[p]]=[order[p],order[p-1]];draw();sync();}};
+          document.getElementById("reorderDown").onclick=()=>{const p=order.indexOf(selected);if(p>=0&&p<order.length-1){[order[p+1],order[p]]=[order[p],order[p+1]];draw();sync();}};
+          document.getElementById("reorderBack").onclick=()=>{const p=order.indexOf(selected);if(p>=0){order.splice(p,1);selected=null;draw();sync();}};
+          draw();
         }
         setNextButtonDisabled(false);
       }
