@@ -334,9 +334,14 @@ body{padding:0;background:var(--paper);color:#34383d}.admin-head{height:58px;bac
           body:JSON.stringify({})
         });
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Sınav oluşturulamadı.");
+        if (!response.ok) {
+          if (Array.isArray(data.missingTaskTypes) && data.missingTaskTypes.length) {
+            throw new Error("Tam sınav oluşturmak için soru bankasında eksik görev türleri var: " + data.missingTaskTypes.join(", "));
+          }
+          throw new Error(data.error || "Sınav oluşturulamadı.");
+        }
         result.innerHTML = '<div class="result-box">Yeni tek kullanımlık sınav kodu: <strong>' +
-          escapeHtml(data.examCode || "-") + '</strong><span>' + Number(data.questionCount || 0) + ' soru</span></div>';
+          escapeHtml(data.examCode || "-") + '</strong><span>' + Number(data.questionCount || 0) + ' görev türü</span></div>';
         await loadExams();
       } catch (error) {
         result.innerHTML = '<div class="result-box error-box">' + escapeHtml(error.message || "Server bağlantı hatası") + '</div>';
