@@ -469,6 +469,12 @@
           <textarea id="correctAnswers" placeholder="One correct answer per line"></textarea>
         </div>
 
+        <div id="hiwSelectorWrap" class="hidden">
+          <label>Incorrect Word Positions</label>
+          <div id="hiwSelector" style="line-height:2.3; padding:12px; border:1px solid #d1d5db; border-radius:8px; background:#fff;"></div>
+          <small style="color:#6b7280;">Metni girdikten sonra yanlış kelimelere tıkla. Aynı kelime birden fazla geçse bile doğru konum kaydedilir.</small>
+        </div>
+
         <div class="button-row">
           <button id="saveBtn" class="btn btn-success" onclick="saveQuestion()">Soruyu Kaydet</button>
           <button id="updateBtn" class="btn btn-warning hidden" onclick="updateQuestion()">Soruyu Güncelle</button>
@@ -674,6 +680,40 @@
       document.getElementById("statusBox").innerHTML = "";
     }
 
+    function renderHiwSelector() {
+      const wrap = document.getElementById("hiwSelectorWrap");
+      const box = document.getElementById("hiwSelector");
+      const text = document.getElementById("textContent").value || "";
+      if (!wrap || !box) return;
+
+      const selected = new Set((document.getElementById("correctAnswers").value || "")
+        .split(/\r?\n/).map(v => v.trim()).filter(v => /^\d+$/.test(v)));
+
+      box.innerHTML = "";
+      let wordIndex = 0;
+      text.split(/(\s+)/).forEach(token => {
+        if (/^\s+$/.test(token)) {
+          box.appendChild(document.createTextNode(token));
+          return;
+        }
+        if (!token) return;
+        const key = String(wordIndex++);
+        const span = document.createElement("span");
+        span.textContent = token;
+        span.dataset.index = key;
+        span.style.cursor = "pointer";
+        span.style.padding = "3px 4px";
+        span.style.borderRadius = "4px";
+        if (selected.has(key)) span.style.background = "#f4df62";
+        span.onclick = () => {
+          if (selected.has(key)) selected.delete(key); else selected.add(key);
+          document.getElementById("correctAnswers").value = [...selected].sort((a,b)=>Number(a)-Number(b)).join("\n");
+          renderHiwSelector();
+        };
+        box.appendChild(span);
+      });
+    }
+
     function toggleFields() {
       const type = document.getElementById("type").value;
       const subType = document.getElementById("subType").value;
@@ -692,6 +732,7 @@
       const answerKeyWrap = document.getElementById("answerKeyWrap");
       const correctAnswerWrap = document.getElementById("correctAnswerWrap");
       const correctAnswersWrap = document.getElementById("correctAnswersWrap");
+      const hiwSelectorWrap = document.getElementById("hiwSelectorWrap");
 
       generalTimeWrap.classList.toggle("hidden", type === "reading" || type === "listening");
       speakingTimeWrap.classList.add("hidden");
@@ -705,6 +746,7 @@
       answerKeyWrap.classList.add("hidden");
       correctAnswerWrap.classList.add("hidden");
       correctAnswersWrap.classList.add("hidden");
+      hiwSelectorWrap.classList.add("hidden");
 
       if (type === "speaking") {
         generalTimeWrap.classList.add("hidden");
@@ -878,7 +920,9 @@
 
         if (subType === "highlight_incorrect_words") {
           textContentWrap.classList.remove("hidden");
-          correctAnswersWrap.classList.remove("hidden");
+          correctAnswersWrap.classList.add("hidden");
+          hiwSelectorWrap.classList.remove("hidden");
+          renderHiwSelector();
         }
 
         if (subType === "write_from_dictation") {
@@ -980,7 +1024,8 @@
         const record = Number(question.recordTime || 40);
         return `P:${prepare}s / R:${record}s`;
       }
-      return `${question.time || 60}s`;
+      if (question.type === "reading" || question.type === "listening") return "Section";
+      return `${question.time ?? 60}s`;
     }
 
     function renderQuestionList() {
@@ -1604,6 +1649,9 @@
     document.getElementById("type").addEventListener("change", handleTypeChange);
     document.getElementById("subType").addEventListener("change", handleSubTypeChange);
     document.getElementById("evaluationType").addEventListener("change", toggleFields);
+    document.getElementById("textContent").addEventListener("input", function () {
+      if (document.getElementById("subType").value === "highlight_incorrect_words") renderHiwSelector();
+    });
 
 
     function exportQuestionsToExcel() {
