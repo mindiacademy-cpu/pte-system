@@ -326,9 +326,11 @@
       const traits = d.traits && typeof d.traits === "object"
         ? d.traits
         : { content:d.content, pronunciation:d.pronunciation, oralFluency:d.oralFluency };
-      const rows = Object.entries(traits).filter(([,v]) => v !== undefined && v !== null);
+      const rows = Object.entries(traits).filter(([,v]) => v !== undefined);
       if (!rows.length) return "";
-      return `<div class="question-block"><div class="label">Practice Scoring Traits</div><pre>${rows.map(([k,v]) => `${formatTraitName(k)}: ${v}`).join("\n")}${d.wordCount != null ? `\nWord Count: ${d.wordCount}` : ""}</pre></div>`;
+      const rendered = rows.map(([k,v]) => `${formatTraitName(k)}: ${v === null ? "Not assessed" : v}`).join("\n");
+      const note = d.scoringNote ? `\n${d.scoringNote}` : "";
+      return `<div class="question-block"><div class="label">Practice Scoring Traits</div><pre>${rendered}${d.wordCount != null ? `\nWord Count: ${d.wordCount}` : ""}${note}</pre></div>`;
     }
 
     function formatFinishedAt(value) {
