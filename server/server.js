@@ -221,13 +221,17 @@ function scoreDictation(userAnswer, correctAnswer, maxScore = 10) {
   const user = normalizeText(userAnswer).split(" ").filter(Boolean);
   const correct = normalizeText(correctAnswer).split(" ").filter(Boolean);
   if (!correct.length) return 0;
-  let matches = 0;
-  const remaining = [...user];
-  for (const word of correct) {
-    const idx = remaining.indexOf(word);
-    if (idx >= 0) { matches++; remaining.splice(idx, 1); }
+
+  // Longest common subsequence: credits correctly spelled words while preserving sentence order.
+  const dp = Array.from({ length: correct.length + 1 }, () => Array(user.length + 1).fill(0));
+  for (let i = 1; i <= correct.length; i++) {
+    for (let j = 1; j <= user.length; j++) {
+      dp[i][j] = correct[i - 1] === user[j - 1]
+        ? dp[i - 1][j - 1] + 1
+        : Math.max(dp[i - 1][j], dp[i][j - 1]);
+    }
   }
-  return Math.round((matches / correct.length) * maxScore * 100) / 100;
+  return Math.round((dp[correct.length][user.length] / correct.length) * maxScore * 100) / 100;
 }
 
 function calculateAutoScore(question, submittedAnswer) {
