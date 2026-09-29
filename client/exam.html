@@ -2418,13 +2418,21 @@
       }
     }
 
+    let examSubmissionInProgress = false;
+
     function finishExam(skipConfirm = false) {
+      if (examSubmissionInProgress) return;
       if (!skipConfirm) {
         const ok = confirm("Are you sure you want to finish the exam?");
         if (!ok) return;
       }
 
       saveCurrentAnswer();
+      examSubmissionInProgress = true;
+      const finishButton = document.getElementById("finishBtn");
+      const nextButton = document.getElementById("nextBtn");
+      if (finishButton) finishButton.disabled = true;
+      if (nextButton) nextButton.disabled = true;
       clearSpeakingTimers();
       stopVoiceAnimation();
       stopMicCheckAnimation();
@@ -2483,7 +2491,11 @@
         })
         .catch(error => {
           console.error("SAVE EXAM ERROR:", error);
-          alert(error.message || "Exam could not be submitted.");
+          examSubmissionInProgress = false;
+          if (finishButton) finishButton.disabled = false;
+          updateFinishButton();
+          if (nextButton) nextButton.disabled = false;
+          alert(error.message || "Exam could not be submitted. Your saved responses are still on this device; please try again.");
         });
     }
 
