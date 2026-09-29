@@ -1266,6 +1266,17 @@
       return answers.find(item => item.questionId === questionId);
     }
 
+    function persistTextResponse(element, expectedSubType = null) {
+      const q = questions[currentQuestionIndex];
+      if (!q || !element) return;
+      if (expectedSubType && q.subType !== expectedSubType) return;
+      const payload = { questionId:q.id, type:q.type, subType:q.subType, title:q.title, prompt:q.prompt, answer:element.value.trim() };
+      const index = answers.findIndex(item => item.questionId === q.id);
+      if (index >= 0) answers[index] = payload; else answers.push(payload);
+      localStorage.setItem("examAnswers", JSON.stringify(answers));
+      updateSavedCount();
+    }
+
     function updateWordCount() {
       const writingBox = document.getElementById("writingAnswer");
       const wordCountBox = document.getElementById("wordCount");
@@ -2635,7 +2646,14 @@
       }
 
       const writingBox = document.getElementById("writingAnswer");
-      if (writingBox) writingBox.addEventListener("input", updateWordCount);
+      if (writingBox) writingBox.addEventListener("input", () => {
+        updateWordCount();
+        persistTextResponse(writingBox);
+      });
+      const listeningTextBox = document.getElementById("listeningTextAnswer");
+      if (listeningTextBox) listeningTextBox.addEventListener("input", () => persistTextResponse(listeningTextBox, "write_from_dictation"));
+      const listeningLongBox = document.getElementById("listeningAnswer");
+      if (listeningLongBox) listeningLongBox.addEventListener("input", () => persistTextResponse(listeningLongBox, "summarize_spoken_text"));
       loadQuestions();
     });
 
