@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PTE Admin Login</title>
+<style>
+*{box-sizing:border-box}
+:root{--ink:#111827;--muted:#667085;--line:#e7e5e4;--paper:#fbfaf8;--navy:#18233f;--pearson:#6b1f7b;--mindi:#bfefff}
+html,body{min-height:100%}
+body{margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--paper);color:var(--ink)}
+.topbar{height:78px;background:#fff;border-bottom:1px solid var(--line);padding:0 32px}
+.topbar-inner{width:100%;max-width:1180px;height:100%;margin:auto;display:flex;align-items:center;gap:18px}
+.brand-logo{height:34px;width:auto;display:block}.brand-divider{width:1px;height:30px;background:#dedbd7}.brand{font-size:17px;font-weight:700;color:var(--navy)}
+.accent{height:5px;background:linear-gradient(90deg,var(--pearson) 0 50%,var(--mindi) 50% 100%)}
+.stage{min-height:calc(100vh - 83px);display:flex;align-items:center;justify-content:center;padding:48px 20px}
+.login-box{width:100%;max-width:430px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:34px}
+.eyebrow{font-size:11px;font-weight:750;letter-spacing:1.1px;text-transform:uppercase;color:var(--pearson);margin-bottom:10px}
+h1{margin:0 0 8px;color:var(--navy);font-size:28px;letter-spacing:-.5px}
+.subtitle{margin:0 0 26px;color:var(--muted);font-size:14px;line-height:1.55}
+label{display:block;margin:0 0 7px;color:#4b5563;font-size:12px;font-weight:700}
+input{width:100%;height:44px;padding:0 13px;margin:0 0 17px;border:1px solid #d7d4d0;border-radius:8px;background:#fff;color:var(--ink);font-size:14px;outline:none}
+input:focus{border-color:var(--pearson);box-shadow:0 0 0 2px rgba(107,31,123,.08)}
+button{width:100%;height:44px;margin-top:4px;border:0;border-radius:10px;background:var(--navy);color:#fff;font-size:14px;font-weight:700;cursor:pointer}
+button:hover{background:#253252}.error{min-height:18px;color:#a13b3b;margin-top:12px;font-size:13px}
+#authFrame{display:none}
+@media(max-width:600px){.topbar{padding:0 18px}.brand-logo{height:28px}.brand-divider{display:none}.brand{font-size:14px}.login-box{padding:26px 22px}}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="topbar-inner"><img src="/mylogo.png" class="brand-logo" alt="MİNDİ Academy"><span class="brand-divider"></span><div class="brand">PTE Practice · Admin Portal</div></div></div>
+<div class="accent"></div>
+<main class="stage">
+  <section class="login-box">
+    <div class="eyebrow">MİNDİ Academy · PTE Practice</div>
+    <h1>Admin Login</h1>
+    <p class="subtitle">Sign in to access the PTE Practice administration workspace.</p>
+    <label for="username">Username</label>
+    <input id="username" autocomplete="username" placeholder="Admin Username">
+    <label for="password">Password</label>
+    <input id="password" type="password" autocomplete="current-password" placeholder="Admin Password">
+    <button type="button" id="loginBtn">Login</button>
+    <div id="error" class="error"></div>
+  </section>
+</main>
+<iframe id="authFrame" src="/admin-login-legacy"></iframe>
+<script>
+const frame=document.getElementById("authFrame");
+const error=document.getElementById("error");
+function submitLogin(){
+  error.textContent="";
+  const doc=frame.contentDocument;
+  if(!doc){error.textContent="Login service is loading. Please try again.";return;}
+  const u=doc.getElementById("username"),p=doc.getElementById("password"),b=doc.querySelector("button");
+  if(!u||!p||!b){error.textContent="Login service is unavailable.";return;}
+  u.value=document.getElementById("username").value;
+  p.value=document.getElementById("password").value;
+  b.click();
+  setTimeout(()=>{
+    if(localStorage.getItem("adminLogged")==="true"){window.location.href="/admin-index.html";}
+    else error.textContent="Wrong username or password";
+  },120);
+}
+document.getElementById("loginBtn").addEventListener("click",submitLogin);
+document.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();submitLogin();}});
+frame.addEventListener("load",()=>{if(localStorage.getItem("adminLogged")==="true") window.location.href="/admin-index.html";});
+</script>
+</body>
+</html>
