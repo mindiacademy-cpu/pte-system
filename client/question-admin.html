@@ -363,7 +363,40 @@
     @media(max-width:700px){body:before{font-size:16px}.container{padding:22px 16px}.card{padding:18px}}
   </style>
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-</head>
+<style>
+/* Primary Section / Task Type selectors */
+#type,#subType{
+  height:46px;
+  padding:0 44px 0 14px;
+  border:1px solid #9aa5aa;
+  border-radius:4px;
+  background-color:#fff;
+  color:#30363a;
+  font-size:14px;
+  font-weight:600;
+  line-height:46px;
+  cursor:pointer;
+  appearance:none;
+  -webkit-appearance:none;
+  background-image:
+    linear-gradient(45deg,transparent 50%,#4f5b60 50%),
+    linear-gradient(135deg,#4f5b60 50%,transparent 50%),
+    linear-gradient(to left,#eef1f1,#eef1f1);
+  background-position:
+    calc(100% - 19px) 20px,
+    calc(100% - 14px) 20px,
+    100% 0;
+  background-size:5px 5px,5px 5px,38px 100%;
+  background-repeat:no-repeat;
+}
+#type:hover,#subType:hover{border-color:#087f8c}
+#type:focus,#subType:focus{
+  border-color:#087f8c;
+  box-shadow:0 0 0 2px rgba(8,127,140,.14);
+  outline:none;
+}
+#type + *,#subType + *{margin-top:6px}
+</style></head>
 
 <body>
 
