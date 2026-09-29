@@ -1500,7 +1500,18 @@
     }
 
     function bindListeningAudioBehavior(player) {
-      const fill = document.getElementById("listeningTrackFill");\n      const state = document.getElementById("listeningAudioState");\n      if (fill) fill.style.width = "0%";\n      if (state) state.innerText = "Audio will play automatically once.";\n      player.ontimeupdate = () => { if (fill && player.duration) fill.style.width = Math.min(100, (player.currentTime / player.duration) * 100) + "%"; if (state && !player.paused && !player.ended) state.innerText = "Playing"; };\n      player.onended = () => {\n        if (fill) fill.style.width = "100%";\n        if (state) state.innerText = "Completed";
+      const fill = document.getElementById("listeningTrackFill");\n      const state = document.getElementById("listeningAudioState");\n      if (fill) fill.style.width = "0%";\n      if (state) state.innerText = "Audio will play automatically once.";\n      player.ontimeupdate = () => { if (fill && player.duration) fill.style.width = Math.min(100, (player.currentTime / player.duration) * 100) + "%"; if (state && !player.paused && !player.ended) { state.innerText = "Playing"; state.onclick = null; state.style.cursor = ""; } };
+      player.onplay = () => { if (state) { state.innerText = "Playing"; state.onclick = null; state.style.cursor = ""; } };
+      player.play().catch(() => {
+        if (state) {
+          state.innerText = "Audio ready — tap here to play once";
+          state.style.cursor = "pointer";
+          state.onclick = () => {
+            state.onclick = null; state.style.cursor = "";
+            player.play().catch(() => { state.innerText = "Audio could not be played. Check browser audio permissions."; });
+          };
+        }
+      });\n      player.onended = () => {\n        if (fill) fill.style.width = "100%";\n        if (state) state.innerText = "Completed";
         listeningAudioEnded = true;
         setNextButtonDisabled(false);
 
@@ -1707,7 +1718,19 @@
         };
         audio.onended = done;
         audio.onerror = done;
-        audio.play().catch(done);
+        audio.play().catch(() => {
+          if (state) state.innerText = "Audio ready — tap here to play";
+          if (state) {
+            state.style.cursor = "pointer";
+            state.onclick = () => {
+              state.onclick = null;
+              state.style.cursor = "";
+              audio.play().catch(() => {
+                state.innerText = "Audio could not be played. Please check browser audio permissions.";
+              });
+            };
+          }
+        });
       });
     }
 
