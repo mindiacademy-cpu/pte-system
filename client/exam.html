@@ -1151,6 +1151,34 @@
       nextQuestion(true);
     }
 
+    function getWritingTimerKey(questionId) {
+      return `writingTimeLeft:${questionId}`;
+    }
+
+    function getListeningSstTimerKey(questionId) {
+      return `listeningSstTimeLeft:${questionId}`;
+    }
+
+    function startItemCountdown(q, seconds, label, storageKey) {
+      const timerBox = document.getElementById("timer");
+      const saved = Number(localStorage.getItem(storageKey));
+      let timeLeft = saved > 0 ? saved : seconds;
+      setTimerLabel(label);
+      timerBox.innerText = formatTime(timeLeft);
+      localStorage.setItem(storageKey, String(timeLeft));
+
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        localStorage.setItem(storageKey, String(Math.max(0, timeLeft)));
+        timerBox.innerText = formatTime(Math.max(0, timeLeft));
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          localStorage.removeItem(storageKey);
+          nextQuestion(true);
+        }
+      }, 1000);
+    }
+
     function startTimer() {
       clearInterval(timerInterval);
 
@@ -1196,8 +1224,20 @@
         return;
       }
 
-      // Reading is the only fixed section countdown configured for this practice form.
-      // Writing/Listening must not silently fall back to a fabricated 60-second item timer.
+      if (q.type === "writing") {
+        const seconds = q.subType === "summarize_written_text" ? 600 : (q.subType === "essay" ? 1200 : 0);
+        if (seconds > 0) {
+          startItemCountdown(q, seconds, q.subType === "essay" ? "Write Essay Time Remaining" : "Summarize Written Text Time Remaining", getWritingTimerKey(q.id));
+          return;
+        }
+      }
+
+      if (q.type === "listening" && q.subType === "summarize_spoken_text") {
+        startItemCountdown(q, 600, "Summarize Spoken Text Time Remaining", getListeningSstTimerKey(q.id));
+        return;
+      }
+
+      // Other Listening items remain governed by the Listening part rather than a fabricated per-item countdown.
       setTimerLabel(q.type === "listening" ? "Listening" : "Section Timing");
       timerBox.innerText = "--:--";
     }
