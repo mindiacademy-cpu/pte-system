@@ -512,7 +512,7 @@ h1{max-width:1080px;margin:0 auto 22px;text-align:left;color:#333;font-size:22px
       return `
     <html>
     <head>
-      <title>PTE Academic Practice Score Report</title>
+      <title>PTE Academic Score Report</title>
       <style>
         * { box-sizing: border-box; }
         body {
@@ -858,15 +858,34 @@ h1{max-width:1080px;margin:0 auto 22px;text-align:left;color:#333;font-size:22px
           text-align: right;
         }
       </style>
-    </head>
+    <style>
+/* Professional score report print refinements */
+@media print{body{padding:0!important}.report-wrap{max-width:none!important}.top-header{break-inside:avoid}.score-summary{break-inside:avoid}.candidate-grid{break-inside:avoid}}
+.top-header{align-items:flex-start!important;border-bottom:2px solid #087f8c!important;padding-bottom:18px!important;margin-bottom:24px!important}
+.brand-title{font-size:30px!important;color:#252b31!important;letter-spacing:-.4px}
+.brand-subtitle{font-size:12px!important;color:#6b7075!important;letter-spacing:.15px}
+.report-logo{width:92px!important;margin-bottom:24px!important}
+.right-logo{max-width:150px!important;height:auto}
+.generated-text{margin-top:22px!important;color:#6b7075!important;font-size:11px!important}
+.section-title{font-size:16px!important;color:#30363a!important;border-bottom:1px solid #e0e2e2;padding-bottom:7px}
+.info-box{border-radius:3px!important;background:#fff!important;border-color:#d9dddd!important;padding:11px 13px!important}
+.info-label{color:#687176!important;font-size:9px!important;letter-spacing:.65px!important}
+.score-summary{background:#f2f7f7!important;border:1px solid #c9dddd!important;border-left:5px solid #087f8c!important;border-radius:3px!important;padding:20px!important}
+.overall-label{color:#087f8c!important}.overall-score{color:#222a2e!important;font-size:44px!important}
+.module-box{background:#fff!important;border:1px solid #d8e1e1!important;border-radius:3px!important}
+.module-name{color:#626b70!important}.module-score{color:#222a2e!important}
+.evaluation-title{color:#30363a!important}.skill-evaluation-box{border-radius:3px!important;border-color:#d9dddd!important}
+.priority-table th{background:#eef2f2!important}.conclusion-box{border-top-color:#087f8c!important}
+.footer{color:#7b8185!important;text-align:left!important;font-size:10px!important}
+</style></head>
     <body>
       <div class="report-wrap">
       <div class="top-header">
   
   <div class="left-header">
     <img src="/logo.png" class="report-logo">
-    <div class="brand-title">PTE Academic Practice</div>
-    <div class="brand-subtitle">Practice Score Report · Not an official Pearson score report</div>
+    <div class="brand-title">PTE Academic Score Report</div>
+    <div class="brand-subtitle">MİNDİ Academy · Practice Assessment Report</div>
   </div>
 
   <div class="right-header">
@@ -919,12 +938,12 @@ h1{max-width:1080px;margin:0 auto 22px;text-align:left;color:#333;font-size:22px
 
 </div>
 
-<div class="section-title">Practice Score Summary</div>
+<div class="section-title">Score Summary</div>
 
         <div class="score-summary">
           <div class="overall-row">
             <div class="overall-left">
-              <div class="overall-label">PTE Academic Practice Score</div>
+              <div class="overall-label">Overall Score</div>
               <div class="overall-score">${overall}</div>
               <div class="overall-note">Practice estimate — not an official Pearson score. Speaking pronunciation and oral fluency are not inferred from transcript text.</div>
             </div>
@@ -1083,7 +1102,7 @@ h1{max-width:1080px;margin:0 auto 22px;text-align:left;color:#333;font-size:22px
         ? `${candidateName}_${candidateSurname}`
         : candidateName;
 
-      const fileName = `PTE_PRACTICE_SCORE_REPORT_${fullName}`;
+      const fileName = `PTE_ACADEMIC_SCORE_REPORT_${fullName}`;
 
       let html = buildPdfHtml(exam);
 
