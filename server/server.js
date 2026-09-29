@@ -738,8 +738,11 @@ async function scoreWritingWithAI({ question, responseText, maxScore }) {
     return { score:0, feedback:"Essay form requirement not met.", traits:{ form:0 }, wordCount };
   }
   if (subType === "summarize_spoken_text") {
-    // Current Pearson guidance targets a 50–70 word summary. Do not invent an
-    // unpublished hard-zero range here; let the form trait handle length.
+    const allCaps = /[A-Z]/.test(text) && !/[a-z]/.test(text);
+    const hasPunctuation = /[.!?,;:]/.test(text);
+    if (wordCount < 40 || wordCount > 100 || allCaps || !hasPunctuation) {
+      return { score:0, feedback:"Summarize Spoken Text form requirement not met.", traits:{ form:0 }, wordCount };
+    }
   }
 
   const traitSpec = subType === "essay"
@@ -757,7 +760,7 @@ Candidate response: ${text}
 Word count: ${wordCount}
 Traits and maxima: ${traitSpec}
 
-Important: Content 0 means the whole response receives zero. Apply only publicly documented form rules. For Summarize Written Text, it must be one complete sentence and 5-75 words. For Essay, 200-300 words earns full form credit; 120-199 or 301-380 is reduced form credit; below 120 or above 380 receives zero for the task. For Summarize Spoken Text, the published target is 50-70 words; score its form trait according to the current public guide and do not invent additional hard-zero thresholds.
+Important: Content 0 means the whole response receives zero. Apply only publicly documented form rules. For Summarize Written Text, it must be one complete sentence and 5-75 words. For Essay, 200-300 words earns full form credit; 120-199 or 301-380 is reduced form credit; below 120 or above 380 receives zero for the task. For Summarize Spoken Text, 50-70 words earns full form credit; fewer than 40 or more than 100 words receives zero for the task. Apply the published form bands between those limits.
 Return ONLY JSON: {"traits":{},"feedback":""}`
   });
   const parsed=safeJsonParse(ai.output_text||"")||{};
