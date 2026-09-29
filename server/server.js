@@ -938,7 +938,11 @@ app.post("/questions", (req, res) => {
       });
     }
 
-    const newQuestion = normalizeQuestion({
+    if (!OFFICIAL_PTE_SUBTYPES.has(String(req.body.subType || ""))) {
+      return res.status(400).json({ error: "Unsupported PTE Academic task type." });
+    }
+
+    const newQuestion = migrateQuestionForCurrentPte({
       id: Date.now().toString(),
       type: req.body.type,
       subType: req.body.subType,
@@ -987,7 +991,12 @@ app.put("/questions/:id", (req, res) => {
       return res.status(404).json({ error: "Question not found." });
     }
 
-    const updatedQuestion = normalizeQuestion({
+    const requestedSubType = String(req.body.subType || questions[index].subType || "");
+    if (!OFFICIAL_PTE_SUBTYPES.has(requestedSubType)) {
+      return res.status(400).json({ error: "Unsupported PTE Academic task type." });
+    }
+
+    const updatedQuestion = migrateQuestionForCurrentPte({
       ...questions[index],
       ...req.body,
       id
