@@ -19,7 +19,7 @@
       const match = String(question.title || '').trim().match(/(\d+)$/);
       if (match && Number.isSafeInteger(Number(match[1]))) highest = Math.max(highest,Number(match[1]));
     }
-    return section+'-'+task+(highest+1);
+    return section+'-'+task+'-'+(highest+1);
   }
   const api = {nextTitle};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
