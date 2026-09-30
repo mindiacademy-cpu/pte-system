@@ -1417,7 +1417,9 @@
       const finishBtn = document.getElementById("finishBtn");
       if (!finishBtn) return;
 
-      finishBtn.disabled = currentQuestionIndex !== questions.length - 1;
+      const currentQuestion = questions[currentQuestionIndex];
+      const listeningStillPlaying = currentQuestion?.type === "listening" && !listeningAudioEnded;
+      finishBtn.disabled = currentQuestionIndex !== questions.length - 1 || listeningStillPlaying;
     }
 
     function getReadingSectionTotalTime() {
@@ -1849,11 +1851,14 @@
       const consoleBox = document.getElementById("listeningAudioConsole");
       const fill = document.getElementById("listeningTrackFill");
       const state = document.getElementById("listeningAudioState");
+      let lastPlaybackTime = 0;
+      let recoveryAttempts = 0;
+      let recoveryInProgress = false;
 
       if (consoleBox) consoleBox.classList.remove("hidden");
       if (fill) fill.style.width = "0%";
 
-      const setState = (text, clickable = false) => {
+      const setState = (text, clickable = false, clickHandler = null) => {
         if (!state) return;
         state.innerText = text;
         state.disabled = !clickable;
@@ -1862,27 +1867,92 @@
           state.disabled = true;
           state.classList.remove("can-play");
           state.innerText = "Starting audio…";
-          player.play().catch(() => {
-            setState("Audio could not start — tap to try again", true);
-          });
+          if (clickHandler) {
+            clickHandler();
+          } else {
+            player.play().catch(() => {
+              setState("Audio could not start — tap to try again", true);
+            });
+          }
         } : null;
+      };
+
+      const playAudio = () => {
+        player.play().catch(() => {
+          setState("Tap here to continue the audio", true, playAudio);
+        });
+      };
+
+      const recoverAudio = () => {
+        if (recoveryInProgress) return;
+
+        if (recoveryAttempts >= 3) {
+          setState("Audio was interrupted — tap to continue", true, () => {
+            recoveryAttempts = 0;
+            recoverAudio();
+          });
+          return;
+        }
+
+        recoveryInProgress = true;
+        recoveryAttempts++;
+        const resumeAt = Math.max(0, lastPlaybackTime - 0.25);
+
+        const resume = () => {
+          try {
+            if (Number.isFinite(player.duration) && resumeAt < player.duration) {
+              player.currentTime = resumeAt;
+            }
+          } catch (error) {
+            console.warn("Listening audio seek failed:", error);
+          }
+
+          recoveryInProgress = false;
+          playAudio();
+        };
+
+        if (player.readyState >= 2) {
+          resume();
+        } else {
+          player.addEventListener("canplay", resume, { once: true });
+          player.load();
+          setTimeout(() => {
+            if (recoveryInProgress) {
+              recoveryInProgress = false;
+              setState("Audio was interrupted — tap to continue", true, recoverAudio);
+            }
+          }, 5000);
+        }
       };
 
       setState("Audio is loading…");
 
       player.ontimeupdate = () => {
+        if (Number.isFinite(player.currentTime)) lastPlaybackTime = player.currentTime;
         if (fill && Number.isFinite(player.duration) && player.duration > 0) {
           fill.style.width = Math.min(100, (player.currentTime / player.duration) * 100) + "%";
         }
       };
 
-      player.onplay = () => setState("Playing");
+      player.onplay = () => {
+        recoveryInProgress = false;
+        setState("Playing");
+      };
       player.onwaiting = () => setState("Loading audio…");
       player.onended = () => {
+        const endedPrematurely = Number.isFinite(player.duration) &&
+          player.duration > 0 && player.currentTime < player.duration - 0.75;
+
+        if (endedPrematurely) {
+          recoverAudio();
+          return;
+        }
+
         if (fill) fill.style.width = "100%";
         setState("Completed");
         listeningAudioEnded = true;
         setNextButtonDisabled(false);
+        updateFinishButton();
 
         if (pendingListeningAutoNext) {
           pendingListeningAutoNext = false;
@@ -1891,15 +1961,15 @@
       };
 
       player.onerror = () => {
-        setState("Audio could not be loaded. You can continue to the next question.");
-        listeningAudioEnded = true;
-        setNextButtonDisabled(false);
+        listeningAudioEnded = false;
+        setNextButtonDisabled(true);
+        updateFinishButton();
+        setState("Audio connection was interrupted. Reconnecting…");
+        recoverAudio();
       };
 
       const tryAutoplay = () => {
-        player.play().catch(() => {
-          setState("Tap here to play the audio", true);
-        });
+        playAudio();
       };
 
       if (player.readyState >= 2) {
@@ -2813,6 +2883,8 @@
 
     function finishExam(skipConfirm = false, skipCurrentAnswerSave = false) {
       if (examSubmissionInProgress) return;
+      const activeQuestion = questions[currentQuestionIndex];
+      if (!skipConfirm && activeQuestion?.type === "listening" && !listeningAudioEnded) return;
       if (!skipConfirm) {
         const ok = confirm("Are you sure you want to finish the exam?");
         if (!ok) return;
