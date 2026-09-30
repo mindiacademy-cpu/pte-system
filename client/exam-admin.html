@@ -361,7 +361,7 @@ body{padding-top:104px!important}
       <div>
         <div class="eyebrow">MİNDİ Academy · PTE Practice</div>
         <h1>Exam Code Administration</h1>
-        <p>22 görev türünden 65 farklı soru otomatik seçilir. Eksik ses, görsel veya cevap anahtarı bulunan sorular kullanılmaz. Yeterli soru yoksa eksik adetler gösterilir. Bölüm üst sınırları: 84 / 30 / 39 dakika.</p>
+        <p>Her görev türünden rastgele 1 soru seçilir: Speaking 7, Writing 2, Reading 5, Listening 8 — toplam 22 soru. Eksik ses, görsel veya cevap anahtarı bulunan sorular kullanılmaz. Yeterli soru yoksa eksik adetler gösterilir. Bölüm üst sınırları: 84 / 30 / 39 dakika.</p>
       </div>
       <button id="generateBtn" class="btn btn-success generate-btn" onclick="createExam()">Yeni Sınav Kodu Oluştur</button>
     </div>
@@ -391,15 +391,15 @@ body{padding-top:104px!important}
         const data = await response.json();
         if (!response.ok) {
           if (Array.isArray(data.shortages)) {
-            throw new Error("65 soruluk tam sınav için eksik soru sayıları (ses/görsel/cevap anahtarı eksik sorular sayılmaz): " + data.shortages.map(s => `${s.taskType}: ${s.available}/${s.required} hazır, ${s.missing} eksik`).join("; "));
+            throw new Error("22 soruluk kompakt sınav için eksik soru sayıları (ses/görsel/cevap anahtarı eksik sorular sayılmaz): " + data.shortages.map(s => `${s.taskType}: ${s.available}/${s.required} hazır, ${s.missing} eksik`).join("; "));
           }
           if (Array.isArray(data.missingTaskTypes) && data.missingTaskTypes.length) {
-            throw new Error("Tam sınav oluşturmak için soru bankasında eksik görev türleri var: " + data.missingTaskTypes.join(", "));
+            throw new Error("Kompakt sınav oluşturmak için soru bankasında eksik görev türleri var: " + data.missingTaskTypes.join(", "));
           }
           throw new Error(data.error || "Sınav oluşturulamadı.");
         }
         result.innerHTML = '<div class="result-box">Yeni tek kullanımlık sınav kodu: <strong>' +
-          escapeHtml(data.examCode || "-") + '</strong><span>' + Number(data.questionCount || 0) + ' soru · Tam sınav</span></div>';
+          escapeHtml(data.examCode || "-") + '</strong><span>' + Number(data.questionCount || 0) + ' soru · Kompakt sınav</span></div>';
         await loadExams();
       } catch (error) {
         result.innerHTML = '<div class="result-box error-box">' + escapeHtml(error.message || "Server bağlantı hatası") + '</div>';

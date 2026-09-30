@@ -1198,16 +1198,16 @@ app.delete("/questions/:id", (req, res) => {
   }
 });
 
-// Pearson's July 2025 enhanced-test research report: typical 65-item form.
-const FULL_EXAM_COUNTS = {
-  read_aloud:6, repeat_sentence:10, describe_image:5, re_tell_lecture:2,
-  answer_short_question:5, summarize_group_discussion:2, respond_to_a_situation:2,
-  summarize_written_text:2, essay:1,
-  reading_writing_fill_blanks:5, reading_mcq_multiple:2, reorder_paragraphs:2,
-  reading_fill_blanks:4, reading_mcq_single:2,
-  summarize_spoken_text:1, listening_mcq_multiple:2, listening_fill_blanks:2,
-  highlight_correct_summary:2, listening_mcq_single:2, select_missing_word:1,
-  highlight_incorrect_words:2, write_from_dictation:3
+// Compact practice form: one ready question from each supported task type.
+const EXAM_TASK_COUNTS = {
+  read_aloud:1, repeat_sentence:1, describe_image:1, re_tell_lecture:1,
+  answer_short_question:1, summarize_group_discussion:1, respond_to_a_situation:1,
+  summarize_written_text:1, essay:1,
+  reading_writing_fill_blanks:1, reading_mcq_multiple:1, reorder_paragraphs:1,
+  reading_fill_blanks:1, reading_mcq_single:1,
+  summarize_spoken_text:1, listening_mcq_multiple:1, listening_fill_blanks:1,
+  highlight_correct_summary:1, listening_mcq_single:1, select_missing_word:1,
+  highlight_incorrect_words:1, write_from_dictation:1
 };
 
 function isExamReady(q) {
@@ -1227,7 +1227,7 @@ function isExamReady(q) {
   return true;
 }
 
-function selectFullExam(questions) {
+function selectCompactExam(questions) {
   const grouped = new Map();
   const seen = new Set();
   questions.filter(isExamReady).forEach(q => {
@@ -1237,12 +1237,12 @@ function selectFullExam(questions) {
     if (!grouped.has(q.subType)) grouped.set(q.subType, []);
     grouped.get(q.subType).push(q);
   });
-  const shortages = Object.entries(FULL_EXAM_COUNTS).flatMap(([taskType, required]) => {
+  const shortages = Object.entries(EXAM_TASK_COUNTS).flatMap(([taskType, required]) => {
     const available = grouped.get(taskType)?.length || 0;
     return available < required ? [{taskType,required,available,missing:required-available}] : [];
   });
   if (shortages.length) return {shortages, questions:[]};
-  const chosen = Object.entries(FULL_EXAM_COUNTS).flatMap(([taskType,count]) => {
+  const chosen = Object.entries(EXAM_TASK_COUNTS).flatMap(([taskType,count]) => {
     const pool = [...grouped.get(taskType)];
     for (let i=pool.length-1;i>0;i--) {
       const j=Math.floor(Math.random()*(i+1));
@@ -1275,15 +1275,15 @@ app.post("/create-exam", async (req, res) => {
       highlight_incorrect_words:21, write_from_dictation:22
     };
 
-    const selection = selectFullExam(allQuestions);
+    const selection = selectCompactExam(allQuestions);
     if (selection.shortages.length) {
       return res.status(400).json({
-        error: "Not enough distinct, complete questions for a 65-question full exam.",
+        error: "A complete question is required for each of the 22 task types.",
         shortages: selection.shortages
       });
     }
 
-    // Select distinct questions in full-exam proportions and retain task order.
+    // Randomly select one ready question per task type and retain task order.
     const examQuestions = selection.questions.sort((a, b) => {
       const sectionDiff = (sectionOrder[String(a.type || "").toLowerCase()] || 999) -
         (sectionOrder[String(b.type || "").toLowerCase()] || 999);
@@ -1291,7 +1291,7 @@ app.post("/create-exam", async (req, res) => {
     });
 
     const examCode = "EX" + Math.floor(100000 + Math.random() * 900000);
-    const title = "PTE Practice Exam";
+    const title = "PTE Compact Practice Exam";
 
     const { error } = await supabase.from("exams").insert([{
       exam_code: examCode,
