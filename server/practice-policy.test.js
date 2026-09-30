@@ -69,3 +69,39 @@ test('deadlines include elapsed time after tab suspension', () => {
   now += 20000;
   assert.equal(vm.runInContext(`secondsRemaining(${deadline})`,clock),0);
 });
+
+test('imported set retains all 66 tasks and excludes the 36 missing recordings', () => {
+  const seed = JSON.parse(fs.readFileSync(__dirname+'/seeds/set01.json','utf8'));
+  assert.equal(seed.length,66);
+  assert.equal(new Set(seed.map(q=>q.id)).size,66);
+  context.importedSet = seed;
+  assert.equal(run('importedSet.map(normalizeQuestion).filter(isExamReady).length'),30);
+  for (const q of seed) {
+    if (q.blankOptions?.length) {
+      assert.equal(q.blankOptions.length,q.correctAnswers.length);
+      q.correctAnswers.forEach((answer,i)=>assert.ok(q.blankOptions[i].includes(answer)));
+    }
+    if (q.incorrectWordIndexes?.length) {
+      const words=q.textContent.split(/\s+/);
+      assert.deepEqual(q.incorrectWordIndexes.map(i=>words[i]),q.id.endsWith('1')?['five','two']:['open','replacement.']);
+    }
+    if(q.type==='listening' && !['listening_fill_blanks','highlight_incorrect_words'].includes(q.subType)) assert.equal(q.textContent,'');
+  }
+});
+
+test('seed installation preserves existing questions and is repeatable', () => {
+  const os = require('node:os');
+  const path = require('node:path');
+  const {installQuestionSeeds}=require('./question-seeds');
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'pte-seed-test-'));
+  const file=path.join(dir,'questions.json');
+  try {
+    fs.writeFileSync(file,JSON.stringify([{id:'original',title:'Existing question',prompt:'Keep me'},{id:'admin-edited',title:'Set 01 · RA1',textContent:'Custom text'}]));
+    const installed=installQuestionSeeds(file);
+    assert.equal(installed.length,67);
+    assert.deepEqual(installed[0],{id:'original',title:'Existing question',prompt:'Keep me'});
+    assert.equal(installed[1].textContent,'Custom text');
+    assert.equal(installed[1].id,'admin-edited');
+    assert.deepEqual(installQuestionSeeds(file),installed);
+  } finally {fs.rmSync(dir,{recursive:true,force:true});}
+});

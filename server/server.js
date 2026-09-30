@@ -281,6 +281,7 @@ function ensureFile(filePath, defaultValue) {
 ensureFile(QUESTIONS_FILE, []);
 ensureFile(EXAMS_FILE, []);
 ensureFile(EXAM_RESULTS_FILE, []);
+require('./question-seeds').installQuestionSeeds(QUESTIONS_FILE);
 
 function readJson(filePath) {
   try {
@@ -332,6 +333,8 @@ function normalizeQuestion(q) {
     textContent: q.textContent || "",
 
     options: Array.isArray(q.options) ? q.options : [],
+    blankOptions: Array.isArray(q.blankOptions) ? q.blankOptions : [],
+    audioScript: q.audioScript || "",
 
     evaluationType: q.evaluationType || "keywords",
     keywords: q.keywords || "",
@@ -1090,6 +1093,9 @@ app.post("/questions", (req, res) => {
       textContent: req.body.textContent,
 
       options: req.body.options,
+      blankOptions: req.body.blankOptions,
+      audioScript: req.body.audioScript,
+      incorrectWordIndexes: req.body.incorrectWordIndexes,
 
       evaluationType: req.body.evaluationType,
       keywords: req.body.keywords,

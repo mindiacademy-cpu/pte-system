@@ -2779,7 +2779,7 @@
             if(index<parts.length-1){
               const select=document.createElement("select"); select.className="fill-dropdown"; select.dataset.index=index;
               const blank=document.createElement("option"); blank.value=""; blank.textContent=""; select.appendChild(blank);
-              (q.options||[]).forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;if(existingAnswers[index]===v)o.selected=true;select.appendChild(o);});
+              (q.blankOptions?.[index] || q.options || []).forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;if(existingAnswers[index]===v)o.selected=true;select.appendChild(o);});
               select.onchange=()=>{
                 const values=Array.from(wrap.querySelectorAll(".fill-dropdown")).map(el=>el.value);
                 const payload={questionId:q.id,type:q.type,subType:q.subType,title:q.title,prompt:q.prompt,answer:values};
