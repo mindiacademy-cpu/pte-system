@@ -1,12 +1,12 @@
 (function (root) {
   const sections = {speaking:'S',writing:'W',reading:'R',listening:'L'};
   const tasks = {
-    read_aloud:'RA',repeat_sentence:'RS',describe_image:'DI',re_tell_lecture:'RL',
+    read_aloud:'RA',repeat_sentence:'RS',describe_image:'DI',re_tell_lecture:'RTL',
     answer_short_question:'ASQ',summarize_group_discussion:'SGD',respond_to_a_situation:'RTS',
-    summarize_written_text:'SWT',essay:'WE',reading_writing_fill_blanks:'FIBD',
-    reading_mcq_multiple:'MCMA',reorder_paragraphs:'RP',reading_fill_blanks:'FIB',
+    summarize_written_text:'SWT',essay:'WE',reading_writing_fill_blanks:'RWFIB',
+    reading_mcq_multiple:'MCMA',reorder_paragraphs:'RP',reading_fill_blanks:'RFIB',
     reading_mcq_single:'MCSA',summarize_spoken_text:'SST',listening_mcq_multiple:'MCMA',
-    listening_fill_blanks:'FIB',highlight_correct_summary:'HCS',listening_mcq_single:'MCSA',
+    listening_fill_blanks:'LFIB',highlight_correct_summary:'HCS',listening_mcq_single:'MCSA',
     select_missing_word:'SMW',highlight_incorrect_words:'HIW',write_from_dictation:'WFD'
   };
   function nextTitle(bank, type, subType) {
