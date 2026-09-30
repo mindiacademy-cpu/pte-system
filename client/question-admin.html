@@ -436,6 +436,20 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
 .question-type{background:var(--portal-navy)!important}
 @media(max-width:700px){body{padding:100px 14px 40px!important}body:before{padding:0 18px!important;font-size:14px!important}}
 </style>
+<style id="question-table-header-fix">
+/* Keep every Question Bank column label visible on the dark header. */
+.q-head > div,
+.q-head .q-title,
+.q-head .q-id,
+.q-head .q-type,
+.q-head .q-subtype,
+.q-head .q-time{
+  color:#fff!important;
+  opacity:1!important;
+  visibility:visible!important;
+}
+.q-head .q-title{font-weight:700!important;}
+</style>
 <style id="final-portal-fixes">
 /* Final portal filter treatment */
 .toolbar{background:#fff!important;border:0!important;box-shadow:none!important;padding:0!important}
