@@ -509,6 +509,33 @@
       cursor: default;
     }
 
+    .incorrect-words-transcript {
+      margin-top: 12px;
+      padding: 16px;
+      border: 1px solid #c4c9cd;
+      background: #fff;
+      font-size: 16px;
+      line-height: 2.15;
+    }
+
+    .incorrect-word {
+      display: inline;
+      padding: 3px 2px;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: background-color .15s ease, box-shadow .15s ease;
+    }
+
+    .incorrect-word:hover {
+      background: #e8f4f5;
+      box-shadow: 0 0 0 1px #7eb6bc;
+    }
+
+    .incorrect-word.selected {
+      background: #f4df62;
+      box-shadow: 0 0 0 1px #c7a924;
+    }
+
     .button-row {
       display: flex;
       justify-content: center;
@@ -2772,7 +2799,8 @@
         if (
           q.textContent &&
           q.subType !== "write_from_dictation" &&
-          q.subType !== "listening_fill_blanks"
+          q.subType !== "listening_fill_blanks" &&
+          q.subType !== "highlight_incorrect_words"
         ) {
           taskContent.classList.remove("hidden");
           taskContent.innerText = q.textContent;
@@ -2806,15 +2834,18 @@
           Array.from(wrap.children).forEach(el=>{ if(el!==nativeBox) el.remove(); });
           if(nativeBox) nativeBox.classList.add("hidden");
           const selected=new Set(Array.isArray(existing?.answer)?existing.answer.map(String):[]);
+          const transcript=document.createElement("div");
+          transcript.className="incorrect-words-transcript dynamic-listening-content";
           let visibleWordIndex=0;
           (q.textContent||"").split(/(\s+)/).forEach(token=>{
-            if(/^\s+$/.test(token)){wrap.appendChild(document.createTextNode(token));return;}
+            if(/^\s+$/.test(token)){transcript.appendChild(document.createTextNode(token));return;}
             const key=String(visibleWordIndex++);
-            const s=document.createElement("span");s.textContent=token;s.dataset.wordIndex=key;s.style.cursor="pointer";s.style.padding="2px";
-            if(selected.has(key))s.style.background="#f4df62";
-            s.onclick=()=>{if(selected.has(key)){selected.delete(key);s.style.background="";}else{selected.add(key);s.style.background="#f4df62";} const payload={questionId:q.id,type:q.type,subType:q.subType,title:q.title,prompt:q.prompt,answer:[...selected]};const ai=answers.findIndex(x=>x.questionId===q.id);if(ai>=0)answers[ai]=payload;else answers.push(payload);localStorage.setItem("examAnswers",JSON.stringify(answers));};
-            wrap.appendChild(s);
+            const s=document.createElement("span");s.textContent=token;s.dataset.wordIndex=key;s.className="incorrect-word";
+            if(selected.has(key))s.classList.add("selected");
+            s.onclick=()=>{if(selected.has(key)){selected.delete(key);s.classList.remove("selected");}else{selected.add(key);s.classList.add("selected");} const payload={questionId:q.id,type:q.type,subType:q.subType,title:q.title,prompt:q.prompt,answer:[...selected]};const ai=answers.findIndex(x=>x.questionId===q.id);if(ai>=0)answers[ai]=payload;else answers.push(payload);localStorage.setItem("examAnswers",JSON.stringify(answers));};
+            transcript.appendChild(s);
           });
+          wrap.appendChild(transcript);
         }
         else if (q.subType === "write_from_dictation") {
           document.getElementById("listeningTextInputWrap").classList.remove("hidden");
@@ -3147,6 +3178,13 @@
 
         questions = questionsData.filter(q => {
           const sub = (q.subType || "").toLowerCase();
+
+          // A listening question cannot be answered without its recording.
+          // Keep incomplete questions in the question bank, but do not include
+          // them in an active exam until an audio file has been uploaded.
+          if (q.type === "listening" && !(q.audioUrl || "").trim()) {
+            return false;
+          }
 
           // bozuk reorder sorusunu alma
           if (sub === "reorder_paragraphs" || sub === "reorder paragraphs") {
