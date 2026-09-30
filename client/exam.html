@@ -1327,6 +1327,10 @@
 
     let listeningAudioEnded = true;
     let pendingListeningAutoNext = false;
+    let pendingListeningSectionEnd = false;
+    let listeningSectionStartIndex = null;
+    let listeningSectionEndIndex = null;
+    let listeningSectionTimeLeft = null;
 
     const candidateName = localStorage.getItem("candidateName") || "";
     const candidateSurname = localStorage.getItem("candidateSurname") || "";
@@ -1413,6 +1417,18 @@
       return { start, end };
     }
 
+    function getListeningSectionBounds(index) {
+      if (!questions[index] || questions[index].type !== "listening") return null;
+
+      let start = index;
+      let end = index;
+
+      while (start > 0 && questions[start - 1].type === "listening") start--;
+      while (end < questions.length - 1 && questions[end + 1].type === "listening") end++;
+
+      return { start, end };
+    }
+
     function updateFinishButton() {
       const finishBtn = document.getElementById("finishBtn");
       if (!finishBtn) return;
@@ -1427,8 +1443,19 @@
       return saved > 0 ? saved : 30 * 60;
     }
 
+    function getListeningSectionTotalTime() {
+      const saved = Number(localStorage.getItem("listeningSectionDurationSeconds"));
+      return saved > 0 ? saved : 39 * 60;
+    }
+
     function persistReadingTime() {
       if (readingSectionTimeLeft !== null) localStorage.setItem("readingSectionTimeLeft", String(readingSectionTimeLeft));
+    }
+
+    function persistListeningTime() {
+      if (listeningSectionTimeLeft !== null) {
+        localStorage.setItem("listeningSectionTimeLeft", String(listeningSectionTimeLeft));
+      }
     }
 
     function goToAfterReadingSection() {
@@ -1452,11 +1479,13 @@
       }
 
       if (q.type === "listening") {
+        listeningSectionTimeLeft = 0;
+        localStorage.removeItem("listeningSectionTimeLeft");
         if (!listeningAudioEnded) {
-          pendingListeningAutoNext = true;
+          pendingListeningSectionEnd = true;
           return;
         }
-        nextQuestion(true);
+        finishExam(true);
         return;
       }
 
@@ -1544,8 +1573,39 @@
         }
       }
 
-      // Listening items, including Summarize Spoken Text, do not have a published
-      // per-item countdown in current PTE Academic. Keep them under the Listening part.
+      if (q.type === "listening") {
+        const bounds = getListeningSectionBounds(currentQuestionIndex);
+        if (!bounds) return;
+
+        const isNewListeningSection =
+          listeningSectionStartIndex !== bounds.start ||
+          listeningSectionEndIndex !== bounds.end ||
+          listeningSectionTimeLeft === null;
+
+        if (isNewListeningSection) {
+          listeningSectionStartIndex = bounds.start;
+          listeningSectionEndIndex = bounds.end;
+          const savedListening = Number(localStorage.getItem("listeningSectionTimeLeft"));
+          listeningSectionTimeLeft = savedListening > 0
+            ? savedListening
+            : getListeningSectionTotalTime();
+        }
+
+        setTimerLabel("Listening Time Remaining");
+        timerBox.innerText = formatTime(listeningSectionTimeLeft);
+
+        timerInterval = setInterval(() => {
+          listeningSectionTimeLeft--;
+          persistListeningTime();
+          timerBox.innerText = formatTime(Math.max(0, listeningSectionTimeLeft));
+
+          if (listeningSectionTimeLeft <= 0) {
+            clearInterval(timerInterval);
+            handleTimerExpiry();
+          }
+        }, 1000);
+        return;
+      }
 
       setTimerLabel(q.type === "listening" ? "Listening" : "Section Timing");
       timerBox.innerText = "--:--";
@@ -1957,6 +2017,11 @@
         if (pendingListeningAutoNext) {
           pendingListeningAutoNext = false;
           nextQuestion(true);
+        }
+
+        if (pendingListeningSectionEnd) {
+          pendingListeningSectionEnd = false;
+          finishExam(true);
         }
       };
 
@@ -2858,6 +2923,7 @@
       clearInterval(timerInterval);
 
       if (q && q.type === "reading") persistReadingTime();
+      if (q && q.type === "listening") persistListeningTime();
       if (q && q.type !== "reading") {
         readingSectionStartIndex = null;
         readingSectionEndIndex = null;
