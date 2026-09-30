@@ -1100,7 +1100,7 @@ if (type === "listening") {
 
       container.innerHTML = `
        <div class="q-row q-head">
-         <div>ID</div>
+         <div>No.</div>
          <div>Section</div>
          <div>Task Type</div>
          <div>Title</div>
@@ -1110,12 +1110,12 @@ if (type === "listening") {
        </div>
      `;
 
-      filteredQuestions.slice().reverse().forEach((question) => {
+      filteredQuestions.slice().reverse().forEach((question, index) => {
         const row = document.createElement("div");
         row.className = "q-row";
 
         row.innerHTML = `
-         <div class="q-id">${question.id}</div>
+         <div class="q-id">${index + 1}</div>
          <div class="q-type">${question.type || "-"}</div>
          <div class="q-subtype">${getTaskLabel(question.subType)}</div>
          <div class="q-title" title="${(question.title || "").replace(/"/g, "&quot;")}">${question.title || "-"}</div>
