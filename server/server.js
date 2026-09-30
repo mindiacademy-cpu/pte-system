@@ -7,6 +7,7 @@ const multer = require("multer");
 const OpenAI = require("openai");
 const { Resend } = require("resend");
 const { assessSpeakingAudio } = require("./speaking-scoring");
+const { nextTitle } = require('../client/question-naming');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -1065,9 +1066,9 @@ app.post("/upload-image", upload.single("image"), (req, res) => {
 
 app.post("/questions", (req, res) => {
   try {
-    if (!req.body.type || !req.body.title) {
+    if (!req.body.type) {
       return res.status(400).json({
-        error: "Type and title are required."
+        error: "Type is required."
       });
     }
 
@@ -1076,11 +1077,15 @@ app.post("/questions", (req, res) => {
       return res.status(400).json({ error: "PTE task type does not match its section." });
     }
 
+    const questions = readJson(QUESTIONS_FILE);
+    const title = req.body.autoTitle === true || !String(req.body.title || '').trim()
+      ? nextTitle(questions,req.body.type,req.body.subType)
+      : req.body.title;
     const newQuestion = migrateQuestionForCurrentPte({
       id: Date.now().toString(),
       type: req.body.type,
       subType: req.body.subType,
-      title: req.body.title,
+      title,
       prompt: req.body.prompt,
       points: req.body.points,
 
@@ -1106,7 +1111,6 @@ app.post("/questions", (req, res) => {
       answer: req.body.answer
     });
 
-    const questions = readJson(QUESTIONS_FILE);
     questions.push(newQuestion);
     writeJson(QUESTIONS_FILE, questions);
 

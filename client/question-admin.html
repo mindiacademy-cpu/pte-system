@@ -500,7 +500,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
         <div class="row">
           <div>
             <label for="title">Question Title</label>
-            <input id="title" placeholder="Örn: Describe Image 1">
+            <input id="title" readonly aria-describedby="titleHelp" placeholder="Otomatik oluşturulur">
+            <small id="titleHelp">Bölüm + soru türü + sıra numarası. Başlık kaydederken otomatik belirlenir.</small>
           </div>
           <div>
             <small style="color:#6b7280; display:block; margin-top:6px;">
@@ -649,9 +650,17 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
     </div>
   </div>
 
+  <script src="/question-naming.js"></script>
   <script>
     let questions = [];
     let editingQuestionId = null;
+
+    function updateAutomaticTitle() {
+      if (editingQuestionId) return;
+      document.getElementById('title').value = PteQuestionNaming.nextTitle(
+        questions,document.getElementById('type').value,document.getElementById('subType').value
+      );
+    }
 
     const subtypeMap = {
       speaking: [
@@ -998,6 +1007,7 @@ if (type === "listening") {
 
       applySubtypeDefaults();
       toggleFields();
+      updateAutomaticTitle();
     }
 
     function handleSubTypeChange() {
@@ -1005,6 +1015,7 @@ if (type === "listening") {
 
       applySubtypeDefaults();
       toggleFields();
+      updateAutomaticTitle();
     }
 
     function resetForm() {
@@ -1037,6 +1048,7 @@ if (type === "listening") {
 
       clearStatus();
       toggleFields();
+      updateAutomaticTitle();
     }
 
     function getFilteredQuestions() {
@@ -1111,6 +1123,7 @@ if (type === "listening") {
         const response = await fetch("/questions");
         questions = await response.json();
         renderQuestionList();
+        updateAutomaticTitle();
       } catch (error) {
         alert("Sorular yüklenemedi.");
         console.error(error);
@@ -1336,6 +1349,7 @@ if (type === "listening") {
         type,
         subType,
         title,
+        autoTitle: !editingQuestionId,
         prompt,
         time,
         prepareTime: type === "speaking" ? prepareTime : 0,
