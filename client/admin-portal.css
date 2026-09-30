@@ -156,9 +156,17 @@ select option { color: var(--portal-ink); background: #fff; }
   background-size: 12px 8px !important;
 }
 .question-admin-page .question-list { border-color: var(--portal-line) !important; border-radius: 12px !important; }
-.question-admin-page .q-head { background: var(--portal-navy) !important; }
 .question-admin-page .q-row { background: #fff !important; border-bottom-color: var(--portal-line) !important; }
 .question-admin-page .q-row:hover { background: #f8f6fb !important; }
+/* Header must override the generic .q-row background because the header has both classes. */
+.question-admin-page .q-row.q-head,
+.question-admin-page .q-row.q-head:hover { background: var(--portal-navy) !important; }
+.question-admin-page .q-row.q-head > div,
+.question-admin-page .q-row.q-head .q-id,
+.question-admin-page .q-row.q-head .q-type,
+.question-admin-page .q-row.q-head .q-subtype,
+.question-admin-page .q-row.q-head .q-title,
+.question-admin-page .q-row.q-head .q-time { color:#fff !important; opacity:1 !important; }
 .question-admin-page .hint-box { background: #f5eef7 !important; color: #4d3152 !important; border: 1px solid #eadced !important; border-radius: 10px !important; }
 .question-admin-page .status-box { background: var(--portal-blue-soft) !important; color: var(--portal-navy) !important; border: 1px solid #d9f4fb !important; border-radius: 10px !important; }
 .question-admin-page #hiwSelector { background: #fff !important; border-radius: 10px !important; }
