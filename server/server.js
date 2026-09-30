@@ -60,7 +60,7 @@ const EXAM_RESULTS_FILE = path.join(__dirname, "exam-results.json");
 // Practice-only communicative-skill mapping for the 22 supported PTE task types.
 // These weights are internal approximations and are not Pearson's proprietary scoring weights.
 const SKILL_WEIGHTS = {
-  read_aloud: { speaking: 0.7, reading: 0.3 },
+  read_aloud: { speaking: 1.0 },
   repeat_sentence: { speaking: 0.7, listening: 0.3 },
   describe_image: { speaking: 1.0 },
   re_tell_lecture: { speaking: 0.7, listening: 0.3 },
@@ -143,8 +143,8 @@ function scoreByKeywords(text, keywords, maxScore = 10) {
   return Math.round((matched / keywordList.length) * maxScore * 100) / 100;
 }
 function scoreMultipleChoice(userAnswers, correctAnswers, maxScore = 10) {
-  const user = normalizeArrayForCompare(userAnswers, "line", false);
-  const correct = normalizeArrayForCompare(correctAnswers, "line", false);
+  const user = [...new Set(normalizeArrayForCompare(userAnswers, "line", false))];
+  const correct = [...new Set(normalizeArrayForCompare(correctAnswers, "line", false))];
 
   if (!correct.length) return 0;
 
@@ -197,6 +197,7 @@ function scoreArrayAnswers(userAnswers, correctAnswers, maxScore = 10, splitMode
 }
 
 function getCorrectArray(question, splitMode = "line") {
+  if (question.subType === "highlight_incorrect_words" && question.incorrectWordIndexes?.length) return question.incorrectWordIndexes.map(String);
   if (Array.isArray(question.correctAnswers) && question.correctAnswers.length) return question.correctAnswers;
   if (Array.isArray(question.answer) && question.answer.length) return question.answer;
   return toAnswerArray(question.answerKey || question.correctAnswer || question.answer || "", splitMode).filter(Boolean);
@@ -349,6 +350,7 @@ function normalizeQuestion(q) {
     correctAnswers: Array.isArray(q.correctAnswers)
       ? q.correctAnswers
       : toAnswerArray(q.correctAnswers || "", "line").filter(Boolean),
+    incorrectWordIndexes: Array.isArray(q.incorrectWordIndexes) ? q.incorrectWordIndexes : [],
 
     answer: q.answer || q.answerKey || ""
   };
@@ -782,10 +784,10 @@ Return ONLY JSON: {"traits":{},"feedback":""}`
   return {score:Math.round((earned/possible)*maxScore*100)/100,feedback:parsed.feedback||"",traits,wordCount};
 }
 
-async function enrichAnswersWithScores(answers) {
+async function enrichAnswersWithScores(answers, assignedQuestions) {
   const safeAnswers = Array.isArray(answers) ? answers : [];
 
-  const questions = readJson(QUESTIONS_FILE).map(normalizeQuestion);
+  const questions = assignedQuestions.map(normalizeQuestion);
   const questionMap = new Map(
     questions.map(q => [String(q.id), q])
   );
@@ -801,7 +803,9 @@ async function enrichAnswersWithScores(answers) {
     let aiDetails = null;
     let transcript = answer.transcript || "";
 
-    if (answer.type === "speaking") {
+    if (!String(answer.answer || answer.transcript || answer.speakingAudio || "").trim()) {
+      autoScore = 0;
+    } else if (answer.type === "speaking") {
       if (!transcript && answer.speakingAudio) transcript = await transcribeAudioFromUrl(answer.speakingAudio);
       const aiScore = await scoreSpeakingWithAI({ question, transcript, maxScore });
       autoScore = aiScore.score; aiFeedback = aiScore.feedback; aiDetails = aiScore;
@@ -928,6 +932,8 @@ app.post("/admin/generate-question-audio", async (req, res) => {
 
     const targets = questions.filter(q =>
       audioTaskTypes.has(String(q.subType || "")) &&
+      // These tasks require an authored recording with gaps, mismatches or a beep.
+      !["highlight_incorrect_words","select_missing_word","listening_fill_blanks"].includes(q.subType) &&
       !String(q.audioUrl || "").trim() &&
       String(q.textContent || "").trim()
     );
@@ -1104,6 +1110,61 @@ app.delete("/questions/:id", (req, res) => {
   }
 });
 
+// Pearson's July 2025 enhanced-test research report: typical 65-item form.
+const FULL_EXAM_COUNTS = {
+  read_aloud:6, repeat_sentence:10, describe_image:5, re_tell_lecture:2,
+  answer_short_question:5, summarize_group_discussion:2, respond_to_a_situation:2,
+  summarize_written_text:2, essay:1,
+  reading_writing_fill_blanks:5, reading_mcq_multiple:2, reorder_paragraphs:2,
+  reading_fill_blanks:4, reading_mcq_single:2,
+  summarize_spoken_text:1, listening_mcq_multiple:2, listening_fill_blanks:2,
+  highlight_correct_summary:2, listening_mcq_single:2, select_missing_word:1,
+  highlight_incorrect_words:2, write_from_dictation:3
+};
+
+function isExamReady(q) {
+  if (!q.prompt || !q.textContent && !q.audioUrl && !q.imageUrl) return false;
+  if (q.type === "listening" || ["repeat_sentence","re_tell_lecture","answer_short_question","summarize_group_discussion","respond_to_a_situation"].includes(q.subType)) {
+    if (!String(q.audioUrl || "").trim()) return false;
+  }
+  if (q.subType === "describe_image" && !q.imageUrl) return false;
+  if (["reading_mcq_single","listening_mcq_single","highlight_correct_summary","select_missing_word"].includes(q.subType)) return q.options.length > 1 && !!q.correctAnswer;
+  if (["reading_mcq_multiple","listening_mcq_multiple"].includes(q.subType)) return q.options.length > 1 && getCorrectArray(q).length > 0;
+  if (["reading_fill_blanks","reading_writing_fill_blanks","listening_fill_blanks"].includes(q.subType)) {
+    const blanks = (q.textContent.match(/_______/g) || []).length;
+    return blanks > 0 && getCorrectArray(q).length === blanks;
+  }
+  if (q.subType === "highlight_incorrect_words") return !!q.textContent && getCorrectArray(q).length > 0;
+  if (["reorder_paragraphs","write_from_dictation"].includes(q.subType)) return !!(q.answerKey || q.answer);
+  return true;
+}
+
+function selectFullExam(questions) {
+  const grouped = new Map();
+  const seen = new Set();
+  questions.filter(isExamReady).forEach(q => {
+    const key = JSON.stringify([q.subType,q.textContent,q.audioUrl,q.imageUrl,q.options]);
+    if (seen.has(key)) return;
+    seen.add(key);
+    if (!grouped.has(q.subType)) grouped.set(q.subType, []);
+    grouped.get(q.subType).push(q);
+  });
+  const shortages = Object.entries(FULL_EXAM_COUNTS).flatMap(([taskType, required]) => {
+    const available = grouped.get(taskType)?.length || 0;
+    return available < required ? [{taskType,required,available,missing:required-available}] : [];
+  });
+  if (shortages.length) return {shortages, questions:[]};
+  const chosen = Object.entries(FULL_EXAM_COUNTS).flatMap(([taskType,count]) => {
+    const pool = [...grouped.get(taskType)];
+    for (let i=pool.length-1;i>0;i--) {
+      const j=Math.floor(Math.random()*(i+1));
+      [pool[i],pool[j]]=[pool[j],pool[i]];
+    }
+    return pool.slice(0,count);
+  });
+  return {shortages:[], questions:chosen};
+}
+
 app.post("/create-exam", async (req, res) => {
   try {
     const allQuestions = readJson(QUESTIONS_FILE)
@@ -1126,28 +1187,16 @@ app.post("/create-exam", async (req, res) => {
       highlight_incorrect_words:21, write_from_dictation:22
     };
 
-    const grouped = new Map();
-    allQuestions.forEach(q => {
-      const key = q.subType;
-      if (!grouped.has(key)) grouped.set(key, []);
-      grouped.get(key).push(q);
-    });
-
-    const requiredTaskTypes = [...OFFICIAL_PTE_SUBTYPES];
-    const missingTaskTypes = requiredTaskTypes.filter(taskType => !grouped.has(taskType));
-    if (missingTaskTypes.length) {
+    const selection = selectFullExam(allQuestions);
+    if (selection.shortages.length) {
       return res.status(400).json({
-        error: "A complete practice exam cannot be created because the question bank is missing task types.",
-        missingTaskTypes
+        error: "Not enough distinct, complete questions for a 65-question full exam.",
+        shortages: selection.shortages
       });
     }
 
-    // Build automatically: one randomly selected item from every current PTE
-    // task type, then keep the established PTE part/task order.
-    const examQuestions = requiredTaskTypes.map(taskType => {
-      const pool = grouped.get(taskType);
-      return pool[Math.floor(Math.random() * pool.length)];
-    }).sort((a, b) => {
+    // Select distinct questions in full-exam proportions and retain task order.
+    const examQuestions = selection.questions.sort((a, b) => {
       const sectionDiff = (sectionOrder[String(a.type || "").toLowerCase()] || 999) -
         (sectionOrder[String(b.type || "").toLowerCase()] || 999);
       return sectionDiff || (taskOrder[a.subType] || 999) - (taskOrder[b.subType] || 999);
@@ -1322,7 +1371,18 @@ app.post("/save-exam", async (req, res) => {
       return res.json({ success: true, alreadySaved: true });
     }
 
-    const scoredAnswers = await enrichAnswersWithScores(body.answers);
+    const { data: assignedExam, error: assignedError } = await supabase
+      .from("exams").select("questions").eq("exam_code", examCode).single();
+    if (assignedError || !Array.isArray(assignedExam?.questions)) {
+      return res.status(400).json({ error: "Assigned exam could not be found." });
+    }
+    const submitted = new Map((Array.isArray(body.answers) ? body.answers : []).map(a => [String(a.questionId), a]));
+    const completeAnswers = assignedExam.questions.map(q => ({
+      ...(submitted.get(String(q.id)) || {}),
+      questionId: q.id, type: q.type, subType: q.subType, title: q.title, prompt: q.prompt,
+      answer: submitted.get(String(q.id))?.answer ?? ""
+    }));
+    const scoredAnswers = await enrichAnswersWithScores(completeAnswers, assignedExam.questions);
     const calculatedSummary = buildSummary(scoredAnswers);
 
     let detailedEvaluation = await generateDetailedEvaluation(
@@ -1589,4 +1649,3 @@ app.post("/transcribe-speaking", upload.single("audio"), async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
-

@@ -996,6 +996,7 @@
         <div class="timer" id="timer">30:00</div>
       </div>
       <div class="question-counter-top" id="topQuestionCounter">1 of 1 | Part 1</div>
+      <div class="question-counter-top hidden" id="partOneRemaining"></div>
     </div>
 
     <div id="loadingArea" class="empty">Sorular yükleniyor...</div>
@@ -1006,6 +1007,9 @@
         This exam contains Speaking, Writing, Reading and Listening sections.
         Click the button below when you are ready to start.
       </p>
+      <p id="examOverview"></p>
+      <p>Speaking &amp; Writing: up to 84 minutes. Reading: 30 minutes. Listening: 39 minutes, including audio playback. Maximum section time: 153 minutes.</p>
+      <p>Summarize Written Text: 10 minutes each. Essay: 20 minutes. Summarize Spoken Text: 10 minutes including the recording, within the Listening allowance. No breaks; you cannot return to previous questions.</p>
       <button class="start-exam-btn" onclick="startExam()">Start Exam</button>
     </div>
 
@@ -1220,6 +1224,55 @@
     let time = 1800;
 
     let timerInterval = null;
+    let partOneInterval = null;
+    let pendingPartOneAdvance = null;
+
+    function countdownDeadline(key, seconds) {
+      const existing = Number(localStorage.getItem(key));
+      if (existing > 0) return existing;
+      const deadline = Date.now() + seconds * 1000;
+      localStorage.setItem(key, String(deadline));
+      return deadline;
+    }
+
+    function secondsRemaining(deadline) {
+      return Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+    }
+
+    function startPartOneTimer() {
+      clearInterval(partOneInterval);
+      const q = questions[currentQuestionIndex];
+      const box = document.getElementById("partOneRemaining");
+      if (!q || !["speaking","writing"].includes(q.type)) {
+        box.classList.add("hidden");
+        return;
+      }
+      const deadline = countdownDeadline("partOneDeadline", 84 * 60);
+      box.classList.remove("hidden");
+      const tick = () => {
+        const left = secondsRemaining(deadline);
+        box.textContent = "Part 1: " + formatTime(left);
+        if (left > 0) return;
+        clearInterval(partOneInterval);
+        const advance = () => {
+          saveCurrentAnswer();
+          clearSpeakingTimers();
+          clearInterval(timerInterval);
+          const index = questions.findIndex(item => item.type === "reading" || item.type === "listening");
+          if (index < 0) return finishExam(true);
+          currentQuestionIndex = index;
+          localStorage.setItem("currentQuestionIndex", String(index));
+          box.classList.add("hidden");
+          showSectionBriefing(questions[index]);
+        };
+        if (q.type === "speaking" && mediaRecorder && speakingProcessing) {
+          pendingPartOneAdvance = advance;
+          if (mediaRecorder.state !== "inactive") stopRecording();
+        } else advance();
+      };
+      partOneInterval = setInterval(tick, 1000);
+      tick();
+    }
 
     let questions = [];
     let currentQuestionIndex = 0;
@@ -1501,7 +1554,8 @@
     function goToAfterReadingSection() {
       if (readingSectionEndIndex !== null && readingSectionEndIndex < questions.length - 1) {
         currentQuestionIndex = readingSectionEndIndex + 1;
-        renderQuestion();
+        localStorage.setItem("currentQuestionIndex", String(currentQuestionIndex));
+        showSectionBriefing(questions[currentQuestionIndex]);
       } else {
         finishExam(true);
       }
@@ -1512,6 +1566,7 @@
       if (!q) return;
 
       if (q.type === "reading") {
+        saveCurrentAnswer();
         readingSectionTimeLeft = 0;
         localStorage.removeItem("readingSectionTimeLeft");
         goToAfterReadingSection();
@@ -1521,10 +1576,7 @@
       if (q.type === "listening") {
         listeningSectionTimeLeft = 0;
         localStorage.removeItem("listeningSectionTimeLeft");
-        if (!listeningAudioEnded) {
-          pendingListeningSectionEnd = true;
-          return;
-        }
+        document.getElementById("listeningPlayer")?.pause();
         finishExam(true);
         return;
       }
@@ -1544,12 +1596,14 @@
       const timerBox = document.getElementById("timer");
       const saved = Number(localStorage.getItem(storageKey));
       let timeLeft = saved > 0 ? saved : seconds;
+      const deadline = countdownDeadline(storageKey + ":deadline", timeLeft);
+      timeLeft = secondsRemaining(deadline);
       setTimerLabel(label);
       timerBox.innerText = formatTime(timeLeft);
       localStorage.setItem(storageKey, String(timeLeft));
 
       timerInterval = setInterval(() => {
-        timeLeft--;
+        timeLeft = secondsRemaining(deadline);
         localStorage.setItem(storageKey, String(Math.max(0, timeLeft)));
         timerBox.innerText = formatTime(Math.max(0, timeLeft));
         if (timeLeft <= 0) {
@@ -1590,10 +1644,12 @@
         }
 
         setTimerLabel("Reading Time Remaining");
+        const deadline = countdownDeadline("readingDeadline", readingSectionTimeLeft);
+        readingSectionTimeLeft = secondsRemaining(deadline);
         timerBox.innerText = formatTime(readingSectionTimeLeft);
 
         timerInterval = setInterval(() => {
-          readingSectionTimeLeft--;
+          readingSectionTimeLeft = secondsRemaining(deadline);
           persistReadingTime();
           timerBox.innerText = formatTime(readingSectionTimeLeft);
 
@@ -1632,16 +1688,25 @@
         }
 
         setTimerLabel("Listening Time Remaining");
+        const deadline = countdownDeadline("listeningDeadline", listeningSectionTimeLeft);
+        const itemDeadline = q.subType === "summarize_spoken_text"
+          ? countdownDeadline("sstDeadline:" + q.id, 600) : null;
+        listeningSectionTimeLeft = secondsRemaining(deadline);
         timerBox.innerText = formatTime(listeningSectionTimeLeft);
 
         timerInterval = setInterval(() => {
-          listeningSectionTimeLeft--;
+          listeningSectionTimeLeft = secondsRemaining(deadline);
           persistListeningTime();
-          timerBox.innerText = formatTime(Math.max(0, listeningSectionTimeLeft));
+          setTimerLabel(itemDeadline ? "Summary / Listening Remaining" : "Listening Time Remaining");
+          timerBox.innerText = (itemDeadline ? formatTime(secondsRemaining(itemDeadline)) + " / " : "") + formatTime(listeningSectionTimeLeft);
 
           if (listeningSectionTimeLeft <= 0) {
             clearInterval(timerInterval);
             handleTimerExpiry();
+          } else if (itemDeadline && secondsRemaining(itemDeadline) <= 0) {
+            clearInterval(timerInterval);
+            document.getElementById("listeningPlayer")?.pause();
+            nextQuestion(true);
           }
         }, 1000);
         return;
@@ -2230,6 +2295,13 @@
 
             saveCurrentAnswer();
 
+            if (pendingPartOneAdvance) {
+              const advance = pendingPartOneAdvance;
+              pendingPartOneAdvance = null;
+              advance();
+              return;
+            }
+
             setTimeout(() => {
               nextQuestion(true);
             }, 800);
@@ -2336,22 +2408,24 @@
     function beginSpeakingCountdown(prepareTime, recordTime) {
       if (prepareTime > 0) {
         let prepare = prepareTime;
+        const prepareDeadline = Date.now() + prepareTime * 1000;
         showPrepareStage(prepare);
 
         prepareInterval = setInterval(() => {
-          prepare--;
+          prepare = secondsRemaining(prepareDeadline);
 
           if (prepare <= 0) {
             clearInterval(prepareInterval);
 
             let record = recordTime;
+            const recordDeadline = Date.now() + recordTime * 1000;
             showRecordingStage(record);
 
             document.getElementById("stopBtn").classList.remove("hidden");
             startRecordingInternal();
 
             recordInterval = setInterval(() => {
-              record--;
+              record = secondsRemaining(recordDeadline);
               showRecordingStage(record);
 
               if (record <= 0) {
@@ -2368,13 +2442,14 @@
         }, 1000);
       } else {
         let record = recordTime;
+        const recordDeadline = Date.now() + recordTime * 1000;
         showRecordingStage(record);
 
         document.getElementById("stopBtn").classList.remove("hidden");
         startRecordingInternal();
 
         recordInterval = setInterval(() => {
-          record--;
+          record = secondsRemaining(recordDeadline);
           showRecordingStage(record);
 
           if (record <= 0) {
@@ -2862,6 +2937,7 @@
       updateSavedCount();
       updateFinishButton();
       startTimer();
+      startPartOneTimer();
     }
 
     function saveCurrentAnswer() {
@@ -2981,6 +3057,8 @@
         currentQuestionIndex++;
         const nextQ = questions[currentQuestionIndex];
         if (nextQ && !samePteSection(nextQ, q)) {
+          clearInterval(partOneInterval);
+          document.getElementById("partOneRemaining").classList.add("hidden");
           showSectionBriefing(nextQ);
         } else {
           renderQuestion();
@@ -3013,6 +3091,8 @@
       stopMicCheckAnimation();
       clearInterval(timerInterval);
       clearInterval(examSessionInterval);
+
+      clearInterval(partOneInterval);
 
       if (examMicStream) {
         examMicStream.getTracks().forEach(track => track.stop());
@@ -3101,9 +3181,9 @@
 
     function getOfficialSectionDuration(q) {
       if (!q) return "";
-      if (q.type === "speaking" || q.type === "writing") return "76–84 minutes";
-      if (q.type === "reading") return "23–30 minutes";
-      if (q.type === "listening") return "31–39 minutes";
+      if (q.type === "speaking" || q.type === "writing") return "84 minutes maximum (item limits also apply)";
+      if (q.type === "reading") return "30 minutes shared across all questions";
+      if (q.type === "listening") return "39 minutes including recordings; summary: 10 minutes within this allowance";
       return "";
     }
 
@@ -3218,6 +3298,7 @@
         });
 
         questions = Array.from(uniqueMap.values());
+        document.getElementById("examOverview").textContent = questions.length + " scored questions. Practice estimate; not an official Pearson score. Speaking content is assessed; pronunciation and fluency require audio assessment and are not scored here.";
 
         loadingArea.style.display = "none";
 
