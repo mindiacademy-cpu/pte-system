@@ -975,50 +975,77 @@ app.get("/questions", (req, res) => {
   res.json(questions.map(migrateQuestionForCurrentPte).filter(Boolean));
 });
 
+function speechPcmToWav(pcm, includeBeep = false) {
+  const sampleRate = 24000;
+  const tail = includeBeep ? Buffer.alloc(Math.round(sampleRate * 0.8) * 2) : Buffer.alloc(0);
+  if (includeBeep) {
+    for (let i = Math.round(sampleRate * 0.15); i < tail.length / 2; i++) {
+      const t = i / sampleRate;
+      const envelope = Math.min(1, (t - 0.15) / 0.015, (0.8 - t) / 0.015);
+      tail.writeInt16LE(Math.round(6000 * Math.max(0, envelope) * Math.sin(2 * Math.PI * 1000 * t)), i * 2);
+    }
+  }
+  const body = Buffer.concat([pcm, tail]);
+  const header = Buffer.alloc(44);
+  header.write("RIFF"); header.writeUInt32LE(36 + body.length, 4);
+  header.write("WAVEfmt ", 8); header.writeUInt32LE(16, 16);
+  header.writeUInt16LE(1, 20); header.writeUInt16LE(1, 22);
+  header.writeUInt32LE(sampleRate, 24); header.writeUInt32LE(sampleRate * 2, 28);
+  header.writeUInt16LE(2, 32); header.writeUInt16LE(16, 34);
+  header.write("data", 36); header.writeUInt32LE(body.length, 40);
+  return Buffer.concat([header, body]);
+}
+
+function getQuestionAudioScript(q) {
+  const authored = String(q.audioScript || "").trim();
+  // Never read the displayed gaps or incorrect transcript as the recording.
+  if (["listening_fill_blanks", "highlight_incorrect_words", "select_missing_word"].includes(q.subType)) return authored;
+  return authored || String(q.textContent || "").trim();
+}
+
 app.post("/admin/generate-question-audio", async (req, res) => {
   try {
     const questions = readJson(QUESTIONS_FILE);
     const audioTaskTypes = new Set([
       "repeat_sentence","re_tell_lecture","answer_short_question",
       "summarize_group_discussion","respond_to_a_situation",
+      "summarize_spoken_text","listening_mcq_multiple","listening_mcq_single",
       "listening_fill_blanks","highlight_correct_summary",
-      "select_missing_word","highlight_incorrect_words"
+      "select_missing_word","highlight_incorrect_words","write_from_dictation"
     ]);
-
+    const ids = Array.isArray(req.body?.questionIds) ? new Set(req.body.questionIds.map(String)) : null;
     const targets = questions.filter(q =>
       audioTaskTypes.has(String(q.subType || "")) &&
-      // These tasks require an authored recording with gaps, mismatches or a beep.
-      !["highlight_incorrect_words","select_missing_word","listening_fill_blanks"].includes(q.subType) &&
-      !String(q.audioUrl || "").trim() &&
-      String(q.textContent || "").trim()
+      (!ids || ids.has(String(q.id))) &&
+      !String(q.audioUrl || "").trim() && !!getQuestionAudioScript(q)
     );
-
-    if (!targets.length) return res.json({ success:true, generated:0 });
-
+    if (!targets.length) return res.json({ success:true, generated:0, failures:[] });
     const uploadPath = path.join(__dirname, "uploads");
     if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath, { recursive:true });
-
     let generated = 0;
     const failures = [];
     for (const q of targets) {
       try {
+        const script = getQuestionAudioScript(q);
+        const needsBeep = q.subType === "select_missing_word";
+        if (needsBeep && !/\[beep\][.!?]?\s*$/i.test(script)) throw new Error("Missing-word recording must end with [beep].");
+        const input = needsBeep ? script.replace(/\[beep\][.!?]?\s*$/i, "").trim() : script;
         const speech = await openai.audio.speech.create({
-          model: "gpt-4o-mini-tts",
-          voice: "alloy",
-          input: String(q.textContent).trim()
+          model: "gpt-4o-mini-tts", voice: "alloy", input,
+          response_format: needsBeep ? "pcm" : "mp3"
         });
-        const buffer = Buffer.from(await speech.arrayBuffer());
-        const filename = "pte-" + String(q.id).replace(/[^a-zA-Z0-9_-]/g, "") + ".mp3";
+        let buffer = Buffer.from(await speech.arrayBuffer());
+        if (needsBeep) buffer = speechPcmToWav(buffer, true);
+        const filename = "pte-" + String(q.id).replace(/[^a-zA-Z0-9_-]/g, "") + (needsBeep ? ".wav" : ".mp3");
         fs.writeFileSync(path.join(uploadPath, filename), buffer);
         q.audioUrl = "/uploads/" + filename;
         generated++;
+        writeJson(QUESTIONS_FILE, questions);
       } catch (error) {
         console.error("QUESTION AUDIO GENERATION ERROR:", q.id, error);
         failures.push({ id:q.id, title:q.title, error:error.message || "Audio generation failed" });
       }
     }
-
-    writeJson(QUESTIONS_FILE, questions);
     res.status(failures.length ? 207 : 200).json({ success:failures.length === 0, generated, failures });
   } catch (error) {
     console.error("POST /admin/generate-question-audio error:", error);
