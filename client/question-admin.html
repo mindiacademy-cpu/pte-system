@@ -1520,13 +1520,27 @@ if (type === "listening") {
       if (!payload) return;
 
       try {
-        const response = await fetch(`/questions/${editingQuestionId}`, {
+        const original = questions.find(q => String(q.id) === editingQuestionId);
+        const sendUpdate = id => fetch(`/questions/${encodeURIComponent(id)}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json"
           },
           body: JSON.stringify(payload)
         });
+
+        let response = await sendUpdate(editingQuestionId);
+        if (response.status === 404 && original) {
+          const refreshed = await fetch('/questions', {cache:'no-store'});
+          if (refreshed.ok) {
+            const bank = await refreshed.json();
+            const matches = bank.filter(q => q.title === original.title && q.type === original.type && q.subType === original.subType && q.textContent === original.textContent);
+            if (matches.length === 1) {
+              editingQuestionId = String(matches[0].id);
+              response = await sendUpdate(editingQuestionId);
+            }
+          }
+        }
 
         const data = await response.json();
 

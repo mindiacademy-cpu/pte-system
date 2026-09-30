@@ -18,9 +18,21 @@ function installQuestionSeeds(bankFile) {
     if (question.imageUrl && (!existing.imageUrl || !fs.existsSync(path.join(__dirname, existing.imageUrl.replace(/^\//, ''))))) {
       existing.imageUrl = question.imageUrl; changed = true;
     }
+    if (question.audioUrl && (!existing.audioUrl || !fs.existsSync(path.join(__dirname, existing.audioUrl.replace(/^\//, ''))))) {
+      existing.audioUrl = question.audioUrl; changed = true;
+    }
   }
   if (changed) fs.writeFileSync(bankFile, JSON.stringify(bank, null, 2));
   return bank;
 }
 
-module.exports = {installQuestionSeeds};
+function resolveQuestionIndex(bank, id) {
+  const direct = bank.findIndex(q => String(q.id) === String(id));
+  if (direct >= 0) return direct;
+  const aliases = require('./seeds/set01-legacy-ids.json');
+  const canonical = aliases[String(id)];
+  if (!canonical) return -1;
+  return bank.findIndex(q => String(q.id) === canonical);
+}
+
+module.exports = {installQuestionSeeds,resolveQuestionIndex};

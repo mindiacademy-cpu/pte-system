@@ -70,12 +70,12 @@ test('deadlines include elapsed time after tab suspension', () => {
   assert.equal(vm.runInContext(`secondsRemaining(${deadline})`,clock),0);
 });
 
-test('imported set retains all 66 tasks and excludes the 36 missing recordings', () => {
+test('imported set retains all 66 tasks and excludes the 35 missing recordings', () => {
   const seed = JSON.parse(fs.readFileSync(__dirname+'/seeds/set01.json','utf8'));
   assert.equal(seed.length,66);
   assert.equal(new Set(seed.map(q=>q.id)).size,66);
   context.importedSet = seed;
-  assert.equal(run('importedSet.map(normalizeQuestion).filter(isExamReady).length'),30);
+  assert.equal(run('importedSet.map(normalizeQuestion).filter(isExamReady).length'),31);
   for (const q of seed) {
     if (q.blankOptions?.length) {
       assert.equal(q.blankOptions.length,q.correctAnswers.length);
@@ -104,4 +104,13 @@ test('seed installation preserves existing questions and is repeatable', () => {
     assert.equal(installed[1].id,'admin-edited');
     assert.deepEqual(installQuestionSeeds(file),installed);
   } finally {fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+test('legacy form IDs resolve only to their original imported questions', () => {
+  const {resolveQuestionIndex}=require('./question-seeds');
+  const aliases=require('./seeds/set01-legacy-ids.json');
+  const seed=JSON.parse(fs.readFileSync(__dirname+'/seeds/set01.json','utf8'));
+  for (const [id,canonical] of Object.entries(aliases)) assert.equal(seed[resolveQuestionIndex(seed,id)].id,canonical);
+  assert.equal(resolveQuestionIndex(seed,'unknown'),-1);
+  assert.equal(resolveQuestionIndex([],Object.keys(aliases)[0]),-1);
 });

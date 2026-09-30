@@ -1122,7 +1122,7 @@ app.put("/questions/:id", (req, res) => {
     const id = String(req.params.id);
     const questions = readJson(QUESTIONS_FILE);
 
-    const index = questions.findIndex(q => String(q.id) === id);
+    const index = require('./question-seeds').resolveQuestionIndex(questions, id);
 
     if (index === -1) {
       return res.status(404).json({ error: "Question not found." });
@@ -1138,7 +1138,7 @@ app.put("/questions/:id", (req, res) => {
     const updatedQuestion = migrateQuestionForCurrentPte({
       ...questions[index],
       ...req.body,
-      id
+      id: questions[index].id
     });
 
     questions[index] = updatedQuestion;
