@@ -1524,38 +1524,56 @@ app.post("/save-exam", async (req, res) => {
   }
 });
 
+function normalizeResultRow(item, summaryOnly = false) {
+  return {
+    id: String(item.id),
+    candidateName: item.candidate_name || "",
+    candidateSurname: item.candidate_surname || "",
+    candidatePhone: item.candidate_phone || "",
+    candidateEmail: item.candidate_email || "",
+    candidateId: item.candidate_phone || "",
+    examCode: item.exam_code || "",
+    startedAt: item.started_at,
+    finishedAt: item.finished_at,
+    answers: summaryOnly ? null : (item.answers || []),
+    summary: item.summary || {},
+    evaluation: summaryOnly ? null : (item.evaluation || null),
+    summaryOnly
+  };
+}
+
 app.get("/exam-results", async (req, res) => {
   try {
-    const { data, error } = await supabase
-      .from("exam_results")
-      .select("*")
-      .order("finished_at", { ascending: false });
-
+    const summaryOnly = req.query.view === "summary";
+    const columns = summaryOnly
+      ? "id,candidate_name,candidate_surname,candidate_phone,candidate_email,exam_code,started_at,finished_at,summary"
+      : "*";
+    const {data,error} = await supabase.from("exam_results").select(columns)
+      .order("finished_at", {ascending:false});
     if (error) {
       console.error("SUPABASE GET ERROR:", error);
-      return res.status(500).json({ error: "Exam results could not be loaded." });
+      return res.status(500).json({error:"Exam results could not be loaded.",code:error.code || "RESULTS_UNAVAILABLE"});
     }
+    res.json((data || []).map(item => normalizeResultRow(item,summaryOnly)));
+  } catch(error) {
+    console.error("GET /exam-results error:",error);
+    res.status(500).json({error:"Exam results could not be loaded."});
+  }
+});
 
-    const normalizedResults = (data || []).map(item => ({
-      id: String(item.id),
-      candidateName: item.candidate_name || "",
-      candidateSurname: item.candidate_surname || "",
-      candidatePhone: item.candidate_phone || "",
-      candidateEmail: item.candidate_email || "",
-      candidateId: item.candidate_phone || "",
-      examCode: item.exam_code || "",
-      startedAt: item.started_at,
-      finishedAt: item.finished_at,
-      answers: item.answers || [],
-      summary: item.summary || {},
-      evaluation: item.evaluation || null
-    }));
-
-    res.json(normalizedResults);
-
-  } catch (error) {
-    console.error("GET /exam-results error:", error);
-    res.status(500).json({ error: "Exam results could not be loaded." });
+app.get("/exam-results/:resultId", async (req,res) => {
+  try {
+    const {data,error} = await supabase.from("exam_results").select("*")
+      .eq("id",req.params.resultId).maybeSingle();
+    if(error) {
+      console.error("SUPABASE RESULT DETAIL ERROR:",error);
+      return res.status(500).json({error:"Exam details could not be loaded.",code:error.code || "RESULT_DETAILS_UNAVAILABLE"});
+    }
+    if(!data) return res.status(404).json({error:"Exam result not found."});
+    res.json(normalizeResultRow(data));
+  } catch(error) {
+    console.error("GET exam result detail error:",error);
+    res.status(500).json({error:"Exam details could not be loaded."});
   }
 });
 

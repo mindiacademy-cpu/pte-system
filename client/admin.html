@@ -345,7 +345,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
   <h1>PTE Admin Panel</h1>
 
   <div class="topbar">
-    <button class="btn" onclick="loadResults()">Refresh Results</button>
+    <button class="btn" onclick="resultDetailCache.clear(); loadResults()">Refresh Results</button>
 
     <input id="searchInput" type="text" placeholder="İsim veya Exam Code ara"
       style="padding:10px 14px; border:1px solid #ccc; border-radius:8px; width:260px; margin-left:8px;">
@@ -1297,12 +1297,26 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
       }
     }
 
+    const resultDetailCache = new Map();
+
+    async function getResultDetails(exam) {
+      if (!exam.summaryOnly) return exam;
+      const key = String(exam.id);
+      if (resultDetailCache.has(key)) return resultDetailCache.get(key);
+      const response = await fetch('/exam-results/'+encodeURIComponent(key), {cache:'no-store'});
+      if (!response.ok) throw new Error('HTTP '+response.status);
+      const detail = await response.json();
+      if (!detail || String(detail.id) !== key || !Array.isArray(detail.answers)) throw new Error('Invalid result details');
+      resultDetailCache.set(key,detail);
+      return detail;
+    }
+
     async function loadResults() {
       const container = document.getElementById("results");
       container.innerHTML = "<p class='empty'>Loading...</p>";
 
       try {
-        const response = await fetch(`/exam-results?t=${Date.now()}`, {
+        const response = await fetch(`/exam-results?view=summary&t=${Date.now()}`, {
           method: "GET",
           cache: "no-store",
           headers: {
@@ -1316,7 +1330,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
 
         const data = await response.json();
 
-        console.log("EXAM RESULTS:", data);
+        if (!Array.isArray(data)) throw new Error("Invalid results response");
         console.log("RESULT COUNT:", Array.isArray(data) ? data.length : "NOT ARRAY");
 
         if (!data.length) {
@@ -1328,6 +1342,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
 
         const results = getFilteredAndSortedResults(data);
         results.forEach((exam, examIndex) => {
+          exam = resultDetailCache.get(String(exam.id)) || exam;
           console.log("CARD ID:", exam.id);
           const card = document.createElement("div");
           card.className = "card";
@@ -1393,6 +1408,10 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
       </div>
     </div>
   `;
+          }
+
+          if (exam.summaryOnly) {
+            html += '<div class="section-title"><button type="button" class="btn btn-details">Cevapları ve ses kayıtlarını aç</button></div>';
           }
 
           if (exam.answers && exam.answers.length) {
@@ -1531,7 +1550,20 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
           container.appendChild(card);
 
           const pdfBtn = card.querySelector(".btn-pdf");
-          pdfBtn.addEventListener("click", () => downloadPdfReport(exam));
+          pdfBtn.addEventListener("click", async () => {
+            const label=pdfBtn.textContent;
+            pdfBtn.disabled=true; pdfBtn.textContent='Rapor yükleniyor...';
+            try { await downloadPdfReport(await getResultDetails(exam)); }
+            catch(error) { showToast('Rapor yüklenemedi. Lütfen tekrar deneyin.','error'); console.error(error); }
+            finally { pdfBtn.disabled=false; pdfBtn.textContent=label; }
+          });
+
+          const detailBtn=card.querySelector('.btn-details');
+          if(detailBtn) detailBtn.addEventListener('click',async () => {
+            detailBtn.disabled=true; detailBtn.textContent='Cevaplar yükleniyor...';
+            try { await getResultDetails(exam); await loadResults(); }
+            catch(error) { detailBtn.disabled=false; detailBtn.textContent='Tekrar dene'; showToast('Cevaplar yüklenemedi. Lütfen tekrar deneyin.','error'); console.error(error); }
+          });
 
           const deleteBtn = card.querySelector(".btn-delete");
           deleteBtn.addEventListener("click", () =>
@@ -1539,7 +1571,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
           );
         });
       } catch (error) {
-        container.innerHTML = "<p class='empty'>Server connection error.</p>";
+        container.innerHTML = "<p class='empty'>Sonuçlar yüklenemedi. Lütfen Refresh Results düğmesiyle tekrar deneyin.</p>";
         console.error(error);
       }
     }
@@ -1578,6 +1610,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
           return;
         }
 
+        resultDetailCache.delete(String(resultId));
         input.value = data.updatedAnswer.manualScore ?? "";
 
         const questionBox = wrapper.closest(".question");
@@ -1643,6 +1676,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
           return;
         }
 
+        resultDetailCache.delete(String(resultId));
         input.value = "";
 
         const questionBox = wrapper.closest(".question");
