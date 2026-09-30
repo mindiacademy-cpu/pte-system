@@ -503,10 +503,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
             <input id="title" placeholder="Örn: Describe Image 1">
           </div>
           <div>
-            <label for="points">Question Weight</label>
-            <input id="points" type="number" min="1" step="1" value="10" placeholder="Auto or manual points">
             <small style="color:#6b7280; display:block; margin-top:6px;">
-              Soru tipine göre otomatik dolar, istersen değiştirebilirsin.
+              Puanı sistem soru türüne ve cevap sayısına göre otomatik belirler. Puan girmeniz gerekmez.
             </small>
           </div>
         </div>
@@ -742,32 +740,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
       }
     }
 
-    function getDefaultPoints(subType) {
-      if (
-        subType === "read_aloud" ||
-        subType === "repeat_sentence" ||
-        subType === "reading_writing_fill_blanks" ||
-        subType === "write_from_dictation"
-      ) {
-        return 25;
-      }
-
-      if (
-        subType === "describe_image" ||
-        subType === "re_tell_lecture" ||
-        subType === "essay" ||
-        subType === "summarize_written_text" ||
-        subType === "summarize_group_discussion" ||
-        subType === "respond_to_a_situation" ||
-        subType === "listening_fill_blanks" ||
-        subType === "summarize_spoken_text"
-      ) {
-        return 15;
-      }
-
-      return 10;
-    }
-
     function applySubtypeDefaults() {
       const type = document.getElementById("type").value;
       const config = getCurrentSubtypeConfig();
@@ -780,10 +752,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
         document.getElementById("time").value = Number(config.time ?? 60);
       }
 
-      const pointsInput = document.getElementById("points");
-      if (!pointsInput.dataset.manuallyEdited) {
-        pointsInput.value = getDefaultPoints(config.value);
-      }
 
       document.getElementById("evaluationType").value = config.evaluation || "keywords";
       toggleFields();
@@ -1027,11 +995,6 @@ if (type === "listening") {
       setSubtypeOptions(type);
 
       const subType = document.getElementById("subType").value;
-      const pointsInput = document.getElementById("points");
-
-      if (!pointsInput.dataset.manuallyEdited) {
-        pointsInput.value = getDefaultPoints(subType);
-      }
 
       applySubtypeDefaults();
       toggleFields();
@@ -1039,11 +1002,6 @@ if (type === "listening") {
 
     function handleSubTypeChange() {
       const subType = document.getElementById("subType").value;
-      const pointsInput = document.getElementById("points");
-
-      if (!pointsInput.dataset.manuallyEdited) {
-        pointsInput.value = getDefaultPoints(subType);
-      }
 
       applySubtypeDefaults();
       toggleFields();
@@ -1059,8 +1017,6 @@ if (type === "listening") {
       document.getElementById("title").value = "";
       document.getElementById("prompt").value = "";
       document.getElementById("time").value = "60";
-      document.getElementById("points").value = getDefaultPoints(document.getElementById("subType").value);
-      delete document.getElementById("points").dataset.manuallyEdited;
       document.getElementById("prepareTime").value = "25";
       document.getElementById("recordTime").value = "40";
       document.getElementById("audioUrl").value = "";
@@ -1122,7 +1078,7 @@ if (type === "listening") {
          <div>Section</div>
          <div>Task Type</div>
          <div>Title</div>
-         <div>Points</div>
+         <div>Auto Points</div>
          <div>Time</div>
          <div>Actions</div>
        </div>
@@ -1137,7 +1093,7 @@ if (type === "listening") {
          <div class="q-type">${question.type || "-"}</div>
          <div class="q-subtype">${getTaskLabel(question.subType)}</div>
          <div class="q-title" title="${(question.title || "").replace(/"/g, "&quot;")}">${question.title || "-"}</div>
-         <div>${question.points || getDefaultPoints(question.subType || "")}</div>
+         <div>${question.points ?? "—"}</div>
          <div class="q-time">${getQuestionTimeText(question)}</div>
          <div class="q-actions">
            <button class="small-btn small-btn-warning" onclick="editQuestion('${question.id}')">Edit</button>
@@ -1166,7 +1122,6 @@ if (type === "listening") {
       const subType = document.getElementById("subType").value;
       const title = document.getElementById("title").value.trim();
       const prompt = document.getElementById("prompt").value.trim();
-      const points = Number(document.getElementById("points").value) || 10;
 
       const rawTime = Number(document.getElementById("time").value);
       const time = (type === "reading" || type === "listening") ? 0 : (Number.isFinite(rawTime) && rawTime >= 0 ? rawTime : 60);
@@ -1382,7 +1337,6 @@ if (type === "listening") {
         subType,
         title,
         prompt,
-        points,
         time,
         prepareTime: type === "speaking" ? prepareTime : 0,
         recordTime: type === "speaking" ? recordTime : 0,
@@ -1536,8 +1490,6 @@ if (type === "listening") {
 
       document.getElementById("title").value = question.title || "";
       document.getElementById("prompt").value = question.prompt || "";
-      document.getElementById("points").value = question.points || getDefaultPoints(question.subType || "");
-      delete document.getElementById("points").dataset.manuallyEdited;
       document.getElementById("time").value = question.time ?? 60;
       document.getElementById("prepareTime").value = question.prepareTime || 0;
       document.getElementById("recordTime").value = question.recordTime || 40;
@@ -1614,9 +1566,6 @@ if (type === "listening") {
       }
     }
 
-    document.getElementById("points").addEventListener("input", function () {
-      this.dataset.manuallyEdited = "true";
-    });
 
     document.getElementById("type").addEventListener("change", handleTypeChange);
     document.getElementById("subType").addEventListener("change", handleSubTypeChange);
@@ -1641,7 +1590,7 @@ if (type === "listening") {
         Task_Type: getTaskLabel(question.subType || ""),
         SubType: question.subType || "",
         Title: question.title || "",
-        Points: question.points || getDefaultPoints(question.subType || ""),
+        Points: question.points ?? "",
         Time: (question.type === "reading" || question.type === "listening") ? "" : (question.time ?? ""),
         Prepare_Time: question.type === "speaking" ? (question.prepareTime || 0) : "",
         Record_Time: question.type === "speaking" ? (question.recordTime || 0) : "",

@@ -7,6 +7,7 @@ const scoring = source.slice(source.indexOf('function normalizeText('), source.i
 const selection = source.slice(source.indexOf('const FULL_EXAM_COUNTS'), source.indexOf('app.post("/create-exam"'));
 const context = vm.createContext({console});
 vm.runInContext(scoring + selection, context);
+vm.runInContext(source.slice(source.indexOf('function getAutomaticPoints('),source.indexOf('function normalizeExamResult(')),context);
 const run = text => vm.runInContext(text, context);
 
 test('65-item blueprint and strict shortage detection', () => {
@@ -39,10 +40,19 @@ test('negative marking and duplicate selections cannot inflate scores', () => {
 
 test('empty assigned responses receive zero without calling AI', async () => {
   const enrich = source.slice(source.indexOf('async function enrichAnswersWithScores('), source.indexOf('app.get("/",'));
-  vm.runInContext('function normalizeQuestion(q){return q;}\n' + enrich, context);
+  vm.runInContext(enrich, context);
   const results = await run('enrichAnswersWithScores([{questionId:"1",type:"speaking",answer:""}],[{id:"1",points:25}])');
   assert.equal(results[0].finalScore,0);
   assert.equal(results[0].maxScore,25);
+});
+
+test('automatic maxima depend on task and content, not entered weight', () => {
+  assert.equal(run('normalizeQuestion({subType:"reading_mcq_single",points:999}).points'),1);
+  assert.equal(run('getAutomaticPoints({subType:"listening_fill_blanks",textContent:"a _______ b _______"})'),2);
+  assert.equal(run('getAutomaticPoints({subType:"reading_mcq_multiple",correctAnswers:["a","b","a"]})'),2);
+  assert.equal(run('getAutomaticPoints({subType:"write_from_dictation",answerKey:"The cat is on the mat."})'),6);
+  assert.equal(run('getAutomaticPoints({subType:"reorder_paragraphs",textContent:"a\\nb\\nc\\nd"})'),3);
+  assert.equal(run('getAutomaticPoints({subType:"essay"})'),26);
 });
 
 test('deadlines include elapsed time after tab suspension', () => {

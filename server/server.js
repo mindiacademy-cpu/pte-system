@@ -296,30 +296,19 @@ function writeJson(filePath, data) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
 }
 
-function getDefaultPoints(subType) {
-  if (
-    subType === "read_aloud" ||
-    subType === "repeat_sentence" ||
-    subType === "reading_writing_fill_blanks" ||
-    subType === "write_from_dictation"
-  ) {
-    return 25;
-  }
-
-  if (
-    subType === "describe_image" ||
-    subType === "re_tell_lecture" ||
-    subType === "essay" ||
-    subType === "summarize_written_text" ||
-    subType === "summarize_group_discussion" ||
-    subType === "respond_to_a_situation" ||
-    subType === "listening_fill_blanks" ||
-    subType === "summarize_spoken_text"
-  ) {
-    return 15;
-  }
-
-  return 10;
+function getAutomaticPoints(q) {
+  const sub = q.subType || "";
+  if (["reading_mcq_single","listening_mcq_single","highlight_correct_summary","select_missing_word","answer_short_question"].includes(sub)) return 1;
+  if (["reading_mcq_multiple","listening_mcq_multiple","highlight_incorrect_words"].includes(sub)) return Math.max(1, new Set(getCorrectArray(q).map(normalizeText)).size);
+  if (["reading_fill_blanks","reading_writing_fill_blanks","listening_fill_blanks"].includes(sub)) return Math.max(1, (String(q.textContent || "").match(/_{3,}/g) || []).length);
+  if (sub === "reorder_paragraphs") return Math.max(1, String(q.textContent || "").split(/\r?\n/).filter(p => p.trim()).length - 1);
+  if (sub === "write_from_dictation") return Math.max(1, normalizeText(q.answerKey || q.answer || "").split(" ").filter(Boolean).length);
+  // Maxima match the implemented practice rubrics, not proprietary score weights.
+  if (sub === "essay") return 26;
+  if (sub === "summarize_written_text") return 9;
+  if (sub === "summarize_spoken_text") return 12;
+  if (q.type === "speaking") return 5; // Content only; audio traits are not inferred.
+  return 1;
 }
 
 function normalizeQuestion(q) {
@@ -331,7 +320,7 @@ function normalizeQuestion(q) {
     subType: safeSubType,
     title: q.title || "",
     prompt: q.prompt || "",
-    points: Number(q.points || getDefaultPoints(safeSubType)),
+    points: getAutomaticPoints(q),
 
     time: Number(q.time ?? 60),
     prepareTime: Number(q.prepareTime ?? 25),
@@ -787,7 +776,9 @@ Return ONLY JSON: {"traits":{},"feedback":""}`
 async function enrichAnswersWithScores(answers, assignedQuestions) {
   const safeAnswers = Array.isArray(answers) ? answers : [];
 
-  const questions = assignedQuestions.map(normalizeQuestion);
+  // Existing exam snapshots retain their historical maximum; new snapshots
+  // already contain the server-calculated automatic points.
+  const questions = assignedQuestions.map(q => ({...normalizeQuestion(q), points: Number(q.points) > 0 ? Number(q.points) : getAutomaticPoints(q)}));
   const questionMap = new Map(
     questions.map(q => [String(q.id), q])
   );
