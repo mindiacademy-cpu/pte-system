@@ -2758,7 +2758,8 @@
 
         if (
           q.textContent &&
-          q.subType !== "write_from_dictation"
+          q.subType !== "write_from_dictation" &&
+          q.subType !== "listening_fill_blanks"
         ) {
           taskContent.classList.remove("hidden");
           taskContent.innerText = q.textContent;
