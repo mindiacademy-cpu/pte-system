@@ -1206,6 +1206,7 @@
     </div>
   </div>
 
+  <script src="/speaking-audio.js"></script>
   <script>
     if (
       !localStorage.getItem("examData") ||
@@ -2205,7 +2206,8 @@
     async function transcribeSpeakingAudio(audioBlob) {
       try {
         const formData = new FormData();
-        formData.append("audio", audioBlob, "speaking.webm");
+        const extension = audioBlob.type === "audio/wav" ? "wav" : audioBlob.type.startsWith("audio/mp4") ? "m4a" : "webm";
+        formData.append("audio", audioBlob, "speaking." + extension);
 
         const response = await fetch("/transcribe-speaking", {
           method: "POST",
@@ -2254,9 +2256,18 @@
         mediaRecorder.onstop = async () => {
           stopVoiceAnimation();
 
-          const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+          let audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || "audio/webm" });
+          const originalAudioBlob = audioBlob;
+          try {
+            audioBlob = await PteSpeakingAudio.toAssessmentWav(audioBlob);
+          } catch (error) {
+            // Preserve the original recording if conversion is unsupported.
+            // The server marks unavailable audio traits for administrator review.
+            console.warn("Assessment audio conversion unavailable:", error.message);
+          }
           const reader = new FileReader();
-          reader.readAsDataURL(audioBlob);
+          // Persist the compact original, not large PCM data, in localStorage.
+          reader.readAsDataURL(originalAudioBlob);
 
           reader.onloadend = async () => {
             speakingAudioBase64 = reader.result;
@@ -3113,11 +3124,11 @@
         answers
       };
 
-      fetch("/save-exam", {
+      PteSpeakingAudio.prepareAnswers(examData.answers).then(preparedAnswers => fetch("/save-exam", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(examData)
-      })
+        body: JSON.stringify({...examData,answers:preparedAnswers})
+      }))
         .then(async response => {
           const data = await response.json();
 
@@ -3298,7 +3309,7 @@
         });
 
         questions = Array.from(uniqueMap.values());
-        document.getElementById("examOverview").textContent = questions.length + " scored questions. Practice estimate; not an official Pearson score. Speaking content is assessed; pronunciation and fluency require audio assessment and are not scored here.";
+        document.getElementById("examOverview").textContent = questions.length + " scored questions. Practice estimate; not an official Pearson score. Speaking content, pronunciation and fluency are estimated from recordings where audio assessment is available. Unavailable assessments require administrator review.";
 
         loadingArea.style.display = "none";
 

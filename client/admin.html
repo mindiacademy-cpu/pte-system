@@ -431,7 +431,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
       if (!rows.length) return "";
       const rendered = rows.map(([k,v]) => `${formatTraitName(k)}: ${v === null ? "Not assessed" : v}`).join("\n");
       const note = d.scoringNote ? `\n${d.scoringNote}` : "";
-      return `<div class="question-block"><div class="label">Practice Scoring Traits</div><pre>${rendered}${d.wordCount != null ? `\nWord Count: ${d.wordCount}` : ""}${note}</pre></div>`;
+      const review = d.manualReviewRequired ? "\nAUDIO ASSESSMENT UNAVAILABLE — ADMINISTRATOR REVIEW REQUIRED" : "";
+      return `<div class="question-block"><div class="label">Practice Scoring Traits</div><pre>${escapeHtml(rendered + (d.wordCount != null ? `\nWord Count: ${d.wordCount}` : "") + note + review)}</pre></div>`;
     }
 
     function formatFinishedAt(value) {
@@ -1030,7 +1031,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
             <div class="overall-left">
               <div class="overall-label">Overall Score</div>
               <div class="overall-score">${overall}</div>
-              <div class="overall-note">Practice estimate — not an official Pearson score. Speaking pronunciation and oral fluency are not inferred from transcript text.</div>
+              <div class="overall-note">Practice estimate — not an official Pearson score. Speaking audio traits are AI estimates from recordings, not Pearson-calibrated scores. ${exam.summary?.provisional ? "PROVISIONAL RESULT: some responses require administrator review; these scores are not final." : "Responses marked for review have provisional content-only scores."}</div>
             </div>
           </div>
 

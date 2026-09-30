@@ -6,6 +6,7 @@ const path = require("path");
 const multer = require("multer");
 const OpenAI = require("openai");
 const { Resend } = require("resend");
+const { assessSpeakingAudio } = require("./speaking-scoring");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -422,7 +423,8 @@ function buildSummary(answers) {
     speaking: speakingScore,
     writing: writingScore,
     reading: readingScore,
-    listening: listeningScore
+    listening: listeningScore,
+    provisional: safeAnswers.some(a => a.aiDetails?.manualReviewRequired)
   };
 }
 
@@ -578,7 +580,8 @@ async function generateDetailedEvaluation(summary, answers) {
       title: a.title || "",
       finalScore: Number(a.finalScore || 0),
       maxScore: Number(a.maxScore || 0),
-      aiFeedback: a.aiFeedback || ""
+      aiFeedback: a.aiFeedback || "",
+      aiDetails: a.aiDetails || null
     }));
 
     const response = await openai.responses.create({
@@ -601,6 +604,7 @@ Create a detailed professional evaluation in Turkish.
 Rules:
 - Do NOT say this is an official Pearson evaluation.
 - Base your conclusions only on the supplied scores and question results.
+- Only discuss pronunciation/fluency where assessmentMethod is audio. Scores marked manualReviewRequired are provisional; explicitly state this and do not infer audio traits from transcripts.
 - Identify strengths and weaknesses.
 - Give practical, specific improvement recommendations.
 - Avoid generic filler.
@@ -667,7 +671,7 @@ function safeJsonParse(text) {
   }
 }
 
-async function scoreSpeakingWithAI({ question, transcript, maxScore }) {
+async function scoreSpeakingContentWithAI({ question, transcript, maxScore }) {
   if (!transcript || !transcript.trim()) {
     return { score:0, feedback:"No speaking response detected.", content:0, pronunciation:null, oralFluency:null, scoringNote:"Audio traits not estimated from transcript." };
   }
@@ -694,19 +698,71 @@ Use a strict 0-5 practice content rubric. Read Aloud checks prompt words; Repeat
   };
 }
 
+async function getSpeakingReference(question) {
+  if (question.subType === "describe_image" && question.imageUrl) {
+    const imagePath = path.resolve(__dirname, "." + question.imageUrl);
+    const uploadRoot = path.resolve(__dirname, "uploads") + path.sep;
+    if (!imagePath.startsWith(uploadRoot) || !fs.existsSync(imagePath)) throw new Error("Question image unavailable for assessment.");
+    const ext = path.extname(imagePath).toLowerCase();
+    const mime = {".png":"image/png",".jpg":"image/jpeg",".jpeg":"image/jpeg",".webp":"image/webp"}[ext];
+    if (!mime) throw new Error("Unsupported question image format.");
+    const result = await openai.responses.create({model:"gpt-4.1-mini",input:[{role:"user",content:[
+      {type:"input_text",text:"Describe this language-test image factually in English. Include labels, quantities, trends and key relationships. Do not invent unreadable values. This will be a reference for evaluating a spoken description."},
+      {type:"input_image",image_url:`data:${mime};base64,${fs.readFileSync(imagePath).toString("base64")}`}
+    ]}]});
+    if (!result.output_text?.trim()) throw new Error("Image reference could not be assessed.");
+    return result.output_text;
+  }
+  const reference = question.textContent || question.answerKey;
+  if (reference) return reference;
+  if (question.audioUrl) {
+    const referenceTranscript = await transcribeAudioFromUrl(question.audioUrl);
+    if (!referenceTranscript.trim()) throw new Error("Question recording unavailable for assessment.");
+    return referenceTranscript;
+  }
+  return question.prompt || "";
+}
+
+async function scoreSpeakingWithAI({question,transcript,maxScore,recording}) {
+  try {
+    const reference = await getSpeakingReference(question);
+    return await assessSpeakingAudio({openai,question,recording,maxScore,reference});
+  } catch (error) {
+    console.error("SPEAKING AUDIO ASSESSMENT FAILED:", error.message);
+    if (!transcript && recording) {
+      try { transcript = await transcribeAudioFromUrl(recording); } catch (_) { /* administrator review */ }
+    }
+    let fallback;
+    try {
+      fallback = await scoreSpeakingContentWithAI({question,transcript,maxScore});
+    } catch (_) {
+      fallback = {score:null,content:null,pronunciation:null,oralFluency:null,feedback:"Otomatik değerlendirme kullanılamadı. Kayıt korundu; yönetici değerlendirmesi gerekli."};
+    }
+    return {...fallback, transcript, assessmentMethod:"transcript-only", manualReviewRequired:true,
+      scoringNote:"Provisional content-only estimate. Audio assessment was unavailable; pronunciation and fluency are not assessed. Administrator review is required."};
+  }
+}
+
 async function transcribeAudioFromUrl(audioUrl) {
   if (!audioUrl) return "";
+  const inline = /^data:(audio\/[a-z0-9.+-]+);base64,([A-Za-z0-9+/=\r\n]+)$/i.exec(audioUrl);
+  if (inline) {
+    const bytes = Buffer.from(inline[2], "base64");
+    if (!bytes.length || bytes.length > 10 * 1024 * 1024) return "";
+    const extension = {"audio/wav":"wav","audio/mpeg":"mp3","audio/mp4":"m4a"}[inline[1]] || "webm";
+    const file = await OpenAI.toFile(bytes, `response.${extension}`, {type:inline[1]});
+    const result = await openai.audio.transcriptions.create({file,model:"gpt-4o-mini-transcribe"});
+    return result.text || "";
+  }
 
   const relativePath = audioUrl.startsWith("/")
     ? audioUrl.slice(1)
     : audioUrl;
 
-  const audioPath = path.join(__dirname, relativePath);
-
-  console.log("TRANSCRIBE AUDIO PATH:", audioPath);
+  const audioPath = path.resolve(__dirname, relativePath);
+  if (!audioPath.startsWith(path.resolve(__dirname, "uploads") + path.sep)) return "";
 
   if (!fs.existsSync(audioPath)) {
-    console.log("AUDIO FILE NOT FOUND:", audioPath);
     return "";
   }
 
@@ -785,7 +841,9 @@ async function enrichAnswersWithScores(answers, assignedQuestions) {
 
   const enriched = [];
 
-  for (const answer of safeAnswers) {
+  // Bounded parallelism reduces final submission waiting without flooding the API.
+  for (let offset = 0; offset < safeAnswers.length; offset += 3) {
+    const batch = await Promise.all(safeAnswers.slice(offset, offset + 3).map(async answer => {
     const question = questionMap.get(String(answer.questionId)) || {};
     const maxScore = Number(question.points || answer.maxScore || 10);
 
@@ -797,8 +855,8 @@ async function enrichAnswersWithScores(answers, assignedQuestions) {
     if (!String(answer.answer || answer.transcript || answer.speakingAudio || "").trim()) {
       autoScore = 0;
     } else if (answer.type === "speaking") {
-      if (!transcript && answer.speakingAudio) transcript = await transcribeAudioFromUrl(answer.speakingAudio);
-      const aiScore = await scoreSpeakingWithAI({ question, transcript, maxScore });
+      const aiScore = await scoreSpeakingWithAI({ question, transcript, maxScore, recording:answer.speakingAudio });
+      if (aiScore.transcript !== undefined) transcript = aiScore.transcript;
       autoScore = aiScore.score; aiFeedback = aiScore.feedback; aiDetails = aiScore;
     } else if (answer.type === "writing" || answer.subType === "summarize_spoken_text") {
       const aiScore = await scoreWritingWithAI({ question, responseText: answer.answer, maxScore });
@@ -807,7 +865,7 @@ async function enrichAnswersWithScores(answers, assignedQuestions) {
       autoScore = calculateAutoScore(question, answer.answer);
     }
 
-    enriched.push({
+    return {
       ...answer,
       transcript,
       maxScore,
@@ -815,7 +873,9 @@ async function enrichAnswersWithScores(answers, assignedQuestions) {
       finalScore: autoScore,
       aiFeedback,
       aiDetails
-    });
+    };
+    }));
+    enriched.push(...batch);
   }
 
   return enriched;
