@@ -8,6 +8,7 @@ const OpenAI = require("openai");
 const { Resend } = require("resend");
 const { assessSpeakingAudio } = require("./speaking-scoring");
 const { nextTitle } = require('../client/question-naming');
+const crypto = require("crypto");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -25,14 +26,140 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 app.use(cors());
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+app.set("trust proxy", 1);
+
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
+const ADMIN_PASSWORD_SALT = process.env.ADMIN_PASSWORD_SALT || "aee2da0ee8674dae2b2c792629f9a5cf";
+const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD
+  ? crypto.scryptSync(process.env.ADMIN_PASSWORD, ADMIN_PASSWORD_SALT, 64).toString("hex")
+  : (process.env.ADMIN_PASSWORD_HASH || "0216fe1cfe887cf9100ff5542508fd275afa47785e908663d83decf402827242071727c994607a9595f22a9da1bb3895c4b14e60a8ebaf104936a2f9791f09df");
+const ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || process.env.SUPABASE_KEY;
+const ADMIN_SESSION_TTL_SECONDS = 8 * 60 * 60;
+const loginAttempts = new Map();
+
+function safeEqualText(left, right) {
+  const a = Buffer.from(String(left || ""));
+  const b = Buffer.from(String(right || ""));
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+function createAdminToken() {
+  const payload = Buffer.from(JSON.stringify({
+    user: ADMIN_USERNAME,
+    exp: Math.floor(Date.now() / 1000) + ADMIN_SESSION_TTL_SECONDS
+  })).toString("base64url");
+  const signature = crypto.createHmac("sha256", ADMIN_SESSION_SECRET).update(payload).digest("base64url");
+  return payload + "." + signature;
+}
+
+function readCookie(req, name) {
+  const cookies = String(req.headers.cookie || "").split(";");
+  for (const cookie of cookies) {
+    const index = cookie.indexOf("=");
+    if (index < 0) continue;
+    if (cookie.slice(0, index).trim() === name) return decodeURIComponent(cookie.slice(index + 1).trim());
+  }
+  return "";
+}
+
+function hasValidAdminSession(req) {
+  if (!ADMIN_SESSION_SECRET) return false;
+  const [payload, signature] = readCookie(req, "pte_admin_session").split(".");
+  if (!payload || !signature) return false;
+  const expected = crypto.createHmac("sha256", ADMIN_SESSION_SECRET).update(payload).digest("base64url");
+  if (!safeEqualText(signature, expected)) return false;
+  try {
+    const data = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+    return data.user === ADMIN_USERNAME && Number(data.exp) > Math.floor(Date.now() / 1000);
+  } catch {
+    return false;
+  }
+}
+
+function adminCookieOptions(req) {
+  return {
+    httpOnly: true,
+    sameSite: "strict",
+    secure: req.secure || req.headers["x-forwarded-proto"] === "https" || process.env.NODE_ENV === "production",
+    maxAge: ADMIN_SESSION_TTL_SECONDS * 1000,
+    path: "/"
+  };
+}
+
+function requireAdmin(req, res, next) {
+  if (hasValidAdminSession(req)) return next();
+  res.set("Cache-Control", "no-store");
+  return res.status(401).json({ error: "Admin authentication required.", code: "ADMIN_AUTH_REQUIRED" });
+}
+
+app.post("/admin/login", (req, res) => {
+  res.set("Cache-Control", "no-store");
+  if (!ADMIN_SESSION_SECRET) return res.status(503).json({ error: "Admin authentication is not configured." });
+  const key = req.ip || req.socket.remoteAddress || "unknown";
+  const now = Date.now();
+  const attempt = loginAttempts.get(key);
+  if (attempt && attempt.blockedUntil > now) {
+    return res.status(429).json({ error: "Too many login attempts. Please wait and try again." });
+  }
+  const username = String(req.body?.username || "").trim();
+  const passwordHash = crypto.scryptSync(String(req.body?.password || ""), ADMIN_PASSWORD_SALT, 64).toString("hex");
+  if (!safeEqualText(username, ADMIN_USERNAME) || !safeEqualText(passwordHash, ADMIN_PASSWORD_HASH)) {
+    const failures = attempt && attempt.firstAt > now - 15 * 60 * 1000 ? attempt.failures + 1 : 1;
+    loginAttempts.set(key, {
+      failures,
+      firstAt: failures === 1 ? now : attempt.firstAt,
+      blockedUntil: failures >= 5 ? now + 15 * 60 * 1000 : 0
+    });
+    return res.status(401).json({ error: "Wrong username or password." });
+  }
+  loginAttempts.delete(key);
+  res.cookie("pte_admin_session", createAdminToken(), adminCookieOptions(req));
+  res.json({ success: true, expiresIn: ADMIN_SESSION_TTL_SECONDS });
+});
+
+app.get("/admin/session", (req, res) => {
+  res.set("Cache-Control", "no-store");
+  if (!hasValidAdminSession(req)) return res.status(401).json({ authenticated: false });
+  res.json({ authenticated: true });
+});
+
+app.post("/admin/logout", (req, res) => {
+  res.clearCookie("pte_admin_session", { path: "/", sameSite: "strict" });
+  res.set("Cache-Control", "no-store");
+  res.json({ success: true });
+});
+
+const ADMIN_PAGE_PATHS = new Set([
+  "/admin-index", "/admin-index.html", "/admin", "/admin.html",
+  "/exam-admin", "/exam-admin.html", "/question-admin", "/question-admin.html"
+]);
+app.use((req, res, next) => {
+  if (!ADMIN_PAGE_PATHS.has(req.path)) return next();
+  if (hasValidAdminSession(req)) {
+    res.set("Cache-Control", "no-store");
+    return next();
+  }
+  return res.redirect(302, "/admin-login");
+});
 app.get(["/admin-login", "/admin-login.html"], (req, res) => {
   res.sendFile(path.join(__dirname, "../client", "admin-login-portal.html"));
 });
 app.get("/admin-login-legacy", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client", "admin-login.html"));
+  res.redirect(302, "/admin-login");
 });
 app.use(express.static(path.join(__dirname, "../client")));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+app.use((req, res, next) => {
+  const protectedRequest =
+    req.path === "/questions" || req.path.startsWith("/questions/") ||
+    req.path === "/upload-audio" || req.path === "/upload-image" ||
+    req.path === "/admin/generate-question-audio" ||
+    req.path === "/create-exam" || req.path === "/exams" ||
+    (req.method === "DELETE" && req.path.startsWith("/exams/")) ||
+    req.path === "/exam-results" || req.path.startsWith("/exam-results/");
+  return protectedRequest ? requireAdmin(req, res, next) : next();
+});
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {

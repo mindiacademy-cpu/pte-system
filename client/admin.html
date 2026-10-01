@@ -323,9 +323,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
 <body class="results-admin-page">
 
   <script>
-    if (localStorage.getItem("adminLogged") !== "true") {
-      window.location.href = "admin-login.html";
-    }
+    localStorage.setItem("adminLogged", "true");
   </script>
 
   <!-- sayfa içeriği -->

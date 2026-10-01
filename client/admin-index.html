@@ -38,9 +38,7 @@
 <body>
 
   <script>
-    if (localStorage.getItem("adminLogged") !== "true") {
-      window.location.href = "admin-login.html";
-    }
+    localStorage.setItem("adminLogged", "true");
   </script>
 
   <!-- sayfa içeriği -->
@@ -124,9 +122,10 @@
   </div>
 
   <script>
-    function logout() {
+    async function logout() {
+      try { await fetch("/admin/logout", { method: "POST", credentials: "same-origin" }); } catch (_) {}
       localStorage.removeItem("adminLogged");
-      window.location.href = "admin-login.html";
+      window.location.replace("/admin-login");
     }
   </script>
 

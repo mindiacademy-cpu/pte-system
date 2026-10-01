@@ -343,7 +343,7 @@ body{padding-top:104px!important}
 
 <body class="exam-admin-page">
   <script>
-    if (localStorage.getItem("adminLogged") !== "true") window.location.href = "admin-login.html";
+    localStorage.setItem("adminLogged", "true");
   </script>
   <header class="portal-page-header">
     <div class="portal-page-header-inner">
