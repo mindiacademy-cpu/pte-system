@@ -621,19 +621,39 @@
     }
 
     .start-exam-btn {
-      border: none;
+      border: 1px solid #087f8c;
       border-radius: 10px;
       padding: 14px 24px;
       font-size: 16px;
       font-weight: bold;
-      color: white;
+      color: #fff;
       cursor: pointer;
-      background: #2563eb;
+      background: #087f8c;
       margin-top: 18px;
+      box-shadow: none;
+      outline: none;
+      transition: background-color .16s ease, border-color .16s ease, transform .08s ease;
+      -webkit-tap-highlight-color: transparent;
+      appearance: none;
+      -webkit-appearance: none;
     }
 
-    .start-exam-btn:hover {
-      background: #1d4ed8;
+    .start-exam-btn:hover,
+    .start-exam-btn:focus,
+    .start-exam-btn:focus-visible {
+      background: #066b76;
+      border-color: #066b76;
+      color: #fff;
+      box-shadow: 0 0 0 3px rgba(8,127,140,.14);
+      outline: none;
+    }
+
+    .start-exam-btn:active {
+      background: #055c65;
+      border-color: #055c65;
+      color: #fff;
+      transform: translateY(1px);
+      box-shadow: none;
     }
 
     .finish-screen {
@@ -850,12 +870,26 @@
     .start-screen { max-width:100%; min-height:calc(100vh - 168px); margin:0; padding:55px max(7vw,40px); border-radius:0; box-shadow:none; text-align:left; background:#fff; }
     .start-screen h1 { font-size:22px; color:#333; font-weight:600; }
     .start-screen p { max-width:850px; font-size:15px; line-height:1.65; color:#4c5055; }
-    .start-exam-btn { border-radius:18px; background:var(--exam-teal); }
+    .start-exam-btn {
+      border-radius:18px;
+      background:var(--exam-teal) !important;
+      border-color:var(--exam-teal) !important;
+      color:#fff !important;
+    }
     .start-exam-btn:hover,
     .start-exam-btn:focus,
+    .start-exam-btn:focus-visible {
+      background:var(--exam-teal-dark) !important;
+      border-color:var(--exam-teal-dark) !important;
+      color:#fff !important;
+      box-shadow:0 0 0 3px rgba(8,127,140,.14) !important;
+      outline:none !important;
+    }
     .start-exam-btn:active {
-      background:var(--exam-teal-dark);
-      color:#fff;
+      background:#055c65 !important;
+      border-color:#055c65 !important;
+      color:#fff !important;
+      box-shadow:none !important;
     }
     .start-screen .test-intro {
       max-width:860px;
