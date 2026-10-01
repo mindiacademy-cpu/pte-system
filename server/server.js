@@ -813,7 +813,7 @@ async function scoreSpeakingContentWithAI({ question, transcript, maxScore }) {
   }
   const response = await openai.responses.create({
     model: "gpt-4.1-mini",
-    input: `Evaluate CONTENT only for this PTE Academic PRACTICE speaking response.
+    input: `Evaluate CONTENT only for this PTE Academic Compact Mock Test speaking response.
 Task: ${question.subType || "speaking"}
 Prompt: ${question.prompt || ""}
 Source content: ${question.textContent || question.answerKey || ""}
@@ -942,7 +942,7 @@ async function scoreWritingWithAI({ question, responseText, maxScore }) {
 
   const ai = await openai.responses.create({
     model:"gpt-4.1-mini",
-    input:`Evaluate this PTE Academic PRACTICE writing response using Pearson's publicly described traits.
+    input:`Evaluate this PTE Academic Compact Mock Test writing response using Pearson's publicly described traits.
 Task: ${subType}
 Prompt/source: ${question.textContent || question.prompt || ""}
 Candidate response: ${text}
@@ -1494,7 +1494,7 @@ app.post("/create-exam", async (req, res) => {
     const examQuestions = sortCompactExamQuestions(selection.questions);
 
     const examCode = "EX" + Math.floor(100000 + Math.random() * 900000);
-    const title = "PTE Compact Practice Exam";
+    const title = "PTE Academic Compact Mock Test";
 
     const { error } = await supabase.from("exams").insert([{
       exam_code: examCode,
@@ -1604,7 +1604,7 @@ app.post("/admin/migrate-exams-to-compact", async (req, res) => {
       const { error: updateError } = await supabase
         .from("exams")
         .update({
-          title: "PTE Compact Practice Exam",
+          title: "PTE Academic Compact Mock Test",
           questions: compact.questions
         })
         .eq("id", exam.id);
@@ -1848,7 +1848,7 @@ app.post("/save-exam", async (req, res) => {
     res.json({ success: true });
 
     resend.emails.send({
-      from: "PTE Exam <no-reply@mindiacademy.com>",
+      from: "PTE Academic Compact Mock Test <no-reply@mindiacademy.com>",
       to: process.env.NOTIFY_EMAIL,
       subject: "Yeni PTE sınavı tamamlandı",
       html: `
