@@ -29,10 +29,10 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.set("trust proxy", 1);
 
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
-const ADMIN_PASSWORD_SALT = process.env.ADMIN_PASSWORD_SALT || "aee2da0ee8674dae2b2c792629f9a5cf";
+const ADMIN_PASSWORD_SALT = process.env.ADMIN_PASSWORD_SALT || "70ec17d1d88288f4cc965f6fca39a1b4";
 const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD
   ? crypto.scryptSync(process.env.ADMIN_PASSWORD, ADMIN_PASSWORD_SALT, 64).toString("hex")
-  : (process.env.ADMIN_PASSWORD_HASH || "0216fe1cfe887cf9100ff5542508fd275afa47785e908663d83decf402827242071727c994607a9595f22a9da1bb3895c4b14e60a8ebaf104936a2f9791f09df");
+  : (process.env.ADMIN_PASSWORD_HASH || "1a3365fd1b406f0c578189353ed26ccfe5458f2008d16a022837b02a30a433c1922a95894929a10e7090a1165ea81481586e6e38cbd494effd6d463152bbc02c");
 const ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || process.env.SUPABASE_KEY;
 const ADMIN_SESSION_TTL_SECONDS = 8 * 60 * 60;
 const loginAttempts = new Map();
@@ -46,6 +46,7 @@ function safeEqualText(left, right) {
 function createAdminToken() {
   const payload = Buffer.from(JSON.stringify({
     user: ADMIN_USERNAME,
+    ver: ADMIN_PASSWORD_HASH.slice(0, 16),
     exp: Math.floor(Date.now() / 1000) + ADMIN_SESSION_TTL_SECONDS
   })).toString("base64url");
   const signature = crypto.createHmac("sha256", ADMIN_SESSION_SECRET).update(payload).digest("base64url");
@@ -70,7 +71,9 @@ function hasValidAdminSession(req) {
   if (!safeEqualText(signature, expected)) return false;
   try {
     const data = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
-    return data.user === ADMIN_USERNAME && Number(data.exp) > Math.floor(Date.now() / 1000);
+    return data.user === ADMIN_USERNAME &&
+      safeEqualText(data.ver, ADMIN_PASSWORD_HASH.slice(0, 16)) &&
+      Number(data.exp) > Math.floor(Date.now() / 1000);
   } catch {
     return false;
   }
