@@ -1150,16 +1150,10 @@ function speechPcmToWav(pcm, includeBeep = false) {
 }
 
 function getQuestionAudioScript(q) {
-  const authored = String(q.audioScript || "").trim();
-  // Never read the displayed gaps or incorrect transcript as the recording.
-  if (["listening_fill_blanks", "highlight_incorrect_words", "select_missing_word"].includes(q.subType)) return authored;
-  if (q.subType === "write_from_dictation") {
-    return authored ||
-      String(q.answerKey || "").trim() ||
-      String(q.answer || "").trim() ||
-      String(q.textContent || "").trim();
-  }
-  return authored || String(q.textContent || "").trim();
+  // Audio is authored independently from the visible question content.
+  // Never synthesize a recording from textContent, prompt, answerKey,
+  // answer, keywords, or any other candidate-facing/scoring field.
+  return String(q?.audioScript || "").trim();
 }
 
 function getQuestionTtsProfile(q) {
