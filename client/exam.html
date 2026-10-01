@@ -1395,6 +1395,10 @@
     let speakingLocked = false;
     let speakingProcessing = false;
     let speakingFlowRunning = false;
+    let activeSpeakingPromptAudio = null;
+    let speakingPromptWatchdog = null;
+    let speakingPromptRetryTimer = null;
+    let speakingFlowGeneration = 0;
 
     let prepareInterval = null;
     let recordInterval = null;
@@ -1723,6 +1727,23 @@
     function clearSpeakingTimers() {
       clearInterval(prepareInterval);
       clearInterval(recordInterval);
+      clearTimeout(speakingPromptWatchdog);
+      clearTimeout(speakingPromptRetryTimer);
+      speakingPromptWatchdog = null;
+      speakingPromptRetryTimer = null;
+      speakingFlowGeneration++;
+
+      if (activeSpeakingPromptAudio) {
+        try {
+          activeSpeakingPromptAudio.pause();
+          activeSpeakingPromptAudio.src = "";
+          activeSpeakingPromptAudio.load();
+        } catch (error) {
+          console.warn("Speaking prompt cleanup failed:", error);
+        }
+        activeSpeakingPromptAudio = null;
+      }
+
       speakingFlowRunning = false;
     }
 
@@ -2351,37 +2372,177 @@
       };
     }
 
-    function playSpeakingPromptOnce(q) {
+    function playSpeakingPromptOnce(q, flowGeneration) {
       return new Promise(resolve => {
         if (!q?.audioUrl) { resolve(); return; }
+
         const state = document.getElementById("speakingConsoleState");
         const fill = document.getElementById("speakingTrackFill");
+        const statusBox = document.getElementById("recordStatus");
         const audio = new Audio(q.audioUrl);
-        if (state) state.innerText = "Playing";
-        if (fill) fill.style.width = "0%";
-        audio.ontimeupdate = () => {
-          if (fill && audio.duration) fill.style.width = Math.min(100,(audio.currentTime/audio.duration)*100) + "%";
+        activeSpeakingPromptAudio = audio;
+
+        let settled = false;
+        let retryCount = 0;
+        let lastProgressAt = Date.now();
+        let lastPlaybackTime = 0;
+
+        const isCurrentFlow = () =>
+          flowGeneration === speakingFlowGeneration &&
+          questions[currentQuestionIndex]?.id === q.id;
+
+        const setPromptStatus = (message, clickable = false, handler = null) => {
+          if (!isCurrentFlow()) return;
+          if (state) {
+            state.innerText = message;
+            state.style.cursor = clickable ? "pointer" : "";
+            state.style.textDecoration = clickable ? "underline" : "";
+            state.onclick = clickable ? handler : null;
+          }
+          if (statusBox) statusBox.innerText = message;
         };
-        const done = () => {
+
+        const clearPromptTimers = () => {
+          clearTimeout(speakingPromptWatchdog);
+          clearTimeout(speakingPromptRetryTimer);
+          speakingPromptWatchdog = null;
+          speakingPromptRetryTimer = null;
+        };
+
+        const cleanup = () => {
+          clearPromptTimers();
+          audio.onloadedmetadata = null;
+          audio.ontimeupdate = null;
+          audio.onplay = null;
+          audio.onwaiting = null;
+          audio.onstalled = null;
+          audio.onended = null;
+          audio.onerror = null;
+          if (state) {
+            state.onclick = null;
+            state.style.cursor = "";
+            state.style.textDecoration = "";
+          }
+          if (activeSpeakingPromptAudio === audio) activeSpeakingPromptAudio = null;
+        };
+
+        const finish = () => {
+          if (settled || !isCurrentFlow()) return;
+          settled = true;
           if (fill) fill.style.width = "100%";
           if (state) state.innerText = "Completed";
+          cleanup();
           resolve();
         };
-        audio.onended = done;
-        audio.onerror = done;
-        audio.play().catch(() => {
-          if (state) state.innerText = "Audio ready — tap here to play";
-          if (state) {
-            state.style.cursor = "pointer";
-            state.onclick = () => {
-              state.onclick = null;
-              state.style.cursor = "";
-              audio.play().catch(() => {
-                state.innerText = "Audio could not be played. Please check browser audio permissions.";
-              });
-            };
+
+        const scheduleWatchdog = () => {
+          clearTimeout(speakingPromptWatchdog);
+          speakingPromptWatchdog = setTimeout(() => {
+            if (settled || !isCurrentFlow() || audio.paused) return;
+
+            const noProgressFor = Date.now() - lastProgressAt;
+            const nearEnd = Number.isFinite(audio.duration) && audio.duration > 0 &&
+              audio.currentTime >= audio.duration - 0.6;
+
+            if (nearEnd) {
+              finish();
+              return;
+            }
+
+            if (noProgressFor >= 6500) {
+              try { audio.pause(); } catch (_) {}
+              setPromptStatus("Audio paused unexpectedly — tap here to continue", true, attemptPlay);
+              setTimerLabel("Speaking prompt");
+              setMainTimer(0);
+              return;
+            }
+
+            scheduleWatchdog();
+          }, 2500);
+        };
+
+        const attemptPlay = () => {
+          if (settled || !isCurrentFlow()) return;
+
+          retryCount++;
+          setPromptStatus(retryCount > 1 ? "Restarting audio…" : "Playing prompt…");
+          setTimerLabel("Speaking prompt");
+
+          const playPromise = audio.play();
+          if (playPromise && typeof playPromise.catch === "function") {
+            playPromise.catch(error => {
+              console.warn("Speaking prompt playback blocked:", error);
+              if (!isCurrentFlow()) return;
+              setPromptStatus("Tap here to play the sentence and continue", true, attemptPlay);
+              setMainTimer(0);
+            });
           }
-        });
+        };
+
+        if (fill) fill.style.width = "0%";
+        setPromptStatus("Loading sentence…");
+        setTimerLabel("Speaking prompt");
+        setMainTimer(0);
+
+        audio.preload = "auto";
+
+        audio.onloadedmetadata = () => {
+          if (!isCurrentFlow()) return;
+          if (Number.isFinite(audio.duration) && audio.duration > 0) {
+            setMainTimer(Math.ceil(audio.duration));
+          }
+        };
+
+        audio.ontimeupdate = () => {
+          if (!isCurrentFlow()) return;
+          const now = Number(audio.currentTime) || 0;
+          if (now > lastPlaybackTime + 0.05) {
+            lastPlaybackTime = now;
+            lastProgressAt = Date.now();
+          }
+          if (fill && Number.isFinite(audio.duration) && audio.duration > 0) {
+            fill.style.width = Math.min(100, (now / audio.duration) * 100) + "%";
+            setMainTimer(Math.max(0, Math.ceil(audio.duration - now)));
+          }
+        };
+
+        audio.onplay = () => {
+          lastProgressAt = Date.now();
+          setPromptStatus("Listen to the sentence…");
+          scheduleWatchdog();
+        };
+
+        audio.onwaiting = () => {
+          if (!isCurrentFlow()) return;
+          setPromptStatus("Loading audio…");
+          scheduleWatchdog();
+        };
+
+        audio.onstalled = () => {
+          if (!isCurrentFlow()) return;
+          setPromptStatus("Audio connection interrupted — tap here to retry", true, attemptPlay);
+        };
+
+        audio.onended = finish;
+
+        audio.onerror = () => {
+          if (settled || !isCurrentFlow()) return;
+          clearPromptTimers();
+          setPromptStatus("Audio could not load — tap here to retry", true, () => {
+            try { audio.load(); } catch (_) {}
+            speakingPromptRetryTimer = setTimeout(attemptPlay, 150);
+          });
+          setMainTimer(0);
+        };
+
+        // Safari can leave media in a pending state without resolving the
+        // playback promise. If nothing starts, expose a visible manual retry.
+        speakingPromptRetryTimer = setTimeout(() => {
+          if (settled || !isCurrentFlow() || !audio.paused || audio.currentTime > 0) return;
+          setPromptStatus("Tap here to play the sentence and continue", true, attemptPlay);
+        }, 4000);
+
+        attemptPlay();
       });
     }
 
@@ -2409,10 +2570,15 @@
 
       setNextButtonDisabled(true);
 
+      const flowGeneration = ++speakingFlowGeneration;
+
       if (timing.playPrompt) {
         const state = document.getElementById("speakingConsoleState");
         if (state) state.innerText = "Loading";
-        playSpeakingPromptOnce(q).then(() => beginSpeakingCountdown(prepareTime, recordTime));
+        playSpeakingPromptOnce(q, flowGeneration).then(() => {
+          if (flowGeneration !== speakingFlowGeneration) return;
+          beginSpeakingCountdown(prepareTime, recordTime);
+        });
         return;
       }
 
