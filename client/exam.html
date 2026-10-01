@@ -3192,6 +3192,8 @@
           renderOptions("listeningOptions", q.options || [], existing?.answer || [], true, "selectListeningMultiple");
         }
         else if (q.subType === "listening_fill_blanks") {
+          taskContent.classList.add("hidden");
+          taskContent.innerHTML = "";
           const wrap=document.getElementById("listeningLongInputWrap");
           wrap.classList.remove("hidden");
           const parts=(q.textContent||"").split("_______");
@@ -3204,6 +3206,8 @@
           wrap.appendChild(line);
         }
         else if (q.subType === "highlight_incorrect_words") {
+          taskContent.classList.add("hidden");
+          taskContent.innerHTML = "";
           const wrap=document.getElementById("listeningLongInputWrap"); wrap.classList.remove("hidden");
           const nativeBox=wrap.querySelector("#listeningAnswer");
           Array.from(wrap.children).forEach(el=>{ if(el!==nativeBox) el.remove(); });
