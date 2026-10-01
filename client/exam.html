@@ -1008,7 +1008,7 @@
         Click the button below when you are ready to start.
       </p>
       <p id="examOverview"></p>
-      <p>Speaking &amp; Writing: up to 84 minutes. Reading: 30 minutes. Listening: 39 minutes, including audio playback. Maximum section time: 153 minutes.</p>
+      <p id="examTimingOverview">Speaking &amp; Writing: up to 84 minutes. Reading: 30 minutes. Listening: 39 minutes, including audio playback. Maximum section time: 153 minutes.</p>
       <p>Summarize Written Text: 10 minutes each. Essay: 20 minutes. Summarize Spoken Text: 10 minutes including the recording, within the Listening allowance. No breaks; you cannot return to previous questions.</p>
       <button class="start-exam-btn" onclick="startExam()">Start Exam</button>
     </div>
@@ -1248,7 +1248,7 @@
         box.classList.add("hidden");
         return;
       }
-      const deadline = countdownDeadline("partOneDeadline", 84 * 60);
+      const deadline = countdownDeadline("partOneDeadline", isCompactPracticeExam ? 40 * 60 : 84 * 60);
       box.classList.remove("hidden");
       const tick = () => {
         const left = secondsRemaining(deadline);
@@ -1461,6 +1461,7 @@
     const kvkkApproval = localStorage.getItem("kvkkApproval") || "";
     const candidateId = candidatePhone;
     let examCode = localStorage.getItem("examCode") || "";
+    let isCompactPracticeExam = false;
 
     function formatTime(totalSeconds) {
       const safe = Math.max(0, totalSeconds);
@@ -1533,11 +1534,13 @@
     }
 
     function getReadingSectionTotalTime() {
+      if (isCompactPracticeExam) return 10 * 60;
       const saved = Number(localStorage.getItem("readingSectionDurationSeconds"));
       return saved > 0 ? saved : 30 * 60;
     }
 
     function getListeningSectionTotalTime() {
+      if (isCompactPracticeExam) return 21 * 60;
       const saved = Number(localStorage.getItem("listeningSectionDurationSeconds"));
       return saved > 0 ? saved : 39 * 60;
     }
@@ -3192,9 +3195,9 @@
 
     function getOfficialSectionDuration(q) {
       if (!q) return "";
-      if (q.type === "speaking" || q.type === "writing") return "84 minutes maximum (item limits also apply)";
-      if (q.type === "reading") return "30 minutes shared across all questions";
-      if (q.type === "listening") return "39 minutes including recordings; summary: 10 minutes within this allowance";
+      if (q.type === "speaking" || q.type === "writing") return isCompactPracticeExam ? "40 minutes maximum (task timers also apply)" : "84 minutes maximum (item limits also apply)";
+      if (q.type === "reading") return isCompactPracticeExam ? "10 minutes shared across all questions" : "30 minutes shared across all questions";
+      if (q.type === "listening") return isCompactPracticeExam ? "21 minutes, including recordings and answers" : "39 minutes including recordings; summary: 10 minutes within this allowance";
       return "";
     }
 
@@ -3249,7 +3252,14 @@
         if (storedExam) {
           const parsedExam = JSON.parse(storedExam);
           questionsData = parsedExam.questions || [];
+          const questionTypes = new Set(questionsData.map(q => q.subType).filter(Boolean));
+          isCompactPracticeExam = parsedExam.title === "PTE Compact Practice Exam" ||
+            (questionsData.length === 22 && questionTypes.size === 22);
           examCode = parsedExam.examCode || examCode;
+          const timingOverview = document.getElementById("examTimingOverview");
+          if (timingOverview && isCompactPracticeExam) {
+            timingOverview.textContent = "Compact practice limits: Speaking & Writing 40 minutes, Reading 10 minutes, Listening 21 minutes including recordings. Maximum total: 71 minutes.";
+          }
         } else {
           window.location.replace("/");
           return;
