@@ -159,6 +159,7 @@ app.use((req, res, next) => {
     req.path === "/upload-audio" || req.path === "/upload-image" ||
     req.path === "/admin/generate-question-audio" ||
     req.path === "/admin/migrate-exams-to-compact" ||
+    req.path === "/admin/migrate-question-ids" ||
     req.path === "/create-exam" || req.path === "/exams" ||
     (req.method === "DELETE" && req.path.startsWith("/exams/")) ||
     req.path === "/exam-results" || req.path.startsWith("/exam-results/");
@@ -1081,6 +1082,27 @@ function isValidPteTypeSubtype(type, subType) {
   return PTE_SUBTYPE_SECTION[String(subType || "")] === String(type || "").toLowerCase();
 }
 
+function nextQuestionId(questions) {
+  const maxId = (questions || []).reduce((max, question) => {
+    const value = Number.parseInt(String(question?.id || ""), 10);
+    return Number.isInteger(value) && value > max ? value : max;
+  }, 0);
+  return String(maxId + 1);
+}
+
+function remapQuestionReferences(value, idMap) {
+  if (!value || typeof value !== "object") return value;
+  if (Array.isArray(value)) return value.map(item => remapQuestionReferences(item, idMap));
+  const clone = { ...value };
+  if (clone.id != null && idMap.has(String(clone.id))) clone.id = idMap.get(String(clone.id));
+  if (clone.questionId != null && idMap.has(String(clone.questionId))) clone.questionId = idMap.get(String(clone.questionId));
+  for (const [key, child] of Object.entries(clone)) {
+    if (key === "id" || key === "questionId") continue;
+    if (child && typeof child === "object") clone[key] = remapQuestionReferences(child, idMap);
+  }
+  return clone;
+}
+
 function migrateQuestionForCurrentPte(question) {
   const q = normalizeQuestion(question);
   if (!OFFICIAL_PTE_SUBTYPES.has(q.subType) || !isValidPteTypeSubtype(q.type, q.subType)) return null;
@@ -1268,7 +1290,7 @@ app.post("/questions", (req, res) => {
       ? nextTitle(questions,req.body.type,req.body.subType)
       : req.body.title;
     const newQuestion = migrateQuestionForCurrentPte({
-      id: Date.now().toString(),
+      id: nextQuestionId(questions),
       type: req.body.type,
       subType: req.body.subType,
       title,
@@ -1497,6 +1519,59 @@ app.post("/create-exam", async (req, res) => {
   } catch (error) {
     console.error("POST /create-exam error:", error);
     res.status(500).json({ error: "Exam could not be created." });
+  }
+});
+
+app.post("/admin/migrate-question-ids", (req, res) => {
+  try {
+    const questions = readJson(QUESTIONS_FILE);
+    const idMap = new Map();
+    questions.forEach((question, index) => idMap.set(String(question.id), String(index + 1)));
+
+    const migratedQuestions = questions.map((question, index) => ({
+      ...question,
+      id: String(index + 1)
+    }));
+
+    const exams = readJson(EXAMS_FILE);
+    const migratedExams = exams.map(exam => ({
+      ...exam,
+      questions: (exam.questions || []).map(question => remapQuestionReferences(question, idMap))
+    }));
+
+    const results = readJson(EXAM_RESULTS_FILE);
+    const migratedResults = results.map(result => ({
+      ...result,
+      answers: (result.answers || []).map(answer => remapQuestionReferences(answer, idMap))
+    }));
+
+    const aliasFile = path.join(__dirname, "seeds/set01-legacy-ids.json");
+    const existingAliases = fs.existsSync(aliasFile) ? readJson(aliasFile) : {};
+    const aliases = {};
+    for (const [oldId, newId] of idMap.entries()) {
+      if (oldId !== newId) aliases[oldId] = newId;
+    }
+    for (const [alias, canonical] of Object.entries(existingAliases)) {
+      const mapped = idMap.get(String(canonical));
+      if (mapped && String(alias) !== mapped) aliases[String(alias)] = mapped;
+    }
+
+    writeJson(QUESTIONS_FILE, migratedQuestions);
+    writeJson(EXAMS_FILE, migratedExams);
+    writeJson(EXAM_RESULTS_FILE, migratedResults);
+    writeJson(aliasFile, aliases);
+
+    res.json({
+      success: true,
+      questions: migratedQuestions.length,
+      firstId: migratedQuestions.length ? migratedQuestions[0].id : null,
+      lastId: migratedQuestions.length ? migratedQuestions[migratedQuestions.length - 1].id : null,
+      exams: migratedExams.length,
+      results: migratedResults.length
+    });
+  } catch (error) {
+    console.error("POST /admin/migrate-question-ids error:", error);
+    res.status(500).json({ error: "Question IDs could not be migrated." });
   }
 });
 
