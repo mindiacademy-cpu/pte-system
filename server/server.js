@@ -1131,7 +1131,28 @@ function getQuestionAudioScript(q) {
   const authored = String(q.audioScript || "").trim();
   // Never read the displayed gaps or incorrect transcript as the recording.
   if (["listening_fill_blanks", "highlight_incorrect_words", "select_missing_word"].includes(q.subType)) return authored;
+  if (q.subType === "write_from_dictation") {
+    return authored ||
+      String(q.answerKey || "").trim() ||
+      String(q.answer || "").trim() ||
+      String(q.textContent || "").trim();
+  }
   return authored || String(q.textContent || "").trim();
+}
+
+function getQuestionTtsProfile(q) {
+  const subType = String(q?.subType || "");
+  if (subType === "write_from_dictation") {
+    const seed = String(q?.id || "").split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    return {
+      voice: seed % 2 === 0 ? "cedar" : "marin",
+      instructions: "Read exactly the sentence provided, once. Use natural neutral academic English with a realistic test-recording delivery. Speak at a moderate conversational pace with natural connected speech and intonation. Be clear without over-articulating individual words. Do not sound like an announcer or a synthetic word list. Do not add an introduction, explanation, or extra words."
+    };
+  }
+  return {
+    voice: "marin",
+    instructions: "Use natural, clear English with realistic conversational rhythm and intonation. Keep a neutral test-recording tone. Do not add any words that are not in the provided text."
+  };
 }
 
 app.post("/admin/generate-question-audio", async (req, res) => {
@@ -1145,10 +1166,12 @@ app.post("/admin/generate-question-audio", async (req, res) => {
       "select_missing_word","highlight_incorrect_words","write_from_dictation"
     ]);
     const ids = Array.isArray(req.body?.questionIds) ? new Set(req.body.questionIds.map(String)) : null;
+    const overwriteExisting = req.body?.overwriteExisting === true;
     const targets = questions.filter(q =>
       audioTaskTypes.has(String(q.subType || "")) &&
       (!ids || ids.has(String(q.id))) &&
-      !String(q.audioUrl || "").trim() && !!getQuestionAudioScript(q)
+      (overwriteExisting || !String(q.audioUrl || "").trim()) &&
+      !!getQuestionAudioScript(q)
     );
     if (!targets.length) return res.json({ success:true, generated:0, failures:[] });
     const uploadPath = path.join(__dirname, "uploads");
@@ -1161,13 +1184,18 @@ app.post("/admin/generate-question-audio", async (req, res) => {
         const needsBeep = q.subType === "select_missing_word";
         if (needsBeep && !/\[beep\][.!?]?\s*$/i.test(script)) throw new Error("Missing-word recording must end with [beep].");
         const input = needsBeep ? script.replace(/\[beep\][.!?]?\s*$/i, "").trim() : script;
+        const ttsProfile = getQuestionTtsProfile(q);
         const speech = await openai.audio.speech.create({
-          model: "gpt-4o-mini-tts", voice: "alloy", input,
+          model: "gpt-4o-mini-tts",
+          voice: ttsProfile.voice,
+          input,
+          instructions: ttsProfile.instructions,
           response_format: needsBeep ? "pcm" : "mp3"
         });
         let buffer = Buffer.from(await speech.arrayBuffer());
         if (needsBeep) buffer = speechPcmToWav(buffer, true);
-        const filename = "pte-" + String(q.id).replace(/[^a-zA-Z0-9_-]/g, "") + (needsBeep ? ".wav" : ".mp3");
+        const naturalSuffix = overwriteExisting ? "-natural-v2" : "";
+        const filename = "pte-" + String(q.id).replace(/[^a-zA-Z0-9_-]/g, "") + naturalSuffix + (needsBeep ? ".wav" : ".mp3");
         fs.writeFileSync(path.join(uploadPath, filename), buffer);
         q.audioUrl = "/uploads/" + filename;
         generated++;
