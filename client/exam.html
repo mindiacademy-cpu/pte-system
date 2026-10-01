@@ -2973,7 +2973,9 @@
       if (
         questionText &&
         q.subType !== "write_from_dictation" &&
-        q.subType !== "reorder_paragraphs"
+        q.subType !== "reorder_paragraphs" &&
+        q.subType !== "listening_fill_blanks" &&
+        q.subType !== "highlight_incorrect_words"
       ) {
         taskContent.classList.remove("hidden");
         taskContent.innerText = questionText;
