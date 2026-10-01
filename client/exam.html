@@ -851,6 +851,68 @@
     .start-screen h1 { font-size:22px; color:#333; font-weight:600; }
     .start-screen p { max-width:850px; font-size:15px; line-height:1.65; color:#4c5055; }
     .start-exam-btn { border-radius:18px; background:var(--exam-teal); }
+    .start-exam-btn:hover,
+    .start-exam-btn:focus,
+    .start-exam-btn:active {
+      background:var(--exam-teal-dark);
+      color:#fff;
+    }
+    .start-screen .test-intro {
+      max-width:860px;
+      margin:0;
+      color:#40454a;
+      font-size:15px;
+      line-height:1.6;
+    }
+    .start-screen .test-overview {
+      width:min(760px,100%);
+      margin:24px 0 22px;
+      border-top:1px solid #d7d9d9;
+      border-bottom:1px solid #d7d9d9;
+    }
+    .start-screen .test-overview-row {
+      display:grid;
+      grid-template-columns:minmax(220px,1.4fr) minmax(120px,.6fr);
+      gap:20px;
+      padding:10px 2px;
+      border-bottom:1px solid #e5e6e6;
+      font-size:14px;
+      color:#3f4448;
+    }
+    .start-screen .test-overview-row:last-child { border-bottom:0; }
+    .start-screen .test-overview-row strong { font-weight:600; color:#25292d; }
+    .start-screen .before-you-begin {
+      max-width:860px;
+      margin:20px 0 0;
+    }
+    .start-screen .before-you-begin h2 {
+      margin:0 0 10px;
+      font-size:17px;
+      font-weight:600;
+      color:#303438;
+    }
+    .start-screen .before-you-begin ul {
+      margin:0;
+      padding-left:20px;
+      color:#464b50;
+      font-size:14px;
+      line-height:1.75;
+    }
+    .start-screen .practice-note {
+      max-width:860px;
+      margin:20px 0 0;
+      padding-top:16px;
+      border-top:1px solid #e1e2e2;
+      color:#5b6064;
+      font-size:13px;
+      line-height:1.55;
+    }
+    @media (max-width:650px) {
+      .start-screen .test-overview-row {
+        grid-template-columns:1fr;
+        gap:3px;
+      }
+    }
     .finish-screen { max-width:none; margin:0; padding:0; }
     .finish-card { min-height:calc(100vh - 168px); border-radius:0; box-shadow:none; padding:70px 30px; }
     .finish-card h1 { color:var(--exam-teal-dark); }
@@ -1003,14 +1065,36 @@
 
     <div id="startScreen" class="start-screen hidden">
       <h1>PTE Academic Practice Test</h1>
-      <p>
-        This exam contains Speaking, Writing, Reading and Listening sections.
-        Click the button below when you are ready to start.
+      <p class="test-intro">
+        This practice test includes tasks from the Speaking, Writing, Reading and Listening sections.
       </p>
-      <p id="examOverview"></p>
-      <p id="examTimingOverview">Speaking &amp; Writing: up to 84 minutes. Reading: 30 minutes. Listening: 39 minutes, including audio playback. Maximum section time: 153 minutes.</p>
-      <p>Summarize Written Text: 10 minutes each. Essay: 20 minutes. Summarize Spoken Text: 10 minutes including the recording, within the Listening allowance. No breaks; you cannot return to previous questions.</p>
-      <button class="start-exam-btn" onclick="startExam()">Start Exam</button>
+
+      <div class="test-overview" aria-label="Test overview">
+        <div class="test-overview-row"><strong>Scored questions</strong><span id="examQuestionCount">22</span></div>
+        <div class="test-overview-row"><strong>Maximum total time</strong><span>71 minutes</span></div>
+        <div class="test-overview-row"><strong>Speaking &amp; Writing</strong><span>40 minutes</span></div>
+        <div class="test-overview-row"><strong>Reading</strong><span>10 minutes</span></div>
+        <div class="test-overview-row"><strong>Listening</strong><span>21 minutes</span></div>
+      </div>
+
+      <div class="before-you-begin">
+        <h2>Before You Begin</h2>
+        <ul>
+          <li>Make sure your microphone, headphones and internet connection are working properly.</li>
+          <li>Read the instructions for each task carefully before answering.</li>
+          <li>Some speaking tasks include preparation time followed by recording time.</li>
+          <li>Audio in listening and speaking tasks may be played once only.</li>
+          <li>Once you move to the next question, you cannot return to the previous question.</li>
+          <li>Your responses are saved automatically as you progress through the test.</li>
+        </ul>
+      </div>
+
+      <p class="practice-note">
+        This practice test is designed to help you become familiar with the PTE Academic test format.
+        Results are practice estimates and are not official Pearson PTE scores.
+      </p>
+
+      <button class="start-exam-btn" onclick="startExam()">Start Test</button>
     </div>
 
     <div id="micCheckScreen" class="start-screen hidden">
@@ -3422,10 +3506,7 @@
           isCompactPracticeExam = parsedExam.title === "PTE Compact Practice Exam" ||
             (questionsData.length === 22 && questionTypes.size === 22);
           examCode = parsedExam.examCode || examCode;
-          const timingOverview = document.getElementById("examTimingOverview");
-          if (timingOverview && isCompactPracticeExam) {
-            timingOverview.textContent = "Compact practice limits: Speaking & Writing 40 minutes, Reading 10 minutes, Listening 21 minutes including recordings. Maximum total: 71 minutes.";
-          }
+
         } else {
           window.location.replace("/");
           return;
@@ -3485,7 +3566,8 @@
         });
 
         questions = Array.from(uniqueMap.values());
-        document.getElementById("examOverview").textContent = questions.length + " scored questions. Practice estimate; not an official Pearson score. Speaking content, pronunciation and fluency are estimated from recordings where audio assessment is available. Unavailable assessments require administrator review.";
+        const examQuestionCount = document.getElementById("examQuestionCount");
+        if (examQuestionCount) examQuestionCount.textContent = String(questions.length);
 
         loadingArea.style.display = "none";
 
