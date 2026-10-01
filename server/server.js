@@ -158,6 +158,7 @@ app.use((req, res, next) => {
     req.path === "/questions" || req.path.startsWith("/questions/") ||
     req.path === "/upload-audio" || req.path === "/upload-image" ||
     req.path === "/admin/generate-question-audio" ||
+    req.path === "/admin/migrate-exams-to-compact" ||
     req.path === "/create-exam" || req.path === "/exams" ||
     (req.method === "DELETE" && req.path.startsWith("/exams/")) ||
     req.path === "/exam-results" || req.path.startsWith("/exam-results/");
@@ -1340,6 +1341,20 @@ const EXAM_TASK_COUNTS = {
   highlight_incorrect_words:1, write_from_dictation:1
 };
 
+const EXAM_SECTION_ORDER = { speaking: 1, writing: 1, reading: 2, listening: 3 };
+const EXAM_TASK_ORDER = Object.keys(EXAM_TASK_COUNTS).reduce((order, taskType, index) => {
+  order[taskType] = index + 1;
+  return order;
+}, {});
+
+function sortCompactExamQuestions(questions) {
+  return [...questions].sort((a, b) => {
+    const sectionDiff = (EXAM_SECTION_ORDER[String(a.type || "").toLowerCase()] || 999) -
+      (EXAM_SECTION_ORDER[String(b.type || "").toLowerCase()] || 999);
+    return sectionDiff || (EXAM_TASK_ORDER[a.subType] || 999) - (EXAM_TASK_ORDER[b.subType] || 999);
+  });
+}
+
 function isExamReady(q) {
   if (!q.prompt || !q.textContent && !q.audioUrl && !q.imageUrl) return false;
   if (q.type === "listening" || ["repeat_sentence","re_tell_lecture","answer_short_question","summarize_group_discussion","respond_to_a_situation"].includes(q.subType)) {
@@ -1383,6 +1398,36 @@ function selectCompactExam(questions) {
   return {shortages:[], questions:chosen};
 }
 
+function compactExistingExamQuestions(existingQuestions, fallbackQuestions) {
+  const chosen = new Map();
+  const addFirstReady = source => {
+    source
+      .map(migrateQuestionForCurrentPte)
+      .filter(Boolean)
+      .filter(isExamReady)
+      .forEach(question => {
+        if (EXAM_TASK_COUNTS[question.subType] && !chosen.has(question.subType)) {
+          chosen.set(question.subType, question);
+        }
+      });
+  };
+
+  // Preserve one ready question from the existing code whenever possible.
+  addFirstReady(Array.isArray(existingQuestions) ? existingQuestions : []);
+  addFirstReady(Array.isArray(fallbackQuestions) ? fallbackQuestions : []);
+
+  const shortages = Object.keys(EXAM_TASK_COUNTS)
+    .filter(taskType => !chosen.has(taskType))
+    .map(taskType => ({ taskType, required: 1, available: 0, missing: 1 }));
+
+  return {
+    shortages,
+    questions: shortages.length
+      ? []
+      : sortCompactExamQuestions(Object.keys(EXAM_TASK_COUNTS).map(taskType => chosen.get(taskType)))
+  };
+}
+
 app.post("/create-exam", async (req, res) => {
   try {
     const allQuestions = readJson(QUESTIONS_FILE)
@@ -1393,18 +1438,6 @@ app.post("/create-exam", async (req, res) => {
       return res.status(400).json({ error: "Question bank is empty." });
     }
 
-    const sectionOrder = { speaking: 1, writing: 1, reading: 2, listening: 3 };
-    const taskOrder = {
-      read_aloud:1, repeat_sentence:2, describe_image:3, re_tell_lecture:4,
-      answer_short_question:5, summarize_group_discussion:6, respond_to_a_situation:7,
-      summarize_written_text:8, essay:9,
-      reading_writing_fill_blanks:10, reading_mcq_multiple:11, reorder_paragraphs:12,
-      reading_fill_blanks:13, reading_mcq_single:14,
-      summarize_spoken_text:15, listening_mcq_multiple:16, listening_fill_blanks:17,
-      highlight_correct_summary:18, listening_mcq_single:19, select_missing_word:20,
-      highlight_incorrect_words:21, write_from_dictation:22
-    };
-
     const selection = selectCompactExam(allQuestions);
     if (selection.shortages.length) {
       return res.status(400).json({
@@ -1414,11 +1447,7 @@ app.post("/create-exam", async (req, res) => {
     }
 
     // Randomly select one ready question per task type and retain task order.
-    const examQuestions = selection.questions.sort((a, b) => {
-      const sectionDiff = (sectionOrder[String(a.type || "").toLowerCase()] || 999) -
-        (sectionOrder[String(b.type || "").toLowerCase()] || 999);
-      return sectionDiff || (taskOrder[a.subType] || 999) - (taskOrder[b.subType] || 999);
-    });
+    const examQuestions = sortCompactExamQuestions(selection.questions);
 
     const examCode = "EX" + Math.floor(100000 + Math.random() * 900000);
     const title = "PTE Compact Practice Exam";
@@ -1440,6 +1469,68 @@ app.post("/create-exam", async (req, res) => {
   } catch (error) {
     console.error("POST /create-exam error:", error);
     res.status(500).json({ error: "Exam could not be created." });
+  }
+});
+
+app.post("/admin/migrate-exams-to-compact", async (req, res) => {
+  try {
+    const questionBank = readJson(QUESTIONS_FILE);
+    const { data, error } = await supabase
+      .from("exams")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("SUPABASE EXAM MIGRATION LOAD ERROR:", error);
+      return res.status(500).json({ error: "Existing exams could not be loaded." });
+    }
+
+    const unusedExams = (data || []).filter(exam => exam.used !== true);
+    let migrated = 0;
+    let unchanged = 0;
+    const skipped = [];
+
+    for (const exam of unusedExams) {
+      const existing = Array.isArray(exam.questions) ? exam.questions : [];
+      const taskTypes = new Set(existing.map(question => question?.subType).filter(Boolean));
+      if (existing.length === 22 && taskTypes.size === 22) {
+        unchanged++;
+        continue;
+      }
+
+      const compact = compactExistingExamQuestions(existing, questionBank);
+      if (compact.shortages.length) {
+        skipped.push({ examCode: exam.exam_code, shortages: compact.shortages });
+        continue;
+      }
+
+      const { error: updateError } = await supabase
+        .from("exams")
+        .update({
+          title: "PTE Compact Practice Exam",
+          questions: compact.questions
+        })
+        .eq("id", exam.id);
+
+      if (updateError) {
+        console.error("SUPABASE EXAM MIGRATION UPDATE ERROR:", exam.exam_code, updateError);
+        skipped.push({ examCode: exam.exam_code, error: "Update failed." });
+        continue;
+      }
+
+      migrated++;
+    }
+
+    res.json({
+      success: skipped.length === 0,
+      examined: unusedExams.length,
+      migrated,
+      unchanged,
+      skipped
+    });
+  } catch (error) {
+    console.error("POST /admin/migrate-exams-to-compact error:", error);
+    res.status(500).json({ error: "Existing exams could not be migrated." });
   }
 });
 
