@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PTE Academic Practice Exam</title>
+  <title>PTE Academic Compact Mock Test</title>
   <style>
     * {
       box-sizing: border-box;
@@ -1074,7 +1074,7 @@
 <body>
   <div class="top-header">
     <div class="top-header-inner">
-      <div class="brand-title">PTE Academic Practice Exam</div>
+      <div class="brand-title">PTE Academic Compact Mock Test</div>
       <div class="candidate-bar" id="candidateInfo"></div>
     </div>
   </div>
@@ -1098,7 +1098,7 @@
     <div id="loadingArea" class="empty">Sorular yükleniyor...</div>
 
     <div id="startScreen" class="start-screen hidden">
-      <h1>PTE Academic Practice Test</h1>
+      <h1>PTE Academic Compact Mock Test</h1>
       <p class="test-intro">
         This practice test includes tasks from the Speaking, Writing, Reading and Listening sections.
       </p>
@@ -1149,7 +1149,7 @@
     </div>
 
     <div id="sectionBriefing" class="section-briefing hidden">
-      <div class="section-briefing-title" id="sectionBriefingTitle">PTE Academic Practice Test</div>
+      <div class="section-briefing-title" id="sectionBriefingTitle">PTE Academic Compact Mock Test</div>
       <div class="section-briefing-accent"></div>
       <div class="section-briefing-body">
         <h2 id="sectionBriefingHeading">You are about to begin this section:</h2>
@@ -3497,7 +3497,7 @@
       document.getElementById("examArea").classList.add("hidden");
       document.getElementById("timerCard").classList.add("hidden");
       document.getElementById("sectionBriefing").classList.remove("hidden");
-      document.getElementById("sectionBriefingTitle").textContent = "PTE Academic Practice - " + section;
+      document.getElementById("sectionBriefingTitle").textContent = "PTE Academic Compact Mock Test - " + section;
       document.getElementById("sectionBriefingHeading").textContent = "You are about to begin the " + section + " section:";
       document.getElementById("sectionBriefingRows").innerHTML =
         `<tr><td>${getPartNumber(q)}</td><td>${section}</td><td>${getOfficialSectionDuration(q)}</td></tr>`;
@@ -3543,7 +3543,7 @@
           const parsedExam = JSON.parse(storedExam);
           questionsData = parsedExam.questions || [];
           const questionTypes = new Set(questionsData.map(q => q.subType).filter(Boolean));
-          isCompactPracticeExam = parsedExam.title === "PTE Compact Practice Exam" ||
+          isCompactPracticeExam = parsedExam.title === "PTE Academic Compact Mock Test" ||
             (questionsData.length === 22 && questionTypes.size === 22);
           examCode = parsedExam.examCode || examCode;
 
