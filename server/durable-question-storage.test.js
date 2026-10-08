@@ -23,7 +23,11 @@ function fixture(t) {
       },
       download: async key => objects.has(key)
         ? {data:new Blob([objects.get(key)])}
-        : {error:{statusCode:400,message:'Object not found'}}
+        : {error:{statusCode:400,message:'Object not found'}},
+      remove: async keys => {
+        keys.forEach(key => objects.delete(key));
+        return {data:[]};
+      }
     })
   }};
   return {file,dir,objects,client,fail: value => {failure=value;},
@@ -45,7 +49,28 @@ test('deploy restores authored bank, deleted-number counter and exact latest aud
   assert.equal(JSON.parse(fs.readFileSync(f.file+'.titles.json')).highest,12);
   await Promise.all([f.store.ensureMediaLocal(bank[0].audioUrl),f.store.ensureMediaLocal(bank[0].audioUrl)]);
   assert.equal(fs.readFileSync(media,'utf8'),'LATEST USER AUDIO');
-  assert.equal([...f.objects.keys()].filter(key=>key.startsWith('history/')).length,1);
+  assert.equal([...f.objects.keys()].filter(key=>key.startsWith('history/')).length,0);
+});
+
+test('replacement deletes old media only after successful save; shared files remain until last reference is removed', async t => {
+  const f=fixture(t);
+  const oldFile=path.join(f.dir,'uploads','old.mp3');
+  fs.writeFileSync(oldFile,'OLD');
+  await f.store.uploadMedia(oldFile,'audio/mpeg');
+  const bank=[{id:'1',audioUrl:'/uploads/old.mp3'},{id:'2',audioUrl:'/uploads/old.mp3'}];
+  await f.store.save(bank);
+  bank[0].audioUrl='/uploads/new.mp3';
+  await f.store.save(bank);
+  assert.equal(f.objects.has('media/old.mp3'),true);
+  f.fail('offline');
+  await assert.rejects(f.store.save([bank[0]]),/offline/);
+  assert.equal(f.objects.has('media/old.mp3'),true);
+  assert.equal(fs.existsSync(oldFile),true);
+  f.fail(null);
+  await f.store.save([bank[0]]);
+  assert.equal(f.objects.has('media/old.mp3'),false);
+  assert.equal(fs.existsSync(oldFile),false);
+  assert.deepEqual(JSON.parse(f.objects.get('questions.json')).bank,[bank[0]]);
 });
 
 test('failed durable save rejects and retains previously saved bank', async t => {

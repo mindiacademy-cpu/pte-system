@@ -6,6 +6,15 @@ function createDurableQuestionStorage(supabase, bankFile, bucket = 'pte-question
   const directory = path.dirname(bankFile);
   const stateFile = bankFile + '.titles.json';
   const storage = () => supabase.storage.from(bucket);
+  let previousBank = [];
+  let pendingMediaDeletes = new Set();
+  let cleanupRetry;
+  let mutation = Promise.resolve();
+  function exclusive(action) {
+    const operation = mutation.then(action);
+    mutation = operation.catch(() => {});
+    return operation;
+  }
   const missing = error => ['404', 'NotFound', 'not_found'].includes(String(error?.statusCode || error?.status || error?.code)) || /not found|does not exist/i.test(error?.message || '');
   const check = (result, label) => {
     if (result.error) throw new Error(`${label}: ${result.error.message}`);
@@ -17,14 +26,37 @@ function createDurableQuestionStorage(supabase, bankFile, bucket = 'pte-question
     if (!match || match[1] === '.' || match[1] === '..' || /[\\]/.test(match[1])) return null;
     return path.join(directory, 'uploads', match[1]);
   }
+  const mediaUrls = bank => new Set(bank.flatMap(q => [q.audioUrl, q.imageUrl]).filter(url => mediaPath(url)));
+  async function cleanupMedia() {
+    if (!pendingMediaDeletes.size) return;
+    try {
+      const urls = [...pendingMediaDeletes];
+      check(await storage().remove(urls.map(url => 'media/' + path.basename(mediaPath(url)))), 'Old media could not be removed');
+      for (const url of urls) {
+        fs.rmSync(mediaPath(url), {force: true});
+        pendingMediaDeletes.delete(url);
+      }
+    } catch (error) {
+      console.error('Old media cleanup will be retried:', error.message);
+      if (!cleanupRetry) {
+        cleanupRetry = setTimeout(() => { cleanupRetry = null; exclusive(cleanupMedia); }, 30000);
+        cleanupRetry.unref();
+      }
+    }
+  }
   async function save(bank) {
     const state = fs.existsSync(stateFile) ? JSON.parse(fs.readFileSync(stateFile, 'utf8')) : {highest: 0};
-    const snapshot = encode({version: 1, savedAt: new Date().toISOString(), bank, titleState: state});
-    // Retain immutable versions before updating the latest snapshot.
-    check(await storage().upload(`history/${Date.now()}-${crypto.randomUUID()}.json`, snapshot,
-      {contentType: 'application/json', upsert: false}), 'Question history could not be saved');
+    const active = mediaUrls(bank);
+    const obsolete = new Set([...pendingMediaDeletes, ...mediaUrls(previousBank)]
+      .filter(url => !active.has(url)));
+    const snapshot = encode({version: 1, savedAt: new Date().toISOString(), bank, titleState: state,
+      pendingMediaDeletes: [...obsolete]});
     check(await storage().upload('questions.json', snapshot,
       {contentType: 'application/json', upsert: true}), 'Question bank could not be saved');
+    previousBank = JSON.parse(JSON.stringify(bank));
+    pendingMediaDeletes = obsolete;
+    // Never remove the old file before its replacement has been saved successfully.
+    await cleanupMedia();
   }
   async function initialize() {
     const found = await supabase.storage.getBucket(bucket);
@@ -39,6 +71,9 @@ function createDurableQuestionStorage(supabase, bankFile, bucket = 'pte-question
     }
     const snapshot = JSON.parse(await downloaded.data.text());
     if (snapshot.version !== 1 || !Array.isArray(snapshot.bank)) throw new Error('Invalid durable question bank; local seed fallback refused');
+    previousBank = snapshot.bank;
+    const active = mediaUrls(snapshot.bank);
+    pendingMediaDeletes = new Set((snapshot.pendingMediaDeletes || []).filter(url => mediaPath(url) && !active.has(url)));
     fs.writeFileSync(bankFile, JSON.stringify(snapshot.bank, null, 2));
     fs.writeFileSync(stateFile, JSON.stringify(snapshot.titleState || {highest: 0}, null, 2));
     // Repository media can be older than the saved upload, even at the same URL.
@@ -73,6 +108,6 @@ function createDurableQuestionStorage(supabase, bankFile, bucket = 'pte-question
       if (local && fs.existsSync(local)) await uploadMedia(local);
     }
   }
-  return {initialize, save, uploadMedia, ensureMediaLocal, preserveExistingMedia};
+  return {initialize, save: bank => exclusive(() => save(bank)), uploadMedia, ensureMediaLocal, preserveExistingMedia};
 }
 module.exports = {createDurableQuestionStorage};
