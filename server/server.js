@@ -195,7 +195,11 @@ const upload = multer({ storage });
 const QUESTIONS_FILE = path.join(__dirname, "questions.json");
 const EXAMS_FILE = path.join(__dirname, "exams.json");
 const EXAM_RESULTS_FILE = path.join(__dirname, "exam-results.json");
-const durableQuestions = createDurableQuestionStorage(supabase, QUESTIONS_FILE);
+const questionStorageClient = process.env.SUPABASE_SERVICE_ROLE_KEY
+  ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY,
+      {auth: {persistSession: false, autoRefreshToken: false}})
+  : supabase;
+const durableQuestions = createDurableQuestionStorage(questionStorageClient, QUESTIONS_FILE);
 
 /**
  * PTE-like skill contribution map
