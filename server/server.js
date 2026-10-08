@@ -8,7 +8,6 @@ const OpenAI = require("openai");
 const { Resend } = require("resend");
 const { assessSpeakingAudio } = require("./speaking-scoring");
 const { createTitleStore } = require('./question-title-store');
-const { createDurableQuestionStorage } = require('./durable-question-storage');
 const crypto = require("crypto");
 
 const app = express();
@@ -152,16 +151,6 @@ app.get("/admin-login-legacy", (req, res) => {
   res.redirect(302, "/admin-login");
 });
 app.use(express.static(path.join(__dirname, "../client")));
-app.use('/uploads', async (req, res, next) => {
-  try {
-    if (durableQuestions.isDeletedMedia('/uploads' + req.path)) return res.sendStatus(404);
-    await durableQuestions.ensureMediaLocal('/uploads' + req.path);
-    next();
-  } catch (error) {
-    console.error('Durable media read failed:', error.message);
-    res.status(503).send('Media temporarily unavailable.');
-  }
-});
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use((req, res, next) => {
@@ -196,11 +185,6 @@ const upload = multer({ storage });
 const QUESTIONS_FILE = path.join(__dirname, "questions.json");
 const EXAMS_FILE = path.join(__dirname, "exams.json");
 const EXAM_RESULTS_FILE = path.join(__dirname, "exam-results.json");
-const questionStorageClient = process.env.SUPABASE_SERVICE_ROLE_KEY
-  ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY,
-      {auth: {persistSession: false, autoRefreshToken: false}})
-  : supabase;
-const durableQuestions = createDurableQuestionStorage(questionStorageClient, QUESTIONS_FILE);
 
 /**
  * PTE-like skill contribution map
@@ -430,30 +414,9 @@ function ensureFile(filePath, defaultValue) {
 ensureFile(QUESTIONS_FILE, []);
 ensureFile(EXAMS_FILE, []);
 ensureFile(EXAM_RESULTS_FILE, []);
-let questionTitles;
-
-// Serialize bank mutations through the durable save, including audio generation.
-let bankMutation = Promise.resolve();
-app.use((req, res, next) => {
-  const mutates = ['POST', 'PUT', 'DELETE'].includes(req.method) &&
-    (req.path === '/questions' || req.path.startsWith('/questions/') ||
-      req.path === '/admin/generate-question-audio' || req.path === '/admin/migrate-question-ids');
-  if (!mutates) return next();
-  const preceding = bankMutation;
-  let release;
-  bankMutation = new Promise(resolve => { release = resolve; });
-  preceding.then(() => {
-    if (res.destroyed) return release();
-    res.once('finish', release);
-    res.once('close', release);
-    next();
-  });
-});
-
-app.get('/admin/question-storage-status', requireAdmin, (req, res) => {
-  res.set('Cache-Control', 'no-store');
-  res.json({durable: true, version: 1, questions: readJson(QUESTIONS_FILE).length});
-});
+require('./question-seeds').installQuestionSeeds(QUESTIONS_FILE);
+const questionTitles = createTitleStore(QUESTIONS_FILE);
+questionTitles.migrate();
 
 function readJson(filePath) {
   try {
@@ -466,8 +429,7 @@ function readJson(filePath) {
   }
 }
 
-async function writeJson(filePath, data) {
-  if (filePath === QUESTIONS_FILE) await durableQuestions.save(data);
+function writeJson(filePath, data) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
 }
 
@@ -877,7 +839,6 @@ Use a strict 0-5 practice content rubric. Read Aloud checks prompt words; Repeat
 
 async function getSpeakingReference(question) {
   if (question.subType === "describe_image" && question.imageUrl) {
-    await durableQuestions.ensureMediaLocal(question.imageUrl);
     const imagePath = path.resolve(__dirname, "." + question.imageUrl);
     const uploadRoot = path.resolve(__dirname, "uploads") + path.sep;
     if (!imagePath.startsWith(uploadRoot) || !fs.existsSync(imagePath)) throw new Error("Question image unavailable for assessment.");
@@ -941,7 +902,7 @@ async function transcribeAudioFromUrl(audioUrl) {
   if (!audioPath.startsWith(path.resolve(__dirname, "uploads") + path.sep)) return "";
 
   if (!fs.existsSync(audioPath)) {
-    if (!await durableQuestions.ensureMediaLocal(audioUrl)) return "";
+    return "";
   }
 
   const transcription = await openai.audio.transcriptions.create({
@@ -1260,10 +1221,9 @@ app.post("/admin/generate-question-audio", async (req, res) => {
         const naturalSuffix = overwriteExisting ? "-natural-v2" : "";
         const filename = "pte-" + String(q.id).replace(/[^a-zA-Z0-9_-]/g, "") + naturalSuffix + (needsBeep ? ".wav" : ".mp3");
         fs.writeFileSync(path.join(uploadPath, filename), buffer);
-        await durableQuestions.uploadMedia(path.join(uploadPath, filename), needsBeep ? 'audio/wav' : 'audio/mpeg');
         q.audioUrl = "/uploads/" + filename;
         generated++;
-        await writeJson(QUESTIONS_FILE, questions);
+        writeJson(QUESTIONS_FILE, questions);
       } catch (error) {
         console.error("QUESTION AUDIO GENERATION ERROR:", q.id, error);
         failures.push({ id:q.id, title:q.title, error:error.message || "Audio generation failed" });
@@ -1276,13 +1236,12 @@ app.post("/admin/generate-question-audio", async (req, res) => {
   }
 });
 
-app.post("/upload-audio", upload.single("audio"), async (req, res) => {
+app.post("/upload-audio", upload.single("audio"), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "Audio file is required." });
     }
 
-    await durableQuestions.uploadMedia(req.file.path, req.file.mimetype);
     const fileUrl = `/uploads/${req.file.filename}`;
 
     res.json({
@@ -1296,13 +1255,12 @@ app.post("/upload-audio", upload.single("audio"), async (req, res) => {
   }
 });
 
-app.post("/upload-image", upload.single("image"), async (req, res) => {
+app.post("/upload-image", upload.single("image"), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "Image file is required." });
     }
 
-    await durableQuestions.uploadMedia(req.file.path, req.file.mimetype);
     const fileUrl = `/uploads/${req.file.filename}`;
 
     res.json({
@@ -1316,7 +1274,7 @@ app.post("/upload-image", upload.single("image"), async (req, res) => {
   }
 });
 
-app.post("/questions", async (req, res) => {
+app.post("/questions", (req, res) => {
   try {
     if (!req.body.type) {
       return res.status(400).json({
@@ -1362,7 +1320,7 @@ app.post("/questions", async (req, res) => {
     });
 
     questions.push(newQuestion);
-    await writeJson(QUESTIONS_FILE, questions);
+    writeJson(QUESTIONS_FILE, questions);
 
     res.status(201).json(newQuestion);
   } catch (error) {
@@ -1371,7 +1329,7 @@ app.post("/questions", async (req, res) => {
   }
 });
 
-app.put("/questions/:id", async (req, res) => {
+app.put("/questions/:id", (req, res) => {
   try {
     const id = String(req.params.id);
     const questions = readJson(QUESTIONS_FILE);
@@ -1398,7 +1356,7 @@ app.put("/questions/:id", async (req, res) => {
     });
 
     questions[index] = updatedQuestion;
-    await writeJson(QUESTIONS_FILE, questions);
+    writeJson(QUESTIONS_FILE, questions);
 
     res.json(updatedQuestion);
   } catch (error) {
@@ -1407,14 +1365,14 @@ app.put("/questions/:id", async (req, res) => {
   }
 });
 
-app.delete("/questions/:id", async (req, res) => {
+app.delete("/questions/:id", (req, res) => {
   try {
     const id = String(req.params.id);
     const questions = readJson(QUESTIONS_FILE);
 
     const filtered = questions.filter(q => String(q.id) !== id);
 
-    await writeJson(QUESTIONS_FILE, filtered);
+    writeJson(QUESTIONS_FILE, filtered);
 
     res.json({ success: true });
   } catch (error) {
@@ -1566,7 +1524,7 @@ app.post("/create-exam", async (req, res) => {
   }
 });
 
-app.post("/admin/migrate-question-ids", async (req, res) => {
+app.post("/admin/migrate-question-ids", (req, res) => {
   try {
     const questions = readJson(QUESTIONS_FILE);
     const idMap = new Map();
@@ -1600,10 +1558,10 @@ app.post("/admin/migrate-question-ids", async (req, res) => {
       if (mapped && String(alias) !== mapped) aliases[String(alias)] = mapped;
     }
 
-    await writeJson(QUESTIONS_FILE, migratedQuestions);
-    await writeJson(EXAMS_FILE, migratedExams);
-    await writeJson(EXAM_RESULTS_FILE, migratedResults);
-    await writeJson(aliasFile, aliases);
+    writeJson(QUESTIONS_FILE, migratedQuestions);
+    writeJson(EXAMS_FILE, migratedExams);
+    writeJson(EXAM_RESULTS_FILE, migratedResults);
+    writeJson(aliasFile, aliases);
 
     res.json({
       success: true,
@@ -2120,16 +2078,6 @@ app.post("/transcribe-speaking", upload.single("audio"), async (req, res) => {
   }
 });
 
-async function startServer() {
-  const restored = await durableQuestions.initialize();
-  if (!restored) require('./question-seeds').installQuestionSeeds(QUESTIONS_FILE);
-  questionTitles = createTitleStore(QUESTIONS_FILE);
-  const bank = questionTitles.migrate();
-  if (!restored) await durableQuestions.preserveExistingMedia(bank);
-  await durableQuestions.save(bank);
-  app.listen(PORT, () => console.log(`Server is running on http://localhost:${PORT}`));
-}
-startServer().catch(error => {
-  console.error('Question storage initialization failed; refusing to serve stale seed data:', error.message);
-  process.exitCode = 1;
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
