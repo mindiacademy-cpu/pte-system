@@ -8,6 +8,7 @@ function createDurableQuestionStorage(supabase, bankFile, bucket = 'pte-question
   const storage = () => supabase.storage.from(bucket);
   let previousBank = [];
   let pendingMediaDeletes = new Set();
+  let deletedMediaUrls = new Set();
   let cleanupRetry;
   let mutation = Promise.resolve();
   function exclusive(action) {
@@ -49,12 +50,14 @@ function createDurableQuestionStorage(supabase, bankFile, bucket = 'pte-question
     const active = mediaUrls(bank);
     const obsolete = new Set([...pendingMediaDeletes, ...mediaUrls(previousBank)]
       .filter(url => !active.has(url)));
+    const deleted = new Set([...deletedMediaUrls, ...obsolete].filter(url => !active.has(url)));
     const snapshot = encode({version: 1, savedAt: new Date().toISOString(), bank, titleState: state,
-      pendingMediaDeletes: [...obsolete]});
+      pendingMediaDeletes: [...obsolete], deletedMediaUrls: [...deleted]});
     check(await storage().upload('questions.json', snapshot,
       {contentType: 'application/json', upsert: true}), 'Question bank could not be saved');
     previousBank = JSON.parse(JSON.stringify(bank));
     pendingMediaDeletes = obsolete;
+    deletedMediaUrls = deleted;
     // Never remove the old file before its replacement has been saved successfully.
     await cleanupMedia();
   }
@@ -73,7 +76,10 @@ function createDurableQuestionStorage(supabase, bankFile, bucket = 'pte-question
     if (snapshot.version !== 1 || !Array.isArray(snapshot.bank)) throw new Error('Invalid durable question bank; local seed fallback refused');
     previousBank = snapshot.bank;
     const active = mediaUrls(snapshot.bank);
-    pendingMediaDeletes = new Set((snapshot.pendingMediaDeletes || []).filter(url => mediaPath(url) && !active.has(url)));
+    deletedMediaUrls = new Set((snapshot.deletedMediaUrls || []).filter(url => mediaPath(url) && !active.has(url)));
+    pendingMediaDeletes = new Set([...(snapshot.pendingMediaDeletes || []), ...deletedMediaUrls]
+      .filter(url => mediaPath(url) && !active.has(url)));
+    for (const url of deletedMediaUrls) fs.rmSync(mediaPath(url), {force: true});
     fs.writeFileSync(bankFile, JSON.stringify(snapshot.bank, null, 2));
     fs.writeFileSync(stateFile, JSON.stringify(snapshot.titleState || {highest: 0}, null, 2));
     // Repository media can be older than the saved upload, even at the same URL.
@@ -88,6 +94,7 @@ function createDurableQuestionStorage(supabase, bankFile, bucket = 'pte-question
       {contentType: mime || 'application/octet-stream', upsert: true}), 'Media could not be saved permanently');
   }
   async function ensureMediaLocal(url) {
+    if (deletedMediaUrls.has(url)) return false;
     const local = mediaPath(url);
     if (!local) return false;
     if (fs.existsSync(local)) return true;
@@ -108,6 +115,7 @@ function createDurableQuestionStorage(supabase, bankFile, bucket = 'pte-question
       if (local && fs.existsSync(local)) await uploadMedia(local);
     }
   }
-  return {initialize, save: bank => exclusive(() => save(bank)), uploadMedia, ensureMediaLocal, preserveExistingMedia};
+  return {initialize, save: bank => exclusive(() => save(bank)), uploadMedia, ensureMediaLocal, preserveExistingMedia,
+    isDeletedMedia: url => deletedMediaUrls.has(url)};
 }
 module.exports = {createDurableQuestionStorage};

@@ -154,6 +154,7 @@ app.get("/admin-login-legacy", (req, res) => {
 app.use(express.static(path.join(__dirname, "../client")));
 app.use('/uploads', async (req, res, next) => {
   try {
+    if (durableQuestions.isDeletedMedia('/uploads' + req.path)) return res.sendStatus(404);
     await durableQuestions.ensureMediaLocal('/uploads' + req.path);
     next();
   } catch (error) {

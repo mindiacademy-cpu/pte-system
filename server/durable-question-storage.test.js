@@ -71,6 +71,13 @@ test('replacement deletes old media only after successful save; shared files rem
   assert.equal(f.objects.has('media/old.mp3'),false);
   assert.equal(fs.existsSync(oldFile),false);
   assert.deepEqual(JSON.parse(f.objects.get('questions.json')).bank,[bank[0]]);
+  await f.store.save([bank[0]]);
+  fs.writeFileSync(oldFile,'OLD FILE RESTORED BY REPOSITORY DEPLOY');
+  const restarted=createDurableQuestionStorage(f.client,f.file);
+  await restarted.initialize();
+  assert.equal(fs.existsSync(oldFile),false);
+  assert.equal(restarted.isDeletedMedia('/uploads/old.mp3'),true);
+  assert.equal(await restarted.ensureMediaLocal('/uploads/old.mp3'),false);
 });
 
 test('failed durable save rejects and retains previously saved bank', async t => {
