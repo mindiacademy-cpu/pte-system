@@ -14,11 +14,11 @@ function installQuestionSeeds(bankFile) {
         existing[field] = question[field]; changed = true;
       }
     }
-    // Uploaded files on ephemeral hosts may disappear after a deployment.
-    if (question.imageUrl && (!existing.imageUrl || !fs.existsSync(path.join(__dirname, existing.imageUrl.replace(/^\//, ''))))) {
+    // Preserve authored URLs even when the local cache has not been downloaded yet.
+    if (question.imageUrl && !existing.imageUrl) {
       existing.imageUrl = question.imageUrl; changed = true;
     }
-    if (question.audioUrl && (!existing.audioUrl || !fs.existsSync(path.join(__dirname, existing.audioUrl.replace(/^\//, ''))))) {
+    if (question.audioUrl && !existing.audioUrl) {
       existing.audioUrl = question.audioUrl; changed = true;
     }
   }
