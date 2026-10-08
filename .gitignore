@@ -1,2 +1,4 @@
 server/.env
 node_modules
+server/questions.json.titles.json*
+server/questions.json.before-numeric-titles.json

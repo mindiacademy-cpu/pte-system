@@ -7,7 +7,7 @@ function installQuestionSeeds(bankFile) {
   const seed = JSON.parse(fs.readFileSync(path.join(__dirname, 'seeds/set01.json'), 'utf8'));
   let changed = false;
   for (const question of seed) {
-    const existing = bank.find(q => q.id === question.id || q.title === question.title);
+    const existing = bank.find(q => q.id === question.id || q.title === question.title || q.previousTitle === question.title);
     if (!existing) { bank.push(question); changed = true; continue; }
     for (const field of ['audioScript', 'blankOptions', 'incorrectWordIndexes']) {
       if ((!existing[field] || Array.isArray(existing[field]) && !existing[field].length) && question[field]?.length) {

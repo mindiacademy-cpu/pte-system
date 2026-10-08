@@ -7,7 +7,7 @@ const multer = require("multer");
 const OpenAI = require("openai");
 const { Resend } = require("resend");
 const { assessSpeakingAudio } = require("./speaking-scoring");
-const { nextTitle } = require('../client/question-naming');
+const { createTitleStore } = require('./question-title-store');
 const crypto = require("crypto");
 
 const app = express();
@@ -415,6 +415,8 @@ ensureFile(QUESTIONS_FILE, []);
 ensureFile(EXAMS_FILE, []);
 ensureFile(EXAM_RESULTS_FILE, []);
 require('./question-seeds').installQuestionSeeds(QUESTIONS_FILE);
+const questionTitles = createTitleStore(QUESTIONS_FILE);
+questionTitles.migrate();
 
 function readJson(filePath) {
   try {
@@ -454,6 +456,7 @@ function normalizeQuestion(q) {
     type: q.type || "",
     subType: safeSubType,
     title: q.title || "",
+    previousTitle: q.previousTitle || "",
     prompt: q.prompt || "",
     points: getAutomaticPoints(q),
 
@@ -1123,6 +1126,11 @@ function migrateQuestionForCurrentPte(question) {
   return q;
 }
 
+app.get("/questions/next-title", (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.json({title: questionTitles.next(readJson(QUESTIONS_FILE))});
+});
+
 app.get("/questions", (req, res) => {
   const questions = readJson(QUESTIONS_FILE);
   res.json(questions.map(migrateQuestionForCurrentPte).filter(Boolean));
@@ -1280,9 +1288,7 @@ app.post("/questions", (req, res) => {
     }
 
     const questions = readJson(QUESTIONS_FILE);
-    const title = req.body.autoTitle === true || !String(req.body.title || '').trim()
-      ? nextTitle(questions,req.body.type,req.body.subType)
-      : req.body.title;
+    const title = questionTitles.reserve(questions);
     const newQuestion = migrateQuestionForCurrentPte({
       id: nextQuestionId(questions),
       type: req.body.type,
@@ -1344,6 +1350,8 @@ app.put("/questions/:id", (req, res) => {
     const updatedQuestion = migrateQuestionForCurrentPte({
       ...questions[index],
       ...req.body,
+      title: questions[index].title,
+      previousTitle: questions[index].previousTitle,
       id: questions[index].id
     });
 

@@ -511,8 +511,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
 
         <div class="row">
           <div>
-            <label for="title">Question Title</label>
-            <input id="title" readonly placeholder="Otomatik oluşturulur">
+            <label for="title">Soru Numarası</label>
+            <input id="title" readonly placeholder="001">
             
           </div>
           <div>
@@ -662,16 +662,15 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
     </div>
   </div>
 
-  <script src="/question-naming.js"></script>
+  <script src="/question-naming.js?v=numeric-1"></script>
   <script>
     let questions = [];
     let editingQuestionId = null;
+    let nextQuestionTitle = '001';
 
     function updateAutomaticTitle() {
       if (editingQuestionId) return;
-      document.getElementById('title').value = PteQuestionNaming.nextTitle(
-        questions,document.getElementById('type').value,document.getElementById('subType').value
-      );
+      document.getElementById('title').value = nextQuestionTitle;
     }
 
     const subtypeMap = {
@@ -1069,7 +1068,7 @@ if (type === "listening") {
 
       return questions.filter((q) => {
         const matchesType = typeFilter === "all" ? true : q.type === typeFilter;
-        const text = `${q.title || ""} ${q.prompt || ""} ${q.type || ""} ${q.subType || ""}`.toLowerCase();
+        const text = `${q.title || ""} ${q.previousTitle || ""} ${q.prompt || ""} ${q.type || ""} ${q.subType || ""}`.toLowerCase();
         const matchesSearch = searchValue ? text.includes(searchValue) : true;
         return matchesType && matchesSearch;
       });
@@ -1100,7 +1099,7 @@ if (type === "listening") {
        <div class="q-row q-head">
          <div>Section</div>
          <div>Task Type</div>
-         <div>Title</div>
+         <div>Soru No</div>
          <div>Auto Points</div>
          <div>Time</div>
          <div>Actions</div>
@@ -1130,8 +1129,13 @@ if (type === "listening") {
 
     async function loadQuestions() {
       try {
-        const response = await fetch("/questions");
+        const [response, titleResponse] = await Promise.all([
+          fetch('/questions', {cache:'no-store'}),
+          fetch('/questions/next-title', {cache:'no-store'})
+        ]);
+        if (!response.ok || !titleResponse.ok) throw new Error('Sorular yüklenemedi.');
         questions = await response.json();
+        nextQuestionTitle = (await titleResponse.json()).title;
         renderQuestionList();
         updateAutomaticTitle();
       } catch (error) {
