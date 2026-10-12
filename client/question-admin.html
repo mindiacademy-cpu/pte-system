@@ -1276,7 +1276,7 @@ if (subType === "reorder_paragraphs") {
         }
 
         if (subType === "reading_fill_blanks" || subType === "reading_writing_fill_blanks") {
-          const blankCount = (textContent.match(/_______/g) || []).length;
+          const blankCount = (textContent.match(/_{3,}/g) || []).length;
           if (!textContent || blankCount === 0) { alert("Metinde en az bir _______ boşluğu olmalı."); return null; }
           if (!options.length) { alert("Kelime/seçenek listesini gir."); return null; }
           if (correctAnswers.length !== blankCount) { alert("Correct Answers sayısı boşluk sayısıyla aynı olmalı."); return null; }
@@ -1648,10 +1648,15 @@ if (type === "listening") {
         Answer_Key: question.answerKey || "",
         Correct_Answer: question.correctAnswer || "",
         Correct_Answers: Array.isArray(question.correctAnswers) ? question.correctAnswers.join(" | ") : "",
-        Stored_Answer: Array.isArray(question.answer) ? question.answer.join(" | ") : (question.answer || "")
+        Blank_Options: Array.isArray(question.blankOptions) ? JSON.stringify(question.blankOptions) : (question.blankOptions ? JSON.stringify(question.blankOptions) : ""),
+        Audio_Script: question.audioScript || "",
+        Incorrect_Word_Indexes: Array.isArray(question.incorrectWordIndexes) ? question.incorrectWordIndexes.join(" | ") : "",
+        Stored_Answer: Array.isArray(question.answer) ? question.answer.join(" | ") : (question.answer ?? "")
       }));
 
       const worksheet = XLSX.utils.json_to_sheet(rows);
+      worksheet["!autofilter"] = { ref: worksheet["!ref"] };
+      worksheet["!cols"] = Object.keys(rows[0]).map(key => ({ wch: /Content|Prompt|Script|Options|Answer|Keywords/.test(key) ? 42 : /URL/.test(key) ? 34 : /Question_ID|SubType|Evaluation/.test(key) ? 23 : 17 }));
       const workbook = XLSX.utils.book_new();
 
       XLSX.utils.book_append_sheet(workbook, worksheet, "Questions");
