@@ -424,8 +424,10 @@ function readJson(filePath) {
     const raw = fs.readFileSync(filePath, "utf8");
     return JSON.parse(raw || "[]");
   } catch (error) {
+    // A malformed bank must not be mistaken for an empty bank: doing so can
+    // overwrite all authored questions on the next save.
     console.error(`JSON read error for ${filePath}:`, error);
-    return [];
+    throw new Error(`Stored JSON could not be read: ${path.basename(filePath)}`);
   }
 }
 
