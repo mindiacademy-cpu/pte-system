@@ -1099,7 +1099,7 @@ if (type === "listening") {
        <div class="q-row q-head">
          <div>Section</div>
          <div>Task Type</div>
-         <div>Soru No</div>
+         <div>Soru No / ID</div>
          <div>Auto Points</div>
          <div>Time</div>
          <div>Actions</div>
@@ -1113,7 +1113,7 @@ if (type === "listening") {
         row.innerHTML = `
          <div class="q-type">${question.type || "-"}</div>
          <div class="q-subtype">${getTaskLabel(question.subType)}</div>
-         <div class="q-title" title="${(question.title || "").replace(/"/g, "&quot;")}">${question.title || "-"}</div>
+         <div class="q-title" title="ID: ${String(question.id || "").replace(/"/g, "&quot;")}">${questions.indexOf(question) + 1} <small style="display:block;opacity:.7;font-weight:400">ID: ${question.id || "-"}</small></div>
          <div>${question.points ?? "—"}</div>
          <div class="q-time">${getQuestionTimeText(question)}</div>
          <div class="q-actions">
@@ -1625,9 +1625,11 @@ if (type === "listening") {
         return;
       }
 
-      const rows = filteredQuestions.map((question, index) => ({
-        No: index + 1,
-        ID: question.id || "",
+      // The displayed question number is its position in the complete bank,
+      // not the filtered export index. ID remains the stable database reference.
+      const rows = filteredQuestions.map((question) => ({
+        Question_Number: questions.indexOf(question) + 1,
+        Question_ID: String(question.id ?? ""),
         Section: question.type || "",
         Task_Type: getTaskLabel(question.subType || ""),
         SubType: question.subType || "",
