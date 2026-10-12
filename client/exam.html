@@ -2652,7 +2652,22 @@
           setPromptStatus("Audio connection interrupted — tap here to retry", true, attemptPlay);
         };
 
-        audio.onended = finish;
+        audio.onended = () => {
+          if (settled || !isCurrentFlow()) return;
+          // Some browsers signal 'ended' before the recording has actually
+          // reached its duration. Do not start the answer countdown early.
+          const endedEarly = Number.isFinite(audio.duration) && audio.duration > 0 &&
+            audio.currentTime < audio.duration - 0.75;
+          if (endedEarly) {
+            setPromptStatus("Audio ended early — tap here to resume", true, () => {
+              try { audio.currentTime = Math.max(0, lastPlaybackTime - 0.25); } catch (_) {}
+              attemptPlay();
+            });
+            setMainTimer(Math.ceil(audio.duration - audio.currentTime));
+            return;
+          }
+          finish();
+        };
 
         audio.onerror = () => {
           if (settled || !isCurrentFlow()) return;
