@@ -1730,6 +1730,14 @@
       timerBox.innerText = formatTime(timeLeft);
       localStorage.setItem(storageKey, String(timeLeft));
 
+      // Handle already-expired deadlines immediately, including after reload.
+      if (timeLeft <= 0) {
+        localStorage.removeItem(storageKey);
+        localStorage.removeItem(storageKey + ":deadline");
+        nextQuestion(true);
+        return;
+      }
+
       timerInterval = setInterval(() => {
         timeLeft = secondsRemaining(deadline);
         localStorage.setItem(storageKey, String(Math.max(0, timeLeft)));
