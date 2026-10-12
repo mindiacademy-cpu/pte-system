@@ -3108,7 +3108,8 @@
           wrap.classList.remove("hidden");
           taskContent.classList.add("hidden");
           taskContent.innerHTML = "";
-          const parts=(q.textContent||"").split("_______");
+          // Match the same blank markers accepted by exam readiness checks.
+          const parts=String(q.textContent||"").split(/_{3,}/g);
           const existingAnswers=Array.isArray(existing?.answer)?existing.answer:[];
           wrap.innerHTML="";
           parts.forEach((part,index)=>{
