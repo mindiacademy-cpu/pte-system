@@ -536,8 +536,13 @@ function buildSummary(answers) {
   safeAnswers.forEach(answer => {
     const subType = answer.subType || "";
     const weights = SKILL_WEIGHTS[subType] || {};
-    const finalScore = Number(answer.finalScore || 0);
-    const maxScore = Number(answer.maxScore || 10);
+    // Do not turn a legitimate zero maximum into ten points or allow invalid
+    // scores to distort the candidate's practice result.
+    const rawMax = Number(answer.maxScore ?? 10);
+    const maxScore = Number.isFinite(rawMax) && rawMax > 0 ? rawMax : 0;
+    const rawScore = Number(answer.finalScore ?? 0);
+    const finalScore = Number.isFinite(rawScore)
+      ? Math.max(0, Math.min(maxScore, rawScore)) : 0;
 
     overallEarned += finalScore;
     overallPossible += maxScore;
