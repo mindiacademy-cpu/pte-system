@@ -1777,13 +1777,18 @@
           readingSectionStartIndex = bounds.start;
           readingSectionEndIndex = bounds.end;
           const savedReading = Number(localStorage.getItem("readingSectionTimeLeft"));
-          readingSectionTimeLeft = savedReading > 0 ? savedReading : getReadingSectionTotalTime();
+          readingSectionTimeLeft = savedReading >= 0 && localStorage.getItem("readingSectionTimeLeft") !== null
+            ? savedReading : getReadingSectionTotalTime();
         }
 
         setTimerLabel("Reading Time Remaining");
         const deadline = countdownDeadline("readingDeadline", readingSectionTimeLeft);
         readingSectionTimeLeft = secondsRemaining(deadline);
         timerBox.innerText = formatTime(readingSectionTimeLeft);
+        if (readingSectionTimeLeft <= 0) {
+          handleTimerExpiry();
+          return;
+        }
 
         timerInterval = setInterval(() => {
           readingSectionTimeLeft = secondsRemaining(deadline);
@@ -1819,9 +1824,8 @@
           listeningSectionStartIndex = bounds.start;
           listeningSectionEndIndex = bounds.end;
           const savedListening = Number(localStorage.getItem("listeningSectionTimeLeft"));
-          listeningSectionTimeLeft = savedListening > 0
-            ? savedListening
-            : getListeningSectionTotalTime();
+          listeningSectionTimeLeft = savedListening >= 0 && localStorage.getItem("listeningSectionTimeLeft") !== null
+            ? savedListening : getListeningSectionTotalTime();
         }
 
         setTimerLabel("Listening Time Remaining");
@@ -1830,6 +1834,15 @@
           ? countdownDeadline("sstDeadline:" + q.id, 600) : null;
         listeningSectionTimeLeft = secondsRemaining(deadline);
         timerBox.innerText = formatTime(listeningSectionTimeLeft);
+        if (listeningSectionTimeLeft <= 0) {
+          handleTimerExpiry();
+          return;
+        }
+        if (itemDeadline && secondsRemaining(itemDeadline) <= 0) {
+          document.getElementById("listeningPlayer")?.pause();
+          nextQuestion(true);
+          return;
+        }
 
         timerInterval = setInterval(() => {
           listeningSectionTimeLeft = secondsRemaining(deadline);
