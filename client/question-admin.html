@@ -1323,7 +1323,7 @@ if (type === "listening") {
         }
 
         if (subType === "listening_fill_blanks") {
-          const blankCount = (textContent.match(/_______/g) || []).length;
+          const blankCount = (textContent.match(/_{3,}/g) || []).length;
           if (!textContent || blankCount === 0) { alert("Listening Fill in the Blanks metninde _______ kullan."); return null; }
           if (correctAnswers.length !== blankCount) { alert("Correct Answers sayısı boşluk sayısıyla aynı olmalı."); return null; }
         }
@@ -1359,6 +1359,21 @@ if (type === "listening") {
 
 }
 
+      // Reject mismatched answer keys before saving or exporting them.
+      const singleChoiceTasks = new Set(["reading_mcq_single", "listening_mcq_single", "highlight_correct_summary", "select_missing_word"]);
+      const multipleChoiceTasks = new Set(["reading_mcq_multiple", "listening_mcq_multiple"]);
+      if (singleChoiceTasks.has(subType) && !options.includes(correctAnswer)) {
+        alert("Correct Answer, Options listesindeki seçeneklerden biri olmalı.");
+        return null;
+      }
+      if (multipleChoiceTasks.has(subType) && correctAnswers.some(answer => !options.includes(answer))) {
+        alert("Correct Answers alanındaki tüm cevaplar Options listesinde bulunmalı.");
+        return null;
+      }
+      if (multipleChoiceTasks.has(subType) && new Set(correctAnswers).size !== correctAnswers.length) {
+        alert("Correct Answers alanında tekrarlanan cevaplar var.");
+        return null;
+      }
       const payload = {
         type,
         subType,
