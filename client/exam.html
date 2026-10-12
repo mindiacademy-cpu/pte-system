@@ -2258,6 +2258,10 @@
         setState("Playing");
       };
       player.onwaiting = () => setState("Loading audio…");
+      player.onstalled = () => {
+        if (listeningAudioEnded) return;
+        setState("Audio connection stalled — tap to resume", true, recoverAudio);
+      };
       player.onended = () => {
         const endedPrematurely = Number.isFinite(player.duration) &&
           player.duration > 0 && player.currentTime < player.duration - 0.75;
