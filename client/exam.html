@@ -2257,6 +2257,11 @@
         recoveryInProgress = false;
         setState("Playing");
       };
+      player.onplaying = () => {
+        recoveryInProgress = false;
+        recoveryAttempts = 0;
+        setState("Playing");
+      };
       player.onwaiting = () => setState("Loading audio…");
       player.onstalled = () => {
         if (listeningAudioEnded) return;
