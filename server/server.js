@@ -1208,6 +1208,11 @@ app.post("/admin/generate-question-audio", async (req, res) => {
     ]);
     const ids = Array.isArray(req.body?.questionIds) ? new Set(req.body.questionIds.map(String)) : null;
     const overwriteExisting = req.body?.overwriteExisting === true;
+    // Replacing recordings must be an explicit, targeted operation. A generic
+    // request must never regenerate every existing question recording.
+    if (overwriteExisting && (!ids || ids.size === 0)) {
+      return res.status(400).json({ error: "Select specific question IDs to replace existing audio." });
+    }
     const targets = questions.filter(q =>
       audioTaskTypes.has(String(q.subType || "")) &&
       (!ids || ids.has(String(q.id))) &&
