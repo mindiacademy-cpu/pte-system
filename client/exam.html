@@ -1790,7 +1790,9 @@
         readingSectionTimeLeft = secondsRemaining(deadline);
         timerBox.innerText = formatTime(readingSectionTimeLeft);
         if (readingSectionTimeLeft <= 0) {
-          handleTimerExpiry();
+          queueMicrotask(() => {
+            if (questions[currentQuestionIndex]?.id === q.id) handleTimerExpiry();
+          });
           return;
         }
 
@@ -1839,12 +1841,17 @@
         listeningSectionTimeLeft = secondsRemaining(deadline);
         timerBox.innerText = formatTime(listeningSectionTimeLeft);
         if (listeningSectionTimeLeft <= 0) {
-          handleTimerExpiry();
+          queueMicrotask(() => {
+            if (questions[currentQuestionIndex]?.id === q.id) handleTimerExpiry();
+          });
           return;
         }
         if (itemDeadline && secondsRemaining(itemDeadline) <= 0) {
-          document.getElementById("listeningPlayer")?.pause();
-          nextQuestion(true);
+          queueMicrotask(() => {
+            if (questions[currentQuestionIndex]?.id !== q.id) return;
+            document.getElementById("listeningPlayer")?.pause();
+            nextQuestion(true);
+          });
           return;
         }
 
@@ -3407,6 +3414,16 @@
         const listeningPlayer = document.getElementById("listeningPlayer");
         if (listeningPlayer) {
           listeningPlayer.pause();
+          // Detach old-question callbacks before clearing the media source;
+          // otherwise load() can fire an error and restart the previous audio.
+          listeningPlayer.onplay = null;
+          listeningPlayer.onplaying = null;
+          listeningPlayer.onwaiting = null;
+          listeningPlayer.onstalled = null;
+          listeningPlayer.onended = null;
+          listeningPlayer.onerror = null;
+          listeningPlayer.oncanplay = null;
+          listeningPlayer.ontimeupdate = null;
           listeningPlayer.removeAttribute("src");
           listeningPlayer.load();
         }
