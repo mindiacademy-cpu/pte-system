@@ -1235,12 +1235,21 @@ app.post("/admin/generate-question-audio", async (req, res) => {
         });
         let buffer = Buffer.from(await speech.arrayBuffer());
         if (needsBeep) buffer = speechPcmToWav(buffer, true);
-        const naturalSuffix = overwriteExisting ? "-natural-v2" : "";
-        const filename = "pte-" + String(q.id).replace(/[^a-zA-Z0-9_-]/g, "") + naturalSuffix + (needsBeep ? ".wav" : ".mp3");
-        fs.writeFileSync(path.join(uploadPath, filename), buffer);
-        q.audioUrl = "/uploads/" + filename;
-        generated++;
-        writeJson(QUESTIONS_FILE, questions);
+        // Each generation gets a new URL: never overwrite audio still referenced
+        // by an earlier question-bank version or cached by a candidate browser.
+        const filename = "pte-" + String(q.id).replace(/[^a-zA-Z0-9_-]/g, "") + "-" + crypto.randomUUID() + (needsBeep ? ".wav" : ".mp3");
+        const generatedPath = path.join(uploadPath, filename);
+        fs.writeFileSync(generatedPath, buffer, { flag: "wx" });
+        const previousUrl = q.audioUrl;
+        try {
+          q.audioUrl = "/uploads/" + filename;
+          writeJson(QUESTIONS_FILE, questions);
+          generated++;
+        } catch (saveError) {
+          q.audioUrl = previousUrl;
+          fs.rmSync(generatedPath, { force: true });
+          throw saveError;
+        }
       } catch (error) {
         console.error("QUESTION AUDIO GENERATION ERROR:", q.id, error);
         failures.push({ id:q.id, title:q.title, error:error.message || "Audio generation failed" });
