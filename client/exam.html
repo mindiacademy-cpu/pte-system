@@ -3009,7 +3009,9 @@
 
       document.getElementById("questionTypeTitle").innerText = getSubTypeLabel(q.type, q.subType);
       document.getElementById("sectionBadge").innerText = (q.type || "question").toUpperCase();
-      document.getElementById("questionTitle").innerText = q.title || "";
+      // Candidate-facing question number is independent of the stable question ID
+      // and any legacy bank title. Keep the ID unchanged for scoring and saving.
+      document.getElementById("questionTitle").innerText = String(currentQuestionIndex + 1);
 
       const instructionBox = document.querySelector(".instruction-box");
 
