@@ -175,7 +175,10 @@ const storage = multer.diskStorage({
     cb(null, uploadPath);
   },
   filename: function (req, file, cb) {
-    const safeName = Date.now() + "-" + file.originalname.replace(/\s+/g, "_");
+    // Avoid filename collisions and path separators from untrusted uploads.
+    const extension = path.extname(file.originalname).toLowerCase();
+    const safeExtension = /^\.[a-z0-9]{1,8}$/.test(extension) ? extension : "";
+    const safeName = Date.now() + "-" + crypto.randomUUID() + safeExtension;
     cb(null, safeName);
   }
 });
