@@ -1695,6 +1695,7 @@
         saveCurrentAnswer();
         readingSectionTimeLeft = 0;
         localStorage.removeItem("readingSectionTimeLeft");
+        localStorage.removeItem("readingDeadline");
         goToAfterReadingSection();
         return;
       }
@@ -1702,6 +1703,7 @@
       if (q.type === "listening") {
         listeningSectionTimeLeft = 0;
         localStorage.removeItem("listeningSectionTimeLeft");
+        localStorage.removeItem("listeningDeadline");
         document.getElementById("listeningPlayer")?.pause();
         finishExam(true);
         return;
@@ -1734,7 +1736,9 @@
       if (timeLeft <= 0) {
         localStorage.removeItem(storageKey);
         localStorage.removeItem(storageKey + ":deadline");
-        nextQuestion(true);
+        queueMicrotask(() => {
+          if (questions[currentQuestionIndex]?.id === q.id) nextQuestion(true);
+        });
         return;
       }
 
@@ -2298,6 +2302,7 @@
         if (pendingListeningAutoNext) {
           pendingListeningAutoNext = false;
           nextQuestion(true);
+          return;
         }
 
         if (pendingListeningSectionEnd) {
@@ -3397,7 +3402,16 @@
       clearInterval(timerInterval);
 
       if (q && q.type === "reading") persistReadingTime();
-      if (q && q.type === "listening") persistListeningTime();
+      if (q && q.type === "listening") {
+        persistListeningTime();
+        const listeningPlayer = document.getElementById("listeningPlayer");
+        if (listeningPlayer) {
+          listeningPlayer.pause();
+          listeningPlayer.removeAttribute("src");
+          listeningPlayer.load();
+        }
+        if (q.subType === "summarize_spoken_text") localStorage.removeItem("sstDeadline:" + q.id);
+      }
       if (q && q.type !== "reading") {
         readingSectionStartIndex = null;
         readingSectionEndIndex = null;
