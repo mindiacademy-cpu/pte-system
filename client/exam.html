@@ -1745,6 +1745,7 @@
         if (timeLeft <= 0) {
           clearInterval(timerInterval);
           localStorage.removeItem(storageKey);
+          localStorage.removeItem(storageKey + ":deadline");
           nextQuestion(true);
         }
       }, 1000);
