@@ -1213,6 +1213,16 @@ app.post("/admin/generate-question-audio", async (req, res) => {
     if (overwriteExisting && (!ids || ids.size === 0)) {
       return res.status(400).json({ error: "Select specific question IDs to replace existing audio." });
     }
+    if (ids && ids.size === 0) {
+      return res.status(400).json({ error: "Select at least one question to generate audio." });
+    }
+    if (ids) {
+      const knownIds = new Set(questions.map(q => String(q.id)));
+      const unknownIds = [...ids].filter(id => !knownIds.has(id));
+      if (unknownIds.length) {
+        return res.status(400).json({ error: "Unknown question IDs.", questionIds: unknownIds });
+      }
+    }
     const targets = questions.filter(q =>
       audioTaskTypes.has(String(q.subType || "")) &&
       (!ids || ids.has(String(q.id))) &&
