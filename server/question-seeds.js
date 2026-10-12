@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 // Add authored sets without replacing administrator-created questions.
 function installQuestionSeeds(bankFile) {
@@ -22,7 +23,16 @@ function installQuestionSeeds(bankFile) {
       existing.audioUrl = question.audioUrl; changed = true;
     }
   }
-  if (changed) fs.writeFileSync(bankFile, JSON.stringify(bank, null, 2));
+  if (changed) {
+    // Keep the previous question bank intact if the seed update is interrupted.
+    const temporary = bankFile + '.' + crypto.randomUUID() + '.tmp';
+    try {
+      fs.writeFileSync(temporary, JSON.stringify(bank, null, 2), 'utf8');
+      fs.renameSync(temporary, bankFile);
+    } finally {
+      if (fs.existsSync(temporary)) fs.rmSync(temporary, { force: true });
+    }
+  }
   return bank;
 }
 
