@@ -1411,9 +1411,12 @@ app.delete("/questions/:id", (req, res) => {
     const id = String(req.params.id);
     const questions = readJson(QUESTIONS_FILE);
 
-    const filtered = questions.filter(q => String(q.id) !== id);
-
-    writeJson(QUESTIONS_FILE, filtered);
+    const index = require('./question-seeds').resolveQuestionIndex(questions, id);
+    if (index === -1) {
+      return res.status(404).json({ error: "Question not found." });
+    }
+    questions.splice(index, 1);
+    writeJson(QUESTIONS_FILE, questions);
 
     res.json({ success: true });
   } catch (error) {
