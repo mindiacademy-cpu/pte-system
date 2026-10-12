@@ -1720,8 +1720,10 @@
 
     function startItemCountdown(q, seconds, label, storageKey) {
       const timerBox = document.getElementById("timer");
-      const saved = Number(localStorage.getItem(storageKey));
-      let timeLeft = saved > 0 ? saved : seconds;
+      const storedValue = localStorage.getItem(storageKey);
+      const saved = storedValue === null ? NaN : Number(storedValue);
+      // A saved zero means the time expired; do not reset it to the full duration.
+      let timeLeft = Number.isFinite(saved) && saved >= 0 ? saved : seconds;
       const deadline = countdownDeadline(storageKey + ":deadline", timeLeft);
       timeLeft = secondsRemaining(deadline);
       setTimerLabel(label);
