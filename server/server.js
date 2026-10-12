@@ -430,7 +430,14 @@ function readJson(filePath) {
 }
 
 function writeJson(filePath, data) {
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
+  // Write to a sibling file first so interrupted writes cannot truncate the live JSON.
+  const temporary = filePath + "." + crypto.randomUUID() + ".tmp";
+  try {
+    fs.writeFileSync(temporary, JSON.stringify(data, null, 2), "utf8");
+    fs.renameSync(temporary, filePath);
+  } finally {
+    if (fs.existsSync(temporary)) fs.rmSync(temporary, { force: true });
+  }
 }
 
 function getAutomaticPoints(q) {
