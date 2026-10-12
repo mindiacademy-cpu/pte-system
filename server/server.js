@@ -1457,10 +1457,10 @@ function isExamReady(q) {
     if (!String(q.audioUrl || "").trim()) return false;
   }
   if (q.subType === "describe_image" && !q.imageUrl) return false;
-  if (["reading_mcq_single","listening_mcq_single","highlight_correct_summary","select_missing_word"].includes(q.subType)) return q.options.length > 1 && !!q.correctAnswer;
-  if (["reading_mcq_multiple","listening_mcq_multiple"].includes(q.subType)) return q.options.length > 1 && getCorrectArray(q).length > 0;
+  if (["reading_mcq_single","listening_mcq_single","highlight_correct_summary","select_missing_word"].includes(q.subType)) return Array.isArray(q.options) && q.options.length > 1 && !!q.correctAnswer;
+  if (["reading_mcq_multiple","listening_mcq_multiple"].includes(q.subType)) return Array.isArray(q.options) && q.options.length > 1 && getCorrectArray(q).length > 0;
   if (["reading_fill_blanks","reading_writing_fill_blanks","listening_fill_blanks"].includes(q.subType)) {
-    const blanks = (q.textContent.match(/_______/g) || []).length;
+    const blanks = (String(q.textContent || "").match(/_{3,}/g) || []).length;
     return blanks > 0 && getCorrectArray(q).length === blanks;
   }
   if (q.subType === "highlight_incorrect_words") return !!q.textContent && getCorrectArray(q).length > 0;
