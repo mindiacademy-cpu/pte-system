@@ -1665,51 +1665,61 @@ if (type === "listening") {
 
     function exportQuestionsToExcel() {
       const filteredQuestions = getFilteredQuestions();
-
       if (!filteredQuestions.length) {
         alert("Dışa aktarılacak soru bulunamadı.");
         return;
       }
 
-      // The displayed question number is its position in the complete bank,
-      // not the filtered export index. ID remains the stable database reference.
-      const rows = filteredQuestions.map((question) => ({
-        Question_Number: questions.indexOf(question) + 1,
-        Question_ID: String(question.id ?? ""),
-        Section: question.type || "",
-        Task_Type: getTaskLabel(question.subType || ""),
-        SubType: question.subType || "",
-        Title: question.title || "",
-        Points: question.points ?? "",
-        Time: (question.type === "reading" || question.type === "listening") ? "" : (question.time ?? ""),
-        Prepare_Time: question.type === "speaking" ? (question.prepareTime || 0) : "",
-        Record_Time: question.type === "speaking" ? (question.recordTime || 0) : "",
-        Prompt: question.prompt || "",
-        Audio_URL: question.audioUrl || "",
-        Image_URL: question.imageUrl || "",
-        Text_Content: question.textContent || "",
-        Options: Array.isArray(question.options) ? question.options.join(" | ") : "",
-        Evaluation_Type: question.evaluationType || "",
-        Keywords: question.keywords || "",
-        Answer_Key: question.answerKey || "",
-        Correct_Answer: question.correctAnswer || "",
-        Correct_Answers: Array.isArray(question.correctAnswers) ? question.correctAnswers.join(" | ") : "",
-        Blank_Options: Array.isArray(question.blankOptions) ? JSON.stringify(question.blankOptions) : (question.blankOptions ? JSON.stringify(question.blankOptions) : ""),
-        Audio_Script: question.audioScript || "",
-        Incorrect_Word_Indexes: Array.isArray(question.incorrectWordIndexes) ? question.incorrectWordIndexes.join(" | ") : "",
-        Stored_Answer: Array.isArray(question.answer) ? question.answer.join(" | ") : (question.answer ?? "")
-      }));
+      const asText = value => Array.isArray(value) ? value.join(" | ") : (value ?? "");
+      const rows = filteredQuestions.map(question => {
+        const subType = question.subType || "";
+        const isSpeaking = question.type === "speaking";
+        const isSingle = ["reading_mcq_single", "listening_mcq_single", "highlight_correct_summary", "select_missing_word"].includes(subType);
+        const isMultiple = ["reading_mcq_multiple", "listening_mcq_multiple", "reading_fill_blanks", "reading_writing_fill_blanks", "listening_fill_blanks", "highlight_incorrect_words"].includes(subType);
+        const answers = asText(question.correctAnswers);
+        const wordIndexes = asText(question.incorrectWordIndexes);
+        const answer = isSingle
+          ? (question.correctAnswer || asText(question.answer))
+          : isMultiple
+            ? (subType === "highlight_incorrect_words" ? (answers || wordIndexes) : (answers || asText(question.answer)))
+            : (question.answerKey || question.correctAnswer || answers || asText(question.answer));
+        return {
+          "Soru No": formatQuestionNumber(question, questions.indexOf(question)),
+          "Bölüm": (question.type || "").toUpperCase(),
+          "Soru Türü": getTaskLabel(subType),
+          "Yönerge": question.prompt || "",
+          "Metin / İçerik": question.textContent || "",
+          "Seçenekler": asText(question.options),
+          "Doğru Cevap(lar)": answer,
+          "Ses Dosyası": question.audioUrl || "",
+          "Görsel Dosyası": question.imageUrl || "",
+          "Puan": question.points ?? "",
+          "Hazırlık Süresi (sn)": isSpeaking ? (question.prepareTime ?? "") : "",
+          "Kayıt Süresi (sn)": isSpeaking ? (question.recordTime ?? "") : "",
+          "Süre (sn)": isSpeaking || question.type === "writing" ? (question.time ?? "") : "",
+          "Değerlendirme": question.evaluationType || "",
+          "Anahtar Kelimeler": asText(question.keywords),
+          "Boşluk Seçenekleri": question.blankOptions ? JSON.stringify(question.blankOptions) : "",
+          "Ses Metni": question.audioScript || ""
+        };
+      });
 
-      const worksheet = XLSX.utils.json_to_sheet(rows);
+      // Do not clutter the report with fields unused by every exported question.
+      const headers = Object.keys(rows[0]).filter(key =>
+        ["Soru No", "Bölüm", "Soru Türü"].includes(key) ||
+        rows.some(row => row[key] !== "" && row[key] !== null && row[key] !== undefined)
+      );
+      const cleanRows = rows.map(row => Object.fromEntries(headers.map(key => [key, row[key]])));
+      const worksheet = XLSX.utils.json_to_sheet(cleanRows, { header: headers });
       worksheet["!autofilter"] = { ref: worksheet["!ref"] };
-      worksheet["!cols"] = Object.keys(rows[0]).map(key => ({ wch: /Content|Prompt|Script|Options|Answer|Keywords/.test(key) ? 42 : /URL/.test(key) ? 34 : /Question_ID|SubType|Evaluation/.test(key) ? 23 : 17 }));
+      worksheet["!cols"] = headers.map(key => ({
+        wch: /Yönerge|İçerik|Seçenekler|Cevap|Metni|Kelimeler/.test(key) ? 42
+          : /Dosyası/.test(key) ? 38 : /Soru Türü|Değerlendirme/.test(key) ? 27 : 19
+      }));
       const workbook = XLSX.utils.book_new();
-
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Questions");
-
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Sorular");
       const now = new Date();
       const fileName = `pte_questions_${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}.xlsx`;
-
       XLSX.writeFile(workbook, fileName);
     }
 
