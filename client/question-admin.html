@@ -1438,7 +1438,10 @@ if (type === "listening") {
       formData.append("audio", file);
 
       try {
-        const response = await fetch("/upload-audio", {
+        const targetQuestionId = editingQuestionId;
+        const response = await fetch(targetQuestionId
+          ? "/questions/" + encodeURIComponent(targetQuestionId) + "/audio"
+          : "/upload-audio", {
           method: "POST",
           body: formData
         });
@@ -1451,7 +1454,13 @@ if (type === "listening") {
         }
 
         document.getElementById("audioUrl").value = data.url;
-        showStatus("Audio başarıyla yüklendi.");
+        fileInput.value = "";
+        if (targetQuestionId) {
+          await loadQuestions();
+          showStatus("Yeni ses soruya kaydedildi. Eski ses bağlantısı değiştirildi.");
+        } else {
+          showStatus("Ses yüklendi. Yeni soruyu kaydederek ilişkilendirin.");
+        }
       } catch (error) {
         alert("Server bağlantı hatası");
         console.error(error);
