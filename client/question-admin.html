@@ -1555,11 +1555,16 @@ if (type === "listening") {
       document.getElementById("keywords").value = question.keywords || "";
       document.getElementById("answerKey").value = question.answerKey || "";
       document.getElementById("correctAnswer").value = question.correctAnswer || "";
-      document.getElementById("correctAnswers").value = (question.correctAnswers || []).join("\n");
+      const savedCorrectAnswers = Array.isArray(question.correctAnswers) ? question.correctAnswers : [];
+      const savedWordIndexes = Array.isArray(question.incorrectWordIndexes) ? question.incorrectWordIndexes : [];
+      document.getElementById("correctAnswers").value = (question.subType === "highlight_incorrect_words" && !savedCorrectAnswers.length
+        ? savedWordIndexes : savedCorrectAnswers).join("\n");
       document.getElementById("saveBtn").classList.add("hidden");
       document.getElementById("updateBtn").classList.remove("hidden");
 
       toggleFields();
+      // The selector was previously rendered before stored answers were populated.
+      if (question.subType === "highlight_incorrect_words") renderHiwSelector();
       clearStatus();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
