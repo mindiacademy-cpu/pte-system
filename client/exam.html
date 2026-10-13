@@ -1091,6 +1091,7 @@
         <div class="timer-label" id="timerLabel">Time Remaining</div>
         <div class="timer" id="timer">30:00</div>
       </div>
+      <div class="question-counter-top hidden" id="totalTimeRemaining"></div>
       <div class="question-counter-top" id="topQuestionCounter">1 of 1 | Part 1</div>
       <div class="question-counter-top hidden" id="partOneRemaining"></div>
     </div>
@@ -1451,10 +1452,35 @@
       }
     }
 
+    function updateTotalTimeRemaining() {
+      const box = document.getElementById("totalTimeRemaining");
+      const q = questions[currentQuestionIndex];
+      if (!box || !q || localStorage.getItem("examStarted") !== "true") {
+        if (box) box.classList.add("hidden");
+        return;
+      }
+      const part = q.type === "speaking" || q.type === "writing" ? 1 : q.type === "reading" ? 2 : 3;
+      const partOneSeconds = (isCompactPracticeExam ? 40 : 84) * 60;
+      const deadlineRemaining = (key, fallback) => {
+        const deadline = Number(localStorage.getItem(key));
+        return Number.isFinite(deadline) && deadline > 0
+          ? Math.max(0, Math.ceil((deadline - Date.now()) / 1000)) : fallback;
+      };
+      const left = part === 1
+        ? deadlineRemaining("partOneDeadline", partOneSeconds) + getReadingSectionTotalTime() + getListeningSectionTotalTime()
+        : part === 2
+          ? deadlineRemaining("readingDeadline", readingSectionTimeLeft ?? getReadingSectionTotalTime()) + getListeningSectionTotalTime()
+          : deadlineRemaining("listeningDeadline", listeningSectionTimeLeft ?? getListeningSectionTotalTime());
+      box.textContent = "Total Time Remaining: " + formatTime(left);
+      box.classList.remove("hidden");
+    }
+
     function startExamSessionTracking() {
       clearInterval(examSessionInterval);
       touchExamSession();
+      updateTotalTimeRemaining();
       examSessionInterval = setInterval(() => {
+        updateTotalTimeRemaining();
         if (isExamSessionExpired()) {
           clearInterval(examSessionInterval);
           expireExamSession();
