@@ -1601,7 +1601,18 @@ if (type === "listening") {
           return;
         }
 
-        showStatus("Soru güncellendi.");
+        // Verify the persisted record before reporting success.
+        const verifyResponse = await fetch('/questions', {cache:'no-store'});
+        if (!verifyResponse.ok) throw new Error('Saved question could not be verified.');
+        const persisted = (await verifyResponse.json()).find(q => String(q.id) === String(editingQuestionId));
+        if (!persisted) throw new Error('Saved question is missing from the bank.');
+        const fields = ['title','prompt','textContent','audioUrl','imageUrl','answerKey','correctAnswer','keywords'];
+        const mismatch = fields.find(key => String(persisted[key] ?? '') !== String(payload[key] ?? ''));
+        if (mismatch) {
+          alert('Güncelleme doğrulanamadı. Farklı alan: ' + mismatch + '. Formdaki veriler korunuyor.');
+          return;
+        }
+        showStatus("Soru güncellendi ve sunucudan doğrulandı.");
         resetForm();
         await loadQuestions();
       } catch (error) {
