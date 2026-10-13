@@ -1680,60 +1680,80 @@ if (type === "listening") {
         return;
       }
 
-      const asText = value => Array.isArray(value) ? value.join(" | ") : (value ?? "");
+      const singleTypes = new Set(["reading_mcq_single", "listening_mcq_single", "highlight_correct_summary", "select_missing_word"]);
+      const multipleTypes = new Set(["reading_mcq_multiple", "listening_mcq_multiple"]);
+      const blankTypes = new Set(["reading_fill_blanks", "reading_writing_fill_blanks", "listening_fill_blanks"]);
+      const text = value => String(value ?? "").trim();
+      const arr = value => Array.isArray(value) ? value.map(text).filter(Boolean) : [];
+      const joined = value => arr(value).join(" | ");
+      const normalized = value => text(value).toLocaleLowerCase("en").replace(/\s+/g, " ");
       const rows = filteredQuestions.map(question => {
-        const subType = question.subType || "";
-        const isSpeaking = question.type === "speaking";
-        const isSingle = ["reading_mcq_single", "listening_mcq_single", "highlight_correct_summary", "select_missing_word"].includes(subType);
-        const isMultiple = ["reading_mcq_multiple", "listening_mcq_multiple", "reading_fill_blanks", "reading_writing_fill_blanks", "listening_fill_blanks", "highlight_incorrect_words"].includes(subType);
-        const answers = asText(question.correctAnswers);
-        const wordIndexes = asText(question.incorrectWordIndexes);
-        // A legacy numeric Correct_Answer is not authoritative for multi-answer tasks.
-        // Export the actual answer array; never substitute a stale option index.
-        const answer = isSingle
-          ? (question.correctAnswer || asText(question.answer))
-          : isMultiple
-            ? (subType === "highlight_incorrect_words" ? (answers || wordIndexes) : answers)
-            : (question.answerKey || answers || question.correctAnswer || asText(question.answer));
-        return {
+        const sub = question.subType || "";
+        const options = arr(question.options);
+        const correct = arr(question.correctAnswers);
+        const indexes = arr(question.incorrectWordIndexes);
+        const answerKey = text(question.answerKey);
+        const singleAnswer = text(question.correctAnswer);
+        const issues = [];
+        let answer = "";
+        if (singleTypes.has(sub)) {
+          answer = singleAnswer;
+          if (!answer) issues.push("Doğru cevap eksik");
+          else if (options.length && !options.some(o => normalized(o) === normalized(answer))) issues.push("Doğru cevap seçeneklerle eşleşmiyor");
+        } else if (multipleTypes.has(sub)) {
+          answer = correct.join(" | ");
+          if (!correct.length) issues.push("Çoklu doğru cevap listesi eksik");
+          if (correct.some(v => !options.some(o => normalized(o) === normalized(v)))) issues.push("Doğru cevap seçeneklerle eşleşmiyor");
+          if (new Set(correct.map(normalized)).size !== correct.length) issues.push("Tekrarlanan doğru cevap");
+        } else if (blankTypes.has(sub)) {
+          answer = correct.join(" | ");
+          const count = (text(question.textContent).match(/_{3,}/g) || []).length;
+          if (!count || correct.length !== count) issues.push("Boşluk sayısı ile doğru cevap sayısı uyuşmuyor");
+        } else if (sub === "highlight_incorrect_words") {
+          answer = (correct.length ? correct : indexes).join(" | ");
+          if (!answer) issues.push("Hatalı kelime işaretleri eksik");
+        } else if (sub === "reorder_paragraphs" || sub === "write_from_dictation" || sub === "answer_short_question" || sub === "repeat_sentence") {
+          answer = answerKey || text(question.answer);
+          if (!answer) issues.push("Cevap anahtarı eksik");
+        } else {
+          answer = answerKey || joined(question.keywords) || text(question.keywords) || "";
+        }
+
+        const needsAudio = question.type === "listening" || ["repeat_sentence", "re_tell_lecture", "answer_short_question", "summarize_group_discussion", "respond_to_a_situation"].includes(sub);
+        if (needsAudio && !text(question.audioUrl)) issues.push("Ses dosyası eksik");
+        if (sub === "describe_image" && !text(question.imageUrl)) issues.push("Görsel eksik");
+        if (!text(question.prompt)) issues.push("Yönerge eksik");
+        const record = {
           "Soru No": formatQuestionNumber(question, questions.indexOf(question)),
           "Bölüm": (question.type || "").toUpperCase(),
-          "Soru Türü": getTaskLabel(subType),
-          "Yönerge": question.prompt || "",
-          "Metin / İçerik": question.textContent || "",
-          "Seçenekler": asText(question.options),
-          "Doğru Cevap(lar)": answer,
-          "Cevap Kontrolü": isMultiple && !answer ? "Doğru cevap listesi eksik" : "",
-          "Ses Dosyası": question.audioUrl || "",
-          "Görsel Dosyası": question.imageUrl || "",
+          "Soru Türü": getTaskLabel(sub),
+          "Yönerge": text(question.prompt),
+          "Soru Metni": text(question.textContent),
+          "Seçenekler": options.join(" | "),
+          "Doğru Cevap": answer,
+          "Ses Dosyası": text(question.audioUrl),
+          "Görsel": text(question.imageUrl),
+          "Süre": getQuestionTimeText(question),
           "Puan": question.points ?? "",
-          "Hazırlık Süresi (sn)": isSpeaking ? (question.prepareTime ?? "") : "",
-          "Kayıt Süresi (sn)": isSpeaking ? (question.recordTime ?? "") : "",
-          "Süre (sn)": isSpeaking || question.type === "writing" ? (question.time ?? "") : "",
-          "Değerlendirme": question.evaluationType || "",
-          "Anahtar Kelimeler": asText(question.keywords),
-          "Boşluk Seçenekleri": question.blankOptions ? JSON.stringify(question.blankOptions) : "",
-          "Ses Metni": question.audioScript || ""
+          "Kontrol": issues.length ? issues.join("; ") : "Uygun"
         };
+        if (["speaking", "writing"].includes(question.type) || sub === "summarize_spoken_text") {
+          record["Değerlendirme Anahtarları"] = Array.isArray(question.keywords) ? joined(question.keywords) : text(question.keywords);
+        }
+        return record;
       });
 
-      // Do not clutter the report with fields unused by every exported question.
-      const headers = Object.keys(rows[0]).filter(key =>
-        ["Soru No", "Bölüm", "Soru Türü"].includes(key) ||
-        rows.some(row => row[key] !== "" && row[key] !== null && row[key] !== undefined)
-      );
-      const cleanRows = rows.map(row => Object.fromEntries(headers.map(key => [key, row[key]])));
-      const worksheet = XLSX.utils.json_to_sheet(cleanRows, { header: headers });
+      const headers = ["Soru No", "Bölüm", "Soru Türü", "Yönerge", "Soru Metni", "Seçenekler", "Doğru Cevap", "Ses Dosyası", "Görsel", "Süre", "Puan", "Değerlendirme Anahtarları", "Kontrol"]
+        .filter(key => ["Soru No", "Bölüm", "Soru Türü", "Doğru Cevap", "Süre", "Puan", "Kontrol"].includes(key) ||
+          rows.some(row => text(row[key])));
+      const worksheet = XLSX.utils.json_to_sheet(rows.map(row => Object.fromEntries(headers.map(key => [key, row[key] ?? ""]))), { header: headers });
       worksheet["!autofilter"] = { ref: worksheet["!ref"] };
-      worksheet["!cols"] = headers.map(key => ({
-        wch: /Yönerge|İçerik|Seçenekler|Cevap|Metni|Kelimeler/.test(key) ? 42
-          : /Dosyası/.test(key) ? 38 : /Soru Türü|Değerlendirme/.test(key) ? 27 : 19
-      }));
+      worksheet["!cols"] = headers.map(key => ({ wch: /Yönerge|Metni|Seçenekler|Cevap|Anahtarları|Kontrol/.test(key) ? 44 : /Dosyası|Görsel/.test(key) ? 36 : /Soru Türü/.test(key) ? 30 : 18 }));
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Sorular");
       const now = new Date();
-      const fileName = `pte_questions_${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}.xlsx`;
-      XLSX.writeFile(workbook, fileName);
+      const stamp = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, "0"), String(now.getDate()).padStart(2, "0")].join("-");
+      XLSX.writeFile(workbook, `pte_questions_${stamp}.xlsx`);
     }
 
     resetForm();
