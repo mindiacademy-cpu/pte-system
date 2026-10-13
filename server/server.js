@@ -580,7 +580,7 @@ function normalizeExamResult(exam) {
 
 function scaleToPTE(rawPercent) {
   const safe = Math.max(0, Math.min(1, Number(rawPercent || 0)));
-  return safe === 0 ? 0 : Math.round(10 + safe * 80);
+  return Math.round(10 + safe * 80);
 }
 
 function buildSummary(answers) {
