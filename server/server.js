@@ -1030,16 +1030,20 @@ Traits and maxima: ${traitSpec}
 Important: Content 0 means the whole response receives zero. Apply only publicly documented form rules. For Summarize Written Text, it must be one complete sentence and 5-75 words. For Essay, 200-300 words earns full form credit; 120-199 or 301-380 is reduced form credit; below 120 or above 380 receives zero for the task. For Summarize Spoken Text, 50-70 words earns full form credit; fewer than 40 or more than 100 words receives zero for the task. Apply the published form bands between those limits.
 Return ONLY JSON: {"traits":{},"feedback":""}`
   });
-  const parsed=safeJsonParse(ai.output_text||"")||{};
-  const traits=parsed.traits||{};
+  const parsed=safeJsonParse(ai.output_text||"");
+  const traits=parsed?.traits;
   const maxima = subType==="essay"
     ? {content:6,developmentStructureCoherence:6,form:2,generalLinguisticRange:6,grammar:2,vocabularyRange:2,spelling:2}
     : subType==="summarize_spoken_text"
       ? {content:4,form:2,grammar:2,vocabulary:2,spelling:2}
       : {content:4,form:1,grammar:2,vocabulary:2};
-  if(Number(traits.content||0)<=0) return {score:0,feedback:parsed.feedback||"Content criterion not met.",traits,wordCount};
-  let earned=0, possible=0;
-  for(const [k,m] of Object.entries(maxima)){earned+=Math.max(0,Math.min(m,Number(traits[k]||0)));possible+=m;}
+  const valid=traits && typeof traits==="object" && Object.entries(maxima).every(([key,max]) =>
+    typeof traits[key]==="number" && Number.isFinite(traits[key]) && traits[key]>=0 && traits[key]<=max);
+  if (!valid) return {score:null,feedback:"Incomplete AI rubric; manual review required.",
+    traits:traits||{},wordCount,manualReviewRequired:true,assessmentMethod:"manual-review"};
+  if (traits.content===0) return {score:0,feedback:parsed.feedback||"Content criterion not met.",traits,wordCount};
+  const possible=Object.values(maxima).reduce((a,b)=>a+b,0);
+  const earned=Object.keys(maxima).reduce((sum,key)=>sum+traits[key],0);
   return {score:Math.round((earned/possible)*maxScore*100)/100,feedback:parsed.feedback||"",traits,wordCount};
 }
 
