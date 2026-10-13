@@ -321,10 +321,10 @@ function scoreArrayAnswers(userAnswers, correctAnswers, maxScore = 10, splitMode
   const user = normalizeArrayForCompare(userAnswers, splitMode, true);
   const correct = normalizeArrayForCompare(correctAnswers, splitMode, true);
 
-
-  if (!correct.length) {
-    return 0;
-  }
+  if (!correct.length) return 0;
+  // Only authored blank positions can earn credit. Extra submitted positions
+  // indicate a malformed response and must not silently be ignored.
+  if (user.length > correct.length) return 0;
 
   let correctCount = 0;
 
