@@ -362,18 +362,34 @@ function getCorrectArray(question, splitMode = "line") {
 function scoreReorderPairs(userAnswers, correctAnswers, maxScore = 10) {
   const user = toAnswerArray(userAnswers, "line").map(normalizeText).filter(Boolean);
   const correct = toAnswerArray(correctAnswers, "comma").map(normalizeText).filter(Boolean);
-  if (correct.length < 2) return 0;
-  // A repeated or missing paragraph must not receive credit for incidental adjacent pairs.
-  if (new Set(user).size !== user.length || new Set(correct).size !== correct.length) return 0;
-  if (user.length !== correct.length || user.some(item => !correct.includes(item))) return 0;
-  let matched = 0;
+  if (correct.length < 2 || user.length !== correct.length) return 0;
+
+  // Validate the complete paragraph multiset, including legitimately repeated text.
+  const remaining = new Map();
+  for (const item of correct) remaining.set(item, (remaining.get(item) || 0) + 1);
+  for (const item of user) {
+    const count = remaining.get(item) || 0;
+    if (!count) return 0;
+    remaining.set(item, count - 1);
+  }
+
+  // Award each correct adjacent pair at most once per authored occurrence.
+  const pairs = new Map();
   for (let i = 0; i < correct.length - 1; i++) {
-    const pos = user.indexOf(correct[i]);
-    if (pos >= 0 && user[pos + 1] === correct[i + 1]) matched++;
+    const key = JSON.stringify([correct[i], correct[i + 1]]);
+    pairs.set(key, (pairs.get(key) || 0) + 1);
+  }
+  let matched = 0;
+  for (let i = 0; i < user.length - 1; i++) {
+    const key = JSON.stringify([user[i], user[i + 1]]);
+    const count = pairs.get(key) || 0;
+    if (count > 0) {
+      matched++;
+      pairs.set(key, count - 1);
+    }
   }
   return Math.round((matched / (correct.length - 1)) * maxScore * 100) / 100;
 }
-
 function scoreDictation(userAnswer, correctAnswer, maxScore = 10) {
   const user = normalizeText(userAnswer).split(" ").filter(Boolean);
   const correct = normalizeText(correctAnswer).split(" ").filter(Boolean);
