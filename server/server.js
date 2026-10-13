@@ -433,7 +433,15 @@ function ensureFile(filePath, defaultValue) {
 ensureFile(QUESTIONS_FILE, []);
 ensureFile(EXAMS_FILE, []);
 ensureFile(EXAM_RESULTS_FILE, []);
-require('./question-seeds').installQuestionSeeds(QUESTIONS_FILE);
+// Seed questions are only installed when the bank is first created.
+// Never resurrect deleted questions or overwrite an existing persistent bank on restart.
+if (readSeedInstallationNeeded(QUESTIONS_FILE)) {
+  require('./question-seeds').installQuestionSeeds(QUESTIONS_FILE);
+}
+function readSeedInstallationNeeded(filePath) {
+  const bank = JSON.parse(fs.readFileSync(filePath, "utf8") || "[]");
+  return Array.isArray(bank) && bank.length === 0;
+}
 const questionTitles = createTitleStore(QUESTIONS_FILE);
 questionTitles.migrate();
 
@@ -1441,8 +1449,9 @@ app.put("/questions/:id", (req, res) => {
     const updatedQuestion = migrateQuestionForCurrentPte({
       ...questions[index],
       ...req.body,
-      title: questions[index].title,
-      previousTitle: questions[index].previousTitle,
+      // Preserve immutable identity, but accept edited title fields from the form.
+      title: req.body.title !== undefined ? req.body.title : questions[index].title,
+      previousTitle: req.body.previousTitle !== undefined ? req.body.previousTitle : questions[index].previousTitle,
       id: questions[index].id
     });
 
