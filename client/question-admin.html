@@ -1084,6 +1084,12 @@ if (type === "listening") {
       return `${question.time ?? 60}s`;
     }
 
+    function formatQuestionNumber(question, index) {
+      const title = String(question.title || "").trim();
+      if (/^\d+$/.test(title)) return title.padStart(3, "0");
+      return String(index + 1).padStart(3, "0");
+    }
+
     function renderQuestionList() {
       const container = document.getElementById("questionList");
       const filteredQuestions = getFilteredQuestions();
@@ -1113,7 +1119,7 @@ if (type === "listening") {
         row.innerHTML = `
          <div class="q-type">${question.type || "-"}</div>
          <div class="q-subtype">${getTaskLabel(question.subType)}</div>
-         <div class="q-title">${questions.indexOf(question) + 1}</div>
+         <div class="q-title">${formatQuestionNumber(question, questions.indexOf(question))}</div>
          <div>${question.points ?? "—"}</div>
          <div class="q-time">${getQuestionTimeText(question)}</div>
          <div class="q-actions">
