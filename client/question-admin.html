@@ -1080,18 +1080,18 @@ if (type === "listening") {
         const config = (subtypeMap.speaking || []).find(item => item.value === subtype);
         const prepare = config ? config.prepare : Number(question.prepareTime ?? 0);
         const record = config ? config.record : Number(question.recordTime ?? 0);
-        return prepare > 0 ? `Hazırlık: ${prepare} sn · Kayıt: ${record} sn` : `Kayıt: ${record} sn`;
+        return prepare > 0 ? `Prep: ${prepare}s · Rec: ${record}s` : `Rec: ${record}s`;
       }
       if (question.type === "writing") {
-        if (subtype === "summarize_written_text") return "Soru: 10 dk";
-        if (subtype === "essay") return "Soru: 20 dk";
-        return Number(question.time) > 0 ? `Soru: ${question.time} sn` : "Süre tanımsız";
+        if (subtype === "summarize_written_text") return "Q: 10m";
+        if (subtype === "essay") return "Q: 20m";
+        return Number(question.time) > 0 ? `Q: ${question.time}s` : "N/A";
       }
-      if (question.type === "reading") return "Bölüm süresi";
+      if (question.type === "reading") return "Section";
       if (question.type === "listening") {
-        return subtype === "summarize_spoken_text" ? "Soru: 10 dk · Bölüm süresi" : "Bölüm süresi";
+        return subtype === "summarize_spoken_text" ? "Q: 10m · Section" : "Section";
       }
-      return Number(question.time) > 0 ? `${question.time} sn` : "Süre tanımsız";
+      return Number(question.time) > 0 ? `${question.time}s` : "N/A";
     }
 
     function formatQuestionNumber(question, index) {
@@ -1733,7 +1733,7 @@ if (type === "listening") {
           "Doğru Cevap": answer,
           "Ses Dosyası": text(question.audioUrl),
           "Görsel": text(question.imageUrl),
-          "Süre": getQuestionTimeText(question),
+          "Time": getQuestionTimeText(question),
           "Puan": question.points ?? "",
           "Kontrol": issues.length ? issues.join("; ") : "Uygun"
         };
@@ -1744,7 +1744,7 @@ if (type === "listening") {
       });
 
       const headers = ["Soru No", "Bölüm", "Soru Türü", "Yönerge", "Soru Metni", "Seçenekler", "Doğru Cevap", "Ses Dosyası", "Görsel", "Süre", "Puan", "Değerlendirme Anahtarları", "Kontrol"]
-        .filter(key => ["Soru No", "Bölüm", "Soru Türü", "Doğru Cevap", "Süre", "Puan", "Kontrol"].includes(key) ||
+        .filter(key => ["Soru No", "Bölüm", "Soru Türü", "Doğru Cevap", "Time", "Puan", "Kontrol"].includes(key) ||
           rows.some(row => text(row[key])));
       const worksheet = XLSX.utils.json_to_sheet(rows.map(row => Object.fromEntries(headers.map(key => [key, row[key] ?? ""]))), { header: headers });
       worksheet["!autofilter"] = { ref: worksheet["!ref"] };
