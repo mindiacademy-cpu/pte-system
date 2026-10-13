@@ -1293,6 +1293,40 @@ app.post("/admin/generate-question-audio", async (req, res) => {
   }
 });
 
+// Replace a question's audio atomically: persist the new reference before retiring the old file.
+app.post("/questions/:id/audio", upload.single("audio"), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: "Audio file is required." });
+  const newUrl = "/uploads/" + req.file.filename;
+  const newPath = req.file.path;
+  try {
+    const questions = readJson(QUESTIONS_FILE);
+    const index = require("./question-seeds").resolveQuestionIndex(questions, String(req.params.id));
+    if (index === -1) {
+      fs.unlinkSync(newPath);
+      return res.status(404).json({ error: "Question not found." });
+    }
+    const previousUrl = String(questions[index].audioUrl || "");
+    questions[index] = { ...questions[index], audioUrl: newUrl };
+    writeJson(QUESTIONS_FILE, questions);
+    // Only remove a superseded local upload when no other question references it.
+    if (previousUrl.startsWith("/uploads/") &&
+        !questions.some(q => q.audioUrl === previousUrl)) {
+      const oldFilename = previousUrl.slice("/uploads/".length);
+      if (oldFilename && path.basename(oldFilename) === oldFilename) {
+        const oldPath = path.join(UPLOADS_DIR, oldFilename);
+        try { fs.unlinkSync(oldPath); } catch (error) {
+          if (error.code !== "ENOENT") console.warn("Old audio cleanup failed:", error.message);
+        }
+      }
+    }
+    res.json({ success: true, url: newUrl, question: questions[index] });
+  } catch (error) {
+    try { fs.unlinkSync(newPath); } catch (_) {}
+    console.error("POST /questions/:id/audio error:", error);
+    res.status(500).json({ error: "Audio replacement failed." });
+  }
+});
+
 app.post("/upload-audio", upload.single("audio"), (req, res) => {
   try {
     if (!req.file) {
