@@ -15,13 +15,9 @@ function installQuestionSeeds(bankFile) {
         existing[field] = question[field]; changed = true;
       }
     }
-    // Preserve authored URLs even when the local cache has not been downloaded yet.
-    if (question.imageUrl && !existing.imageUrl) {
-      existing.imageUrl = question.imageUrl; changed = true;
-    }
-    if (question.audioUrl && !existing.audioUrl) {
-      existing.audioUrl = question.audioUrl; changed = true;
-    }
+    // Never overwrite an administrator's intentional audio/image changes, even
+    // when a URL was cleared. Seed media only belongs to newly inserted questions.
+    // Existing records are authoritative once the bank has been created.
   }
   if (changed) {
     // Keep the previous question bank intact if the seed update is interrupted.
