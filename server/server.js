@@ -270,7 +270,7 @@ function normalizeArrayForCompare(value, splitMode = "line", keepEmpty = false) 
 }
 
 function scoreSingleChoice(userAnswer, correctAnswer, maxScore = 10) {
-  return normalizeText(userAnswer) === normalizeText(correctAnswer) ? maxScore : 0;
+  return normalizeText(correctAnswer) && normalizeText(userAnswer) === normalizeText(correctAnswer) ? maxScore : 0;
 }
 
 function scoreTextAnswer(userAnswer, correctAnswer, maxScore = 10) {
@@ -290,7 +290,7 @@ function scoreByKeywords(text, keywords, maxScore = 10) {
   let matched = 0;
 
   keywordList.forEach(word => {
-    if (normalizedText.includes(word)) matched++;
+    if ((" " + normalizedText + " ").includes(" " + word + " ")) matched++;
   });
 
   return Math.round((matched / keywordList.length) * maxScore * 100) / 100;
@@ -388,7 +388,7 @@ function scoreDictation(userAnswer, correctAnswer, maxScore = 10) {
 }
 
 function calculateAutoScore(question, submittedAnswer) {
-  const maxScore = Number(question.points || 10);
+  const maxScore = Number(question.points ?? 0);
   const subType = question.subType || "";
 
   if (["reading_mcq_single","listening_mcq_single","highlight_correct_summary","select_missing_word"].includes(subType)) {
@@ -880,8 +880,8 @@ Use a strict 0-5 practice content rubric. Read Aloud checks prompt words; Repeat
 
 async function getSpeakingReference(question) {
   if (question.subType === "describe_image" && question.imageUrl) {
-    const imagePath = path.resolve(__dirname, "." + question.imageUrl);
-    const uploadRoot = path.resolve(__dirname, "uploads") + path.sep;
+    const imagePath = path.resolve(UPLOADS_DIR, path.basename(String(question.imageUrl)));
+    const uploadRoot = path.resolve(UPLOADS_DIR) + path.sep;
     if (!imagePath.startsWith(uploadRoot) || !fs.existsSync(imagePath)) throw new Error("Question image unavailable for assessment.");
     const ext = path.extname(imagePath).toLowerCase();
     const mime = {".png":"image/png",".jpg":"image/jpeg",".jpeg":"image/jpeg",".webp":"image/webp"}[ext];
@@ -1025,7 +1025,7 @@ async function enrichAnswersWithScores(answers, assignedQuestions) {
   for (let offset = 0; offset < safeAnswers.length; offset += 3) {
     const batch = await Promise.all(safeAnswers.slice(offset, offset + 3).map(async answer => {
     const question = questionMap.get(String(answer.questionId)) || {};
-    const maxScore = Number(question.points || answer.maxScore || 10);
+    const maxScore = Number(question.points ?? answer.maxScore ?? 0);
 
     let autoScore = 0;
     let aiFeedback = "";
