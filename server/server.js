@@ -400,12 +400,21 @@ function calculateAutoScore(question, submittedAnswer) {
     const selected = toAnswerArray(submittedAnswer, "line").map(String);
     const transcriptWords = String(question.textContent || "").trim().split(/\s+/).filter(Boolean);
     const authored = getCorrectArray(question).map(String);
+    const usedIndexes = new Set();
     const correctIndexes = authored.map(value => {
-      if (/^\d+$/.test(value)) return value;
+      if (/^\d+$/.test(value)) {
+        usedIndexes.add(Number(value));
+        return value;
+      }
       const normalizedTarget = normalizeText(value);
-      const index = transcriptWords.findIndex(word => normalizeText(word) === normalizedTarget);
-      return index >= 0 ? String(index) : value;
+      const index = transcriptWords.findIndex((word, i) =>
+        !usedIndexes.has(i) && normalizeText(word) === normalizedTarget);
+      if (index < 0) return null;
+      usedIndexes.add(index);
+      return String(index);
     });
+    // An unresolvable answer key must not produce an arbitrary score.
+    if (correctIndexes.some(value => value === null)) return 0;
     return scoreMultipleChoice(selected, correctIndexes, maxScore);
   }
   if (question.type === "writing" || subType === "summarize_spoken_text") {
