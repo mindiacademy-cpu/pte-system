@@ -2443,15 +2443,9 @@
         mediaRecorder.onstop = async () => {
           stopVoiceAnimation();
 
-          let audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || "audio/webm" });
-          const originalAudioBlob = audioBlob;
-          try {
-            audioBlob = await PteSpeakingAudio.toAssessmentWav(audioBlob);
-          } catch (error) {
-            // Preserve the original recording if conversion is unsupported.
-            // The server marks unavailable audio traits for administrator review.
-            console.warn("Assessment audio conversion unavailable:", error.message);
-          }
+          const originalAudioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || "audio/webm" });
+          // Do not block exam progression on audio conversion or transcription.
+          // The original recording is submitted for server-side assessment.
           const reader = new FileReader();
           // Persist the compact original, not large PCM data, in localStorage.
           reader.readAsDataURL(originalAudioBlob);
@@ -2460,11 +2454,11 @@
             speakingAudioBase64 = reader.result;
 
             document.getElementById("recordStatus").innerText =
-              "Transcribing speaking response...";
+              "Saving speaking response...";
             setTimerLabel("Processing");
             setMainTimer(0);
 
-            speakingTranscript = await transcribeSpeakingAudio(audioBlob);
+            speakingTranscript = "";
 
             const audioBox = document.getElementById("audioBox");
             audioBox.classList.remove("hidden");
