@@ -340,8 +340,21 @@ function scoreArrayAnswers(userAnswers, correctAnswers, maxScore = 10, splitMode
 }
 
 function getCorrectArray(question, splitMode = "line") {
-  if (question.subType === "highlight_incorrect_words" && question.incorrectWordIndexes?.length) return question.incorrectWordIndexes.map(String);
-  if (Array.isArray(question.correctAnswers) && question.correctAnswers.length) return question.correctAnswers;
+  const subType = question.subType || "";
+  if (subType === "highlight_incorrect_words" && question.incorrectWordIndexes?.length) {
+    return question.incorrectWordIndexes.map(String);
+  }
+  if (Array.isArray(question.correctAnswers) && question.correctAnswers.length) {
+    return question.correctAnswers.map(String).filter(Boolean);
+  }
+  // These tasks require a structured answer list. Legacy single-answer values
+  // (e.g. "3") are not a reliable substitute and must never earn credit.
+  const structuredTypes = [
+    "reading_mcq_multiple", "listening_mcq_multiple",
+    "reading_fill_blanks", "reading_writing_fill_blanks",
+    "listening_fill_blanks", "highlight_incorrect_words"
+  ];
+  if (structuredTypes.includes(subType)) return [];
   if (Array.isArray(question.answer) && question.answer.length) return question.answer;
   return toAnswerArray(question.answerKey || question.correctAnswer || question.answer || "", splitMode).filter(Boolean);
 }
