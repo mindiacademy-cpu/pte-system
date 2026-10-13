@@ -321,14 +321,8 @@ function scoreArrayAnswers(userAnswers, correctAnswers, maxScore = 10, splitMode
   const user = normalizeArrayForCompare(userAnswers, splitMode, true);
   const correct = normalizeArrayForCompare(correctAnswers, splitMode, true);
 
-  console.log("---- SCORE ARRAY ANSWERS ----");
-  console.log("RAW USER:", userAnswers);
-  console.log("RAW CORRECT:", correctAnswers);
-  console.log("PARSED USER:", user);
-  console.log("PARSED CORRECT:", correct);
 
   if (!correct.length) {
-    console.log("NO CORRECT ANSWERS");
     return 0;
   }
 
@@ -340,11 +334,7 @@ function scoreArrayAnswers(userAnswers, correctAnswers, maxScore = 10, splitMode
     }
   }
 
-  console.log("CORRECT COUNT:", correctCount, "/", correct.length);
-
   const final = Math.round((correctCount / correct.length) * maxScore * 100) / 100;
-  console.log("FINAL SCORE:", final);
-  console.log("-----------------------------");
 
   return final;
 }
