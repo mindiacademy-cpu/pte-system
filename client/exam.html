@@ -1371,7 +1371,7 @@
       box.classList.remove("hidden");
       const tick = () => {
         const left = secondsRemaining(deadline);
-        box.textContent = "Part 1: " + formatTime(left);
+        box.textContent = formatTime(left);
         if (left > 0) return;
         clearInterval(partOneInterval);
         const advance = () => {
