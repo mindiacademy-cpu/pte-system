@@ -3037,7 +3037,8 @@
         q.subType !== "write_from_dictation" &&
         q.subType !== "reorder_paragraphs" &&
         q.subType !== "listening_fill_blanks" &&
-        q.subType !== "highlight_incorrect_words"
+        q.subType !== "highlight_incorrect_words" &&
+        q.subType !== "summarize_group_discussion"
       ) {
         taskContent.classList.remove("hidden");
         taskContent.innerText = questionText;
