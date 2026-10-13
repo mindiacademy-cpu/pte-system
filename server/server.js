@@ -569,9 +569,11 @@ function buildSummary(answers) {
     // scores to distort the candidate's practice result.
     const rawMax = Number(answer.maxScore ?? 10);
     const maxScore = Number.isFinite(rawMax) && rawMax > 0 ? rawMax : 0;
-    const rawScore = Number(answer.finalScore ?? 0);
-    const finalScore = Number.isFinite(rawScore)
-      ? Math.max(0, Math.min(maxScore, rawScore)) : 0;
+    // Missing/failed AI evaluation is pending review, not an earned zero.
+    if (answer.finalScore === null || answer.finalScore === undefined || answer.aiDetails?.manualReviewRequired) return;
+    const rawScore = Number(answer.finalScore);
+    if (!Number.isFinite(rawScore)) return;
+    const finalScore = Math.max(0, Math.min(maxScore, rawScore));
 
     overallEarned += finalScore;
     overallPossible += maxScore;
@@ -604,7 +606,7 @@ function buildSummary(answers) {
     writing: writingScore,
     reading: readingScore,
     listening: listeningScore,
-    provisional: safeAnswers.some(a => a.aiDetails?.manualReviewRequired)
+    provisional: safeAnswers.some(a => a.aiDetails?.manualReviewRequired || a.finalScore === null || a.finalScore === undefined)
   };
 }
 
