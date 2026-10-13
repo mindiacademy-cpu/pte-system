@@ -1090,8 +1090,8 @@
       <div class="timer-card hidden" id="timerCard">
         <div class="timer-label" id="timerLabel">Time Remaining</div>
         <div class="timer" id="timer">30:00</div>
+        <div class="timer-label hidden" id="totalTimeRemaining"></div>
       </div>
-      <div class="question-counter-top hidden" id="totalTimeRemaining"></div>
       <div class="question-counter-top" id="topQuestionCounter">1 of 1 | Part 1</div>
       <div class="question-counter-top hidden" id="partOneRemaining"></div>
     </div>
@@ -1460,18 +1460,15 @@
         return;
       }
       const part = q.type === "speaking" || q.type === "writing" ? 1 : q.type === "reading" ? 2 : 3;
-      const partOneSeconds = (isCompactPracticeExam ? 40 : 84) * 60;
-      const deadlineRemaining = (key, fallback) => {
+      const remaining = key => {
         const deadline = Number(localStorage.getItem(key));
-        return Number.isFinite(deadline) && deadline > 0
-          ? Math.max(0, Math.ceil((deadline - Date.now()) / 1000)) : fallback;
+        return Number.isFinite(deadline) && deadline > 0 ? Math.max(0, Math.ceil((deadline - Date.now()) / 1000)) : null;
       };
-      const left = part === 1
-        ? deadlineRemaining("partOneDeadline", partOneSeconds) + getReadingSectionTotalTime() + getListeningSectionTotalTime()
-        : part === 2
-          ? deadlineRemaining("readingDeadline", readingSectionTimeLeft ?? getReadingSectionTotalTime()) + getListeningSectionTotalTime()
-          : deadlineRemaining("listeningDeadline", listeningSectionTimeLeft ?? getListeningSectionTotalTime());
-      box.textContent = "Total Time Remaining: " + formatTime(left);
+      const partOne = remaining("partOneDeadline") ?? (isCompactPracticeExam ? 40 : 84) * 60;
+      const reading = remaining("readingDeadline") ?? getReadingSectionTotalTime();
+      const listening = remaining("listeningDeadline") ?? getListeningSectionTotalTime();
+      const total = part === 1 ? partOne + reading + listening : part === 2 ? reading + listening : listening;
+      box.textContent = "Total: " + formatTime(total);
       box.classList.remove("hidden");
     }
 
