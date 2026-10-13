@@ -151,7 +151,10 @@ app.get("/admin-login-legacy", (req, res) => {
   res.redirect(302, "/admin-login");
 });
 app.use(express.static(path.join(__dirname, "../client")));
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+const DATA_DIR = path.resolve(process.env.PTE_DATA_DIR || __dirname);
+const UPLOADS_DIR = path.join(DATA_DIR, "uploads");
+fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+app.use("/uploads", express.static(UPLOADS_DIR));
 
 app.use((req, res, next) => {
   const protectedRequest =
@@ -168,7 +171,7 @@ app.use((req, res, next) => {
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const uploadPath = path.join(__dirname, "uploads");
+    const uploadPath = UPLOADS_DIR;
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
@@ -185,9 +188,22 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-const QUESTIONS_FILE = path.join(__dirname, "questions.json");
-const EXAMS_FILE = path.join(__dirname, "exams.json");
-const EXAM_RESULTS_FILE = path.join(__dirname, "exam-results.json");
+const QUESTIONS_FILE = path.join(DATA_DIR, "questions.json");
+const EXAMS_FILE = path.join(DATA_DIR, "exams.json");
+const EXAM_RESULTS_FILE = path.join(DATA_DIR, "exam-results.json");
+
+// The deployment must mount PTE_DATA_DIR on a persistent volume. Without it,
+// replacing the application directory can restore older question/audio data.
+if (!process.env.PTE_DATA_DIR) {
+  console.warn("PTE_DATA_DIR is not set: question edits and MP3 uploads may be lost on redeploy.");
+}
+for (const name of ["questions.json", "exams.json", "exam-results.json"]) {
+  const destination = path.join(DATA_DIR, name);
+  const bundled = path.join(__dirname, name);
+  if (destination !== bundled && !fs.existsSync(destination) && fs.existsSync(bundled)) {
+    fs.copyFileSync(bundled, destination, fs.constants.COPYFILE_EXCL);
+  }
+}
 
 /**
  * PTE-like skill contribution map
