@@ -903,10 +903,36 @@ async function getSpeakingReference(question) {
   return question.prompt || "";
 }
 
+function getAcceptedShortAnswers(question) {
+  return String(question.answerKey || question.correctAnswer || "")
+    .split(/\s*\/\s*|\r?\n|\s*;\s*/)
+    .map(value => normalizeText(value))
+    .filter(Boolean);
+}
+
+function matchShortAnswer(transcript, acceptedAnswers) {
+  const response = normalizeText(transcript);
+  if (!response || !acceptedAnswers.length) return false;
+  // Permit an article or a short introductory phrase, but not unrelated extra content.
+  const cleaned = response.replace(/^(?:a|an|the)\s+/, "")
+    .replace(/^(?:it is|its|the answer is)\s+/, "");
+  return acceptedAnswers.some(answer => response === answer || cleaned === answer);
+}
+
 async function scoreSpeakingWithAI({question,transcript,maxScore,recording}) {
   try {
     const reference = await getSpeakingReference(question);
-    return await assessSpeakingAudio({openai,question,recording,maxScore,reference});
+    const result = await assessSpeakingAudio({openai,question,recording,maxScore,reference});
+    if (question.subType === "answer_short_question") {
+      const acceptedAnswers = getAcceptedShortAnswers(question);
+      if (acceptedAnswers.length && result.speechDetected && result.transcript?.trim()) {
+        const correct = matchShortAnswer(result.transcript, acceptedAnswers);
+        return {...result, score:correct ? maxScore : 0, content:correct ? 5 : 0,
+          feedback:correct ? "Accepted short answer." : "Answer does not match the accepted alternatives.",
+          acceptedAnswers, assessmentMethod:"audio-transcript-exact-answer"};
+      }
+    }
+    return result;
   } catch (error) {
     console.error("SPEAKING AUDIO ASSESSMENT FAILED:", error.message);
     if (!transcript && recording) {
@@ -917,6 +943,14 @@ async function scoreSpeakingWithAI({question,transcript,maxScore,recording}) {
       fallback = await scoreSpeakingContentWithAI({question,transcript,maxScore});
     } catch (_) {
       fallback = {score:null,content:null,pronunciation:null,oralFluency:null,feedback:"Otomatik değerlendirme kullanılamadı. Kayıt korundu; yönetici değerlendirmesi gerekli."};
+    }
+    if (question.subType === "answer_short_question" && transcript?.trim()) {
+      const acceptedAnswers = getAcceptedShortAnswers(question);
+      if (matchShortAnswer(transcript, acceptedAnswers)) {
+        return {...fallback, score:maxScore, content:5, transcript, acceptedAnswers,
+          assessmentMethod:"transcript-only", manualReviewRequired:true,
+          feedback:"Accepted alternative detected in transcript; audio assessment requires review."};
+      }
     }
     return {...fallback, transcript, assessmentMethod:"transcript-only", manualReviewRequired:true,
       scoringNote:"Provisional content-only estimate. Audio assessment was unavailable; pronunciation and fluency are not assessed. Administrator review is required."};
