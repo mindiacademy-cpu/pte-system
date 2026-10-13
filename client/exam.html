@@ -1464,6 +1464,37 @@
       }, 15000);
     }
 
+    // Reload, browser Back, or leaving the exam ends the active attempt.
+    // A departure cannot be reliably blocked until an async request completes;
+    // submit saved responses best-effort and finalize again on return if needed.
+    function submitDepartingExam() {
+      if (localStorage.getItem("examStarted") !== "true" || examSubmissionInProgress) return;
+      localStorage.setItem("examInterrupted", "true");
+      const saved = JSON.parse(localStorage.getItem("examAnswers") || "[]");
+      const payload = {
+        candidateName: normalizedCandidate.firstName,
+        candidateSurname: normalizedCandidate.surname,
+        candidatePhone: localStorage.getItem("candidatePhone") || "",
+        candidateEmail: localStorage.getItem("candidateEmail") || "",
+        candidateId: localStorage.getItem("candidateId") || "",
+        examCode: localStorage.getItem("examCode") || "",
+        startedAt: examStartedAt,
+        finishedAt: new Date().toISOString(),
+        answers: saved
+      };
+      try {
+        const body = JSON.stringify(payload);
+        if (body.length < 60000) navigator.sendBeacon("/save-exam", new Blob([body], {type:"application/json"}));
+      } catch (_) { /* retry on return */ }
+    }
+
+    window.addEventListener("pagehide", submitDepartingExam);
+    window.addEventListener("beforeunload", () => {
+      if (localStorage.getItem("examStarted") === "true" && !examSubmissionInProgress) {
+        localStorage.setItem("examInterrupted", "true");
+      }
+    });
+
     document.addEventListener("visibilitychange", () => {
       if (localStorage.getItem("examStarted") !== "true") return;
 
@@ -3699,7 +3730,7 @@
           currentQuestionIndex = Math.min(Number(localStorage.getItem("currentQuestionIndex")) || 0, questions.length - 1);
           answers = JSON.parse(localStorage.getItem("examAnswers") || "[]");
 
-          if (isExamSessionExpired()) {
+          if (localStorage.getItem("examInterrupted") === "true" || isExamSessionExpired()) {
             expireExamSession();
             return;
           }
