@@ -1078,7 +1078,14 @@ async function enrichAnswersWithScores(answers, assignedQuestions) {
       if (aiScore.transcript !== undefined) transcript = aiScore.transcript;
       autoScore = aiScore.score; aiFeedback = aiScore.feedback; aiDetails = aiScore;
     } else if (answer.type === "writing" || answer.subType === "summarize_spoken_text") {
-      const aiScore = await scoreWritingWithAI({ question, responseText: answer.answer, maxScore });
+      let aiScore;
+      try {
+        aiScore = await scoreWritingWithAI({ question, responseText: answer.answer, maxScore });
+      } catch (error) {
+        console.error("WRITING ASSESSMENT FAILED:", error.message);
+        aiScore = {score:null, feedback:"Automatic writing assessment unavailable; manual review required.",
+          manualReviewRequired:true, assessmentMethod:"manual-review"};
+      }
       autoScore = aiScore.score; aiFeedback = aiScore.feedback; aiDetails = aiScore;
     } else {
       autoScore = calculateAutoScore(question, answer.answer);
