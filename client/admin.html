@@ -1138,7 +1138,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
         <tr>
           <th>Sıra</th>
           <th>Alan</th>
-          <th>Puan</th>
           <th>Çalışma Önerisi</th>
         </tr>
       </thead>
@@ -1148,7 +1147,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
           <tr>
             <td>${escapeHtml(item.rank)}</td>
             <td>${escapeHtml(item.skill)}</td>
-            <td>${escapeHtml(item.score)}</td>
             <td>${escapeHtml(reportCandidateText(item.recommendation))}</td>
           </tr>
         `).join("")}
