@@ -580,7 +580,7 @@ function normalizeExamResult(exam) {
 
 function scaleToPTE(rawPercent) {
   const safe = Math.max(0, Math.min(1, Number(rawPercent || 0)));
-  return Math.round(10 + safe * 80);
+  return safe === 0 ? 0 : Math.round(10 + safe * 80);
 }
 
 function buildSummary(answers) {
@@ -603,18 +603,26 @@ function buildSummary(answers) {
     // scores to distort the candidate's practice result.
     const rawMax = Number(answer.maxScore ?? 10);
     const maxScore = Number.isFinite(rawMax) && rawMax > 0 ? rawMax : 0;
-    // Missing/failed AI evaluation is pending review, not an earned zero.
-    if (answer.finalScore === null || answer.finalScore === undefined || answer.aiDetails?.manualReviewRequired) return;
-    const rawScore = Number(answer.finalScore);
-    if (!Number.isFinite(rawScore)) return;
-    const finalScore = Math.max(0, Math.min(maxScore, rawScore));
+    // Every assigned question counts in the denominator. A skipped response or
+    // unavailable assessment must never inflate the candidate's score.
+    overallPossible += maxScore;
+    Object.entries(weights).forEach(([skill, weight]) => {
+      totals[skill].possible += maxScore * weight;
+    });
+
+    const isSpeaking = answer.type === "speaking" || ["read_aloud","repeat_sentence","describe_image","re_tell_lecture","answer_short_question","summarize_group_discussion","respond_to_a_situation"].includes(subType);
+    const hasSpeech = isSpeaking && answer.aiDetails?.speechDetected === true &&
+      String(answer.aiDetails?.transcript || answer.transcript || "").trim().length > 0;
+    const noSpeech = isSpeaking && !hasSpeech &&
+      (!String(answer.transcript || "").trim() || answer.aiDetails?.speechDetected === false);
+    const pending = answer.finalScore === null || answer.finalScore === undefined || answer.aiDetails?.manualReviewRequired;
+    const rawScore = pending || noSpeech ? 0 : Number(answer.finalScore);
+    const finalScore = Number.isFinite(rawScore) ? Math.max(0, Math.min(maxScore, rawScore)) : 0;
 
     overallEarned += finalScore;
-    overallPossible += maxScore;
 
     Object.entries(weights).forEach(([skill, weight]) => {
       totals[skill].earned += finalScore * weight;
-      totals[skill].possible += maxScore * weight;
     });
   });
 
