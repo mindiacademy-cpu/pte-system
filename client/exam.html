@@ -2597,6 +2597,7 @@
         let retryCount = 0;
         let lastProgressAt = Date.now();
         let lastPlaybackTime = 0;
+        let promptFailureTimeout = null;
 
         const isCurrentFlow = () =>
           flowGeneration === speakingFlowGeneration &&
@@ -2614,6 +2615,8 @@
         };
 
         const clearPromptTimers = () => {
+          clearTimeout(promptFailureTimeout);
+          promptFailureTimeout = null;
           clearTimeout(speakingPromptWatchdog);
           clearTimeout(speakingPromptRetryTimer);
           speakingPromptWatchdog = null;
@@ -2760,6 +2763,15 @@
           });
           setMainTimer(0);
         };
+
+        // Never leave the candidate stuck indefinitely if Safari cannot
+        // start or finish the audio prompt. Proceed to the response stage.
+        promptFailureTimeout = setTimeout(() => {
+          if (settled || !isCurrentFlow()) return;
+          console.warn("Speaking prompt timed out; proceeding without blocking the exam.");
+          try { audio.pause(); } catch (_) {}
+          finish();
+        }, 45000);
 
         // Safari can leave media in a pending state without resolving the
         // playback promise. If nothing starts, expose a visible manual retry.
