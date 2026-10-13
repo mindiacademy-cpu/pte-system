@@ -347,9 +347,12 @@ function getCorrectArray(question, splitMode = "line") {
 }
 
 function scoreReorderPairs(userAnswers, correctAnswers, maxScore = 10) {
-  const user = toAnswerArray(userAnswers, "line").map(normalizeText);
+  const user = toAnswerArray(userAnswers, "line").map(normalizeText).filter(Boolean);
   const correct = toAnswerArray(correctAnswers, "comma").map(normalizeText).filter(Boolean);
   if (correct.length < 2) return 0;
+  // A repeated or missing paragraph must not receive credit for incidental adjacent pairs.
+  if (new Set(user).size !== user.length || new Set(correct).size !== correct.length) return 0;
+  if (user.length !== correct.length || user.some(item => !correct.includes(item))) return 0;
   let matched = 0;
   for (let i = 0; i < correct.length - 1; i++) {
     const pos = user.indexOf(correct[i]);
