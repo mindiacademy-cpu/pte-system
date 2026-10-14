@@ -71,3 +71,16 @@ test('interrupted attempts are recorded as failed',()=>{const h=server.slice(ser
 
 test('expired exams are marked failed without scoring saved answers',()=>{const expire=browser.slice(browser.indexOf('function expireExamSession()'),browser.indexOf('function touchExamSession()'));assert.match(expire,/submitDepartingExam\(\)/);assert.doesNotMatch(expire,/finishExam\(/);});
 test('admin displays failure state instead of a numeric score',()=>{const admin=fs.readFileSync(path.join(__dirname,'../client/admin.html'),'utf8');assert.match(admin,/exam\.summary\?\.status === "failed"/);assert.match(admin,/Sınav başarısız/);});
+
+test('failed exam reporting retries through fetch when the page is visible',()=>{
+ const handler=browser.slice(browser.indexOf('function submitDepartingExam()'),browser.indexOf('window.addEventListener("pagehide"'));
+ assert.match(handler,/document\.hidden/);
+ assert.match(handler,/fetch\("\/fail-exam"/);
+ assert.match(handler,/keepalive: true/);
+ assert.match(handler,/navigator\.sendBeacon\("\/fail-exam"/);
+});
+test('failed exam records normalize international phone digits',()=>{
+ const handler=server.slice(server.indexOf('app.post("/fail-exam"'),server.indexOf('app.post("/save-exam"'));
+ assert.ok(handler.includes('replace(/\\D/g,"")'));
+ assert.ok(!handler.includes('replace(/\\\\D/g,"")'));
+});
