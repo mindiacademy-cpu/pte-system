@@ -1358,7 +1358,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
                 <h2 class="candidate-title">Candidate ${examIndex + 1}</h2>
               </div>
               <div>
-                <button class="btn btn-pdf">Download PDF Report</button>
+                ${exam.summary?.status === "failed" ? "" : `<button class="btn btn-pdf">Download PDF Report</button>`}
                 <button class="btn btn-delete">Delete Candidate Result</button>
               </div>
             </div>
@@ -1398,7 +1398,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
 </div>
           `;
 
-          if (exam.summary) {
+          if (exam.summary?.status === "failed") {
+            html += `<div class="score-box"><div class="score-main">Sınav başarısız — teknik kesinti</div></div>`;
+          } else if (exam.summary) {
             html += `
     <div class="score-box">
       <div class="score-main">
@@ -1415,7 +1417,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
   `;
           }
 
-          if (exam.summaryOnly) {
+          if (exam.summaryOnly && exam.summary?.status !== "failed") {
             html += '<div class="section-title"><button type="button" class="btn btn-details">Cevapları ve ses kayıtlarını aç</button></div>';
           }
 
