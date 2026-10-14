@@ -1443,7 +1443,9 @@
         loadingArea.innerText = "Sınav oturumunun süresi doldu. Kaydedilen yanıtlar gönderiliyor...";
       }
 
-      finishExam(true, true);
+      submitDepartingExam();
+      const notice = document.getElementById("loadingArea");
+      if (notice) notice.innerText = "Sınav başarısız — teknik kesinti. Sonuç oluşturulmadı.";
     }
 
     function touchExamSession() {
