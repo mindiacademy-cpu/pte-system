@@ -96,3 +96,12 @@ test('failure status is not overwritten by a second failure notification',()=>{
  assert.match(handler,/alreadySaved:true/);
  assert.match(handler,/error\.code==="23505"/);
 });
+
+test('existing failed attempt is not shown as a completed exam',()=>{
+ const handler=server.slice(server.indexOf('app.post("/save-exam"'),server.indexOf('function normalizeResultRow('));
+ assert.match(handler,/\.select\("id,summary"\)/);
+ assert.match(handler,/existingResult\[0\]\?\.summary\?\.status === "failed"/);
+ const finish=browser.slice(browser.indexOf('function finishExam('),browser.indexOf('function finishExam(')+4400);
+ assert.match(finish,/data\.status === "failed"/);
+ assert.ok(finish.indexOf('data.status === "failed"')<finish.indexOf('localStorage.clear()'));
+});
