@@ -2005,7 +2005,7 @@ app.post("/save-exam", async (req, res) => {
     // exam code has already produced a result.
     const { data: existingResult, error: existingResultError } = await supabase
       .from("exam_results")
-      .select("id")
+      .select("id,summary")
       .eq("exam_code", examCode)
       .limit(1);
 
@@ -2015,7 +2015,7 @@ app.post("/save-exam", async (req, res) => {
     }
 
     if (Array.isArray(existingResult) && existingResult.length > 0) {
-      return res.json({ success: true, alreadySaved: true });
+      return res.json({ success: true, alreadySaved: true, status: existingResult[0]?.summary?.status === "failed" ? "failed" : "completed" });
     }
 
     const { data: assignedExam, error: assignedError } = await supabase
