@@ -2073,9 +2073,15 @@ app.post("/save-exam", async (req, res) => {
       if (error.code === "23505") {
         console.log("DUPLICATE EXAM BLOCKED:", examData.examCode);
 
+        const {data:current,error:lookupError}=await supabase.from("exam_results")
+          .select("summary").eq("exam_code",examData.examCode).limit(1);
+        if (lookupError || !current?.length) {
+          return res.status(409).json({error:"Existing exam result could not be verified."});
+        }
         return res.json({
-          success: true,
-          alreadySaved: true
+          success:true,
+          alreadySaved:true,
+          status:current[0]?.summary?.status==="failed"?"failed":"completed"
         });
       }
 
