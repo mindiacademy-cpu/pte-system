@@ -3587,6 +3587,9 @@
         })
         .then((data) => {
           console.log("EXAM SAVED OK:", data);
+          if (data.status === "failed") {
+            throw new Error("This exam was already recorded as failed due to a technical interruption.");
+          }
 
           localStorage.clear();
           sessionStorage.clear();
