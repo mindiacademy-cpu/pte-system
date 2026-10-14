@@ -33,7 +33,7 @@ test('server uses assigned question snapshot, not user-supplied question scores'
 test('page exit marks interruption and attempts best-effort submission',()=>{
  assert.match(browser,/function submitDepartingExam\(/);
  assert.match(browser,/localStorage\.setItem\("examInterrupted", "true"\)/);
- assert.match(browser,/navigator\.sendBeacon\("\/save-exam"/);
+ assert.match(browser,/navigator\.sendBeacon\("\/fail-exam"/);
  assert.match(browser,/if \(localStorage\.getItem\("examInterrupted"\) === "true" \|\| isExamSessionExpired\(\)\)/);
 });
 
