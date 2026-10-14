@@ -84,3 +84,15 @@ test('failed exam records normalize international phone digits',()=>{
  assert.ok(handler.includes('replace(/\\D/g,"")'));
  assert.ok(!handler.includes('replace(/\\\\D/g,"")'));
 });
+
+test('failure reporting does not send answer data',()=>{
+ const handler=browser.slice(browser.indexOf('function submitDepartingExam()'),browser.indexOf('window.addEventListener("pagehide"'));
+ assert.doesNotMatch(handler,/examAnswers|speakingAudio|preparedAnswers/);
+ assert.match(handler,/JSON\.stringify\(payload\)/);
+});
+test('failure status is not overwritten by a second failure notification',()=>{
+ const handler=server.slice(server.indexOf('app.post("/fail-exam"'),server.indexOf('app.post("/save-exam"'));
+ assert.match(handler,/existing\?\.length/);
+ assert.match(handler,/alreadySaved:true/);
+ assert.match(handler,/error\.code==="23505"/);
+});
