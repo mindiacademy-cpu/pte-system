@@ -1440,7 +1440,7 @@
       const loadingArea = document.getElementById("loadingArea");
       if (loadingArea) {
         loadingArea.style.display = "block";
-        loadingArea.innerText = "Sınav oturumunun süresi doldu. Kaydedilen yanıtlar gönderiliyor...";
+        loadingArea.innerText = "Sınav oturumunun süresi doldu. Başarısızlık durumu bildiriliyor...";
       }
 
       submitDepartingExam();
@@ -1491,7 +1491,7 @@
 
     // Reload, browser Back, or leaving the exam ends the active attempt.
     // A departure cannot be reliably blocked until an async request completes;
-    // submit saved responses best-effort and finalize again on return if needed.
+    // report the failed attempt without uploading answers.
     function submitDepartingExam() {
       if (localStorage.getItem("examStarted") !== "true" || examSubmissionInProgress) return;
       localStorage.setItem("examInterrupted", "true");
