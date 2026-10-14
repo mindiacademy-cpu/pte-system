@@ -1493,22 +1493,17 @@
     function submitDepartingExam() {
       if (localStorage.getItem("examStarted") !== "true" || examSubmissionInProgress) return;
       localStorage.setItem("examInterrupted", "true");
-      const saved = JSON.parse(localStorage.getItem("examAnswers") || "[]");
       const payload = {
         candidateName: normalizedCandidate.firstName,
         candidateSurname: normalizedCandidate.surname,
         candidatePhone: localStorage.getItem("candidatePhone") || "",
         candidateEmail: localStorage.getItem("candidateEmail") || "",
-        candidateId: localStorage.getItem("candidateId") || "",
         examCode: localStorage.getItem("examCode") || "",
-        startedAt: examStartedAt,
-        finishedAt: new Date().toISOString(),
-        answers: saved
+        startedAt: examStartedAt
       };
       try {
-        const body = JSON.stringify(payload);
-        if (body.length < 60000) navigator.sendBeacon("/save-exam", new Blob([body], {type:"application/json"}));
-      } catch (_) { /* retry on return */ }
+        navigator.sendBeacon("/fail-exam", new Blob([JSON.stringify(payload)], {type:"application/json"}));
+      } catch (_) {}
     }
 
     window.addEventListener("pagehide", submitDepartingExam);
