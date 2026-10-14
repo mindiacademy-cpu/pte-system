@@ -36,3 +36,33 @@ test('page exit marks interruption and attempts best-effort submission',()=>{
  assert.match(browser,/navigator\.sendBeacon\("\/save-exam"/);
  assert.match(browser,/if \(localStorage\.getItem\("examInterrupted"\) === "true" \|\| isExamSessionExpired\(\)\)/);
 });
+
+test('repeated submission checks existing result before rescoring',()=>{
+ const handler=server.slice(server.indexOf('app.post("/save-exam"'),server.indexOf('function normalizeResultRow('));
+ const check=handler.indexOf('.from("exam_results")');
+ const score=handler.indexOf('await enrichAnswersWithScores(');
+ assert.ok(check>=0&&score>check);
+ assert.match(handler,/existingResult\.length > 0/);
+ assert.match(handler,/alreadySaved: true/);
+});
+test('database unique-key collision returns already saved without duplicate result',()=>{
+ const handler=server.slice(server.indexOf('app.post("/save-exam"'),server.indexOf('function normalizeResultRow('));
+ assert.match(handler,/error\.code === "23505"/);
+ assert.match(handler,/DUPLICATE EXAM BLOCKED/);
+});
+test('submission failure keeps local answers and enables retry',()=>{
+ const finish=browser.slice(browser.indexOf('function finishExam('),browser.indexOf('function finishExam(')+3900);
+ assert.match(finish,/\.catch\(error =>/);
+ assert.match(finish,/examSubmissionInProgress = false/);
+ assert.match(finish,/finishButton\.disabled = false/);
+ assert.match(finish,/Your saved responses are still on this device/);
+ const clear=finish.indexOf('localStorage.clear()');
+ const success=finish.indexOf('.then((data) =>');
+ assert.ok(clear>success,'Local answers should only be cleared after successful save');
+});
+test('server rejects unknown exam code and reconstructs assigned answers',()=>{
+ const handler=server.slice(server.indexOf('app.post("/save-exam"'),server.indexOf('function normalizeResultRow('));
+ assert.match(handler,/Exam code is required/);
+ assert.match(handler,/Assigned exam could not be found/);
+ assert.match(handler,/assignedExam\.questions\.map\(q =>/);
+});
