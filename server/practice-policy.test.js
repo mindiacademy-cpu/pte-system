@@ -15,7 +15,7 @@ test('22-item blueprint and strict shortage detection', () => {
   assert.equal(run('selectCompactExam([]).shortages.length'), 22);
 });
 
-test('no duplicates and no missing recordings in full exam', () => {
+test('no duplicates and no missing recordings in compact exam', () => {
   run(`var bank = Object.entries(EXAM_TASK_COUNTS).flatMap(([subType,n]) =>
     Array.from({length:n+1},(_,i)=>({id:subType+i,subType,prompt:'instruction',
       type:subType.includes('listening')?'listening':'speaking',
@@ -25,7 +25,7 @@ test('no duplicates and no missing recordings in full exam', () => {
     var result = selectCompactExam(bank);
   `);
   assert.equal(run('result.questions.length'), 22);
-  assert.equal(run('new Set(result.questions.map(q=>q.id)).size'), 65);
+  assert.equal(run('new Set(result.questions.map(q=>q.id)).size'), 22);
   assert.equal(run('isExamReady({type:"listening",prompt:"test",textContent:"test",audioUrl:""})'), false);
   assert.equal(run('selectCompactExam(Array(10).fill(bank[0])).questions.length'), 0);
 });
