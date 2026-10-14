@@ -4,30 +4,30 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const source = fs.readFileSync(__dirname + '/server.js', 'utf8');
 const scoring = source.slice(source.indexOf('function normalizeText('), source.indexOf('function ensureFile('));
-const selection = source.slice(source.indexOf('const FULL_EXAM_COUNTS'), source.indexOf('app.post("/create-exam"'));
+const selection = source.slice(source.indexOf('const EXAM_TASK_COUNTS'), source.indexOf('app.post("/create-exam"'));
 const context = vm.createContext({console});
 vm.runInContext(scoring + selection, context);
 vm.runInContext(source.slice(source.indexOf('function getAutomaticPoints('),source.indexOf('function normalizeExamResult(')),context);
 const run = text => vm.runInContext(text, context);
 
-test('65-item blueprint and strict shortage detection', () => {
-  assert.equal(run('Object.values(FULL_EXAM_COUNTS).reduce((a,b)=>a+b,0)'), 65);
-  assert.equal(run('selectFullExam([]).shortages.length'), 22);
+test('22-item blueprint and strict shortage detection', () => {
+  assert.equal(run('Object.values(EXAM_TASK_COUNTS).reduce((a,b)=>a+b,0)'), 22);
+  assert.equal(run('selectCompactExam([]).shortages.length'), 22);
 });
 
 test('no duplicates and no missing recordings in full exam', () => {
-  run(`var bank = Object.entries(FULL_EXAM_COUNTS).flatMap(([subType,n]) =>
+  run(`var bank = Object.entries(EXAM_TASK_COUNTS).flatMap(([subType,n]) =>
     Array.from({length:n+1},(_,i)=>({id:subType+i,subType,prompt:'instruction',
       type:subType.includes('listening')?'listening':'speaking',
       textContent:'passage '+i+' _______',audioUrl:'/audio/'+subType+i,
       imageUrl:'/image/'+subType+i,options:['a','b'],correctAnswer:'a',
       correctAnswers:['a'],answerKey:'1,2'})));
-    var result = selectFullExam(bank);
+    var result = selectCompactExam(bank);
   `);
-  assert.equal(run('result.questions.length'), 65);
+  assert.equal(run('result.questions.length'), 22);
   assert.equal(run('new Set(result.questions.map(q=>q.id)).size'), 65);
   assert.equal(run('isExamReady({type:"listening",prompt:"test",textContent:"test",audioUrl:""})'), false);
-  assert.equal(run('selectFullExam(Array(10).fill(bank[0])).questions.length'), 0);
+  assert.equal(run('selectCompactExam(Array(10).fill(bank[0])).questions.length'), 0);
 });
 
 test('negative marking and duplicate selections cannot inflate scores', () => {
