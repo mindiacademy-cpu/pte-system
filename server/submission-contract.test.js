@@ -105,3 +105,12 @@ test('existing failed attempt is not shown as a completed exam',()=>{
  assert.match(finish,/data\.status === "failed"/);
  assert.ok(finish.indexOf('data.status === "failed"')<finish.indexOf('localStorage.clear()'));
 });
+
+test('unique-key race reports persisted status instead of claiming success',()=>{
+ const handler=server.slice(server.indexOf('app.post("/save-exam"'),server.indexOf('function normalizeResultRow('));
+ const collision=handler.slice(handler.indexOf('if (error.code === "23505")'));
+ assert.match(collision,/\.select\("summary"\)/);
+ assert.match(collision,/current\[0\]\?\.summary\?\.status==="failed"/);
+ assert.match(collision,/status:current\[0\]/);
+ assert.match(collision,/status\(409\)/);
+});
