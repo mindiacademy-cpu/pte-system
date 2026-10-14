@@ -5,6 +5,8 @@ on:
     paths:
       - 'server/**'
       - 'client/speaking-audio.js'
+      - 'client/exam.html'
+      - 'client/admin.html'
       - '.github/workflows/pte-tests.yml'
   workflow_dispatch:
 jobs:
