@@ -66,3 +66,5 @@ test('server rejects unknown exam code and reconstructs assigned answers',()=>{
  assert.match(handler,/Assigned exam could not be found/);
  assert.match(handler,/assignedExam\.questions\.map\(q =>/);
 });
+
+test('interrupted attempts are recorded as failed',()=>{const h=server.slice(server.indexOf('app.post("/fail-exam"'),server.indexOf('app.post("/save-exam"'));assert.match(h,/status:"failed"/);assert.match(h,/answers:\[\]/);});
