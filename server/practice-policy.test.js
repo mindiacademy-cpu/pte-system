@@ -83,7 +83,7 @@ test('imported set retains all 66 tasks and excludes the 35 missing recordings',
     }
     if (q.incorrectWordIndexes?.length) {
       const words=q.textContent.split(/\s+/);
-      assert.deepEqual(q.incorrectWordIndexes.map(i=>words[i]),q.id.endsWith('1')?['five','two']:['open','replacement.']);
+      assert.deepEqual(q.incorrectWordIndexes.map(i=>words[i]),q.id==='86'?['five','two']:['open','replacement.']);
     }
     if(q.type==='listening' && !['listening_fill_blanks','highlight_incorrect_words'].includes(q.subType)) assert.equal(q.textContent,'');
   }
@@ -110,7 +110,15 @@ test('legacy form IDs resolve only to their original imported questions', () => 
   const {resolveQuestionIndex}=require('./question-seeds');
   const aliases=require('./seeds/set01-legacy-ids.json');
   const seed=JSON.parse(fs.readFileSync(__dirname+'/seeds/set01.json','utf8'));
-  for (const [id,canonical] of Object.entries(aliases)) assert.equal(seed[resolveQuestionIndex(seed,id)].id,canonical);
+  for (const [id,canonical] of Object.entries(aliases)) {
+    const index = resolveQuestionIndex(seed,id);
+    if (seed.some(q=>String(q.id)===String(canonical))) {
+      assert.ok(index>=0,'Missing legacy alias: '+id);
+      assert.equal(String(seed[index].id),String(canonical));
+    } else {
+      assert.equal(index,-1,'Retired alias must not resolve to another question: '+id);
+    }
+  }
   assert.equal(resolveQuestionIndex(seed,'unknown'),-1);
   assert.equal(resolveQuestionIndex([],Object.keys(aliases)[0]),-1);
 });
