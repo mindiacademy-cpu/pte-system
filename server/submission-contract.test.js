@@ -68,3 +68,6 @@ test('server rejects unknown exam code and reconstructs assigned answers',()=>{
 });
 
 test('interrupted attempts are recorded as failed',()=>{const h=server.slice(server.indexOf('app.post("/fail-exam"'),server.indexOf('app.post("/save-exam"'));assert.match(h,/status:"failed"/);assert.match(h,/answers:\[\]/);});
+
+test('expired exams are marked failed without scoring saved answers',()=>{const expire=browser.slice(browser.indexOf('function expireExamSession()'),browser.indexOf('function touchExamSession()'));assert.match(expire,/submitDepartingExam\(\)/);assert.doesNotMatch(expire,/finishExam\(/);});
+test('admin displays failure state instead of a numeric score',()=>{const admin=fs.readFileSync(path.join(__dirname,'../client/admin.html'),'utf8');assert.match(admin,/exam\.summary\?\.status === "failed"/);assert.match(admin,/Sınav başarısız/);});
