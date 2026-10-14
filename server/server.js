@@ -1972,7 +1972,7 @@ app.post("/fail-exam", async (req, res) => {
       exam_code:examCode,
       candidate_name:String(body.candidateName||"").slice(0,150),
       candidate_surname:String(body.candidateSurname||"").slice(0,150),
-      candidate_phone:String(body.candidatePhone||"").replace(/\\D/g,""),
+      candidate_phone:String(body.candidatePhone||"").replace(/\D/g,""),
       candidate_email:String(body.candidateEmail||"").slice(0,254),
       started_at:body.startedAt||null,
       finished_at:new Date().toISOString(),
