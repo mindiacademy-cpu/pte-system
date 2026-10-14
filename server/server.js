@@ -1957,6 +1957,41 @@ app.delete("/exams/:id", async (req, res) => {
   }
 });
 
+app.post("/fail-exam", async (req, res) => {
+  try {
+    const body = req.body || {};
+    const examCode = String(body.examCode || "").trim();
+    if (!examCode) return res.status(400).json({error:"Exam code is required."});
+    const {data:assigned,error:lookupError}=await supabase.from("exams").select("exam_code").eq("exam_code",examCode).maybeSingle();
+    if (lookupError) return res.status(500).json({error:"Exam could not be verified."});
+    if (!assigned) return res.status(404).json({error:"Exam code not found."});
+    const {data:existing,error:checkError}=await supabase.from("exam_results").select("id").eq("exam_code",examCode).limit(1);
+    if (checkError) return res.status(500).json({error:"Exam status could not be verified."});
+    if (existing?.length) return res.json({success:true,alreadySaved:true});
+    const {error}=await supabase.from("exam_results").insert([{
+      exam_code:examCode,
+      candidate_name:String(body.candidateName||"").slice(0,150),
+      candidate_surname:String(body.candidateSurname||"").slice(0,150),
+      candidate_phone:String(body.candidatePhone||"").replace(/\\D/g,""),
+      candidate_email:String(body.candidateEmail||"").slice(0,254),
+      started_at:body.startedAt||null,
+      finished_at:new Date().toISOString(),
+      answers:[],
+      summary:{status:"failed",reason:"technical_interruption"},
+      evaluation:null
+    }]);
+    if (error) {
+      if (error.code==="23505") return res.json({success:true,alreadySaved:true});
+      console.error("FAIL EXAM SAVE ERROR:",error);
+      return res.status(500).json({error:"Failed exam could not be recorded."});
+    }
+    res.json({success:true,status:"failed"});
+  } catch(error) {
+    console.error("POST /fail-exam error:",error);
+    res.status(500).json({error:"Failed exam could not be recorded."});
+  }
+});
+
 app.post("/save-exam", async (req, res) => {
   try {
     const body = req.body || {};
