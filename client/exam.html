@@ -1504,8 +1504,20 @@
         startedAt: examStartedAt
       };
       try {
-        navigator.sendBeacon("/fail-exam", new Blob([JSON.stringify(payload)], {type:"application/json"}));
-      } catch (_) {}
+        const body = JSON.stringify(payload);
+        if (document.hidden) {
+          navigator.sendBeacon("/fail-exam", new Blob([body], {type:"application/json"}));
+        } else {
+          fetch("/fail-exam", {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body,
+            keepalive: true
+          }).catch(error => console.error("FAIL EXAM REPORT ERROR:", error));
+        }
+      } catch (error) {
+        console.error("FAIL EXAM REPORT ERROR:", error);
+      }
     }
 
     window.addEventListener("pagehide", submitDepartingExam);
