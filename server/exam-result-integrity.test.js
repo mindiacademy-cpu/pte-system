@@ -4,7 +4,7 @@ const fs=require('node:fs');
 const vm=require('node:vm');
 const source=fs.readFileSync(__dirname+'/server.js','utf8');
 const start=source.indexOf('function scaleToPTE(');
-const end=source.indexOf('function getAutomaticPoints(');
+const end=source.indexOf('function enrichAnswersWithScores(');
 assert.ok(start>=0&&end>start);
 const ctx=vm.createContext({console});
 vm.runInContext(source.slice(start,end),ctx);
