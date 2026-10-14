@@ -69,3 +69,43 @@ test('audio service failure is explicitly provisional, never invented pronunciat
   assert.equal(result.pronunciation,null);
   assert.equal(result.oralFluency,null);
 });
+
+test('browser recording preparation preserves every answer and converts unsupported audio to WAV',async()=>{
+ const originalFetch=global.fetch, originalAudioContext=global.AudioContext, originalOffline=global.OfflineAudioContext, originalFileReader=global.FileReader;
+ try {
+   global.fetch=async()=>({blob:async()=>new Blob([Buffer.from('mock')],{type:'audio/webm'})});
+   global.AudioContext=class {
+     async decodeAudioData(){return {duration:0.1};}
+     async close(){}
+   };
+   global.OfflineAudioContext=class {
+     constructor(){}
+     createBufferSource(){return {connect(){},start(){},set buffer(value){}};}
+     async startRendering(){return {getChannelData:()=>new Float32Array(1600)};}
+     get destination(){return {};}
+   };
+   global.FileReader=class {
+     readAsDataURL(blob){blob.arrayBuffer().then(bytes=>{this.result='data:audio/wav;base64,'+Buffer.from(bytes).toString('base64');this.onload();});}
+   };
+   const original=[{type:'speaking',speakingAudio:'data:audio/webm;base64,YWJjZA=='},{type:'reading',answer:'hello'}];
+   const converted=await prepareAnswers(original);
+   assert.equal(converted.length,2);
+   assert.equal(converted[1],original[1]);
+   assert.equal(converted[0].speakingAudio.startsWith('data:audio/wav;base64,'),true);
+   assert.equal(getInputAudio(converted[0].speakingAudio).format,'wav');
+   assert.equal(original[0].speakingAudio,'data:audio/webm;base64,YWJjZA==');
+ }finally{
+   for(const [name,value] of [['fetch',originalFetch],['AudioContext',originalAudioContext],['OfflineAudioContext',originalOffline],['FileReader',originalFileReader]]){if(value===undefined)delete global[name];else global[name]=value;}
+ }
+});
+test('failed audio conversion preserves original recording instead of silently deleting it',async()=>{
+ const originalFetch=global.fetch;
+ try {
+   global.fetch=async()=>{throw Error('decode unavailable');};
+   const original={type:'speaking',speakingAudio:'data:audio/webm;base64,YWJjZA=='};
+   const prepared=await prepareAnswers([original]);
+   assert.equal(prepared.length,1);
+   assert.equal(prepared[0],original);
+   assert.throws(()=>getInputAudio(prepared[0].speakingAudio),/WAV or MP3/);
+ }finally{global.fetch=originalFetch;}
+});
