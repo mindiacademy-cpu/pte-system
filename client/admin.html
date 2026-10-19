@@ -1346,7 +1346,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
         container.innerHTML = "";
 
         const results = getFilteredAndSortedResults(data);
-        results.forEach((exam, examIndex) => {
+        function renderExamCard(exam, examIndex) {
           exam = resultDetailCache.get(String(exam.id)) || exam;
           console.log("CARD ID:", exam.id);
           const card = document.createElement("div");
@@ -1554,7 +1554,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
           }
 
           card.innerHTML = html;
-          container.appendChild(card);
+
 
           const pdfBtn = card.querySelector(".btn-pdf");
           if (pdfBtn) pdfBtn.addEventListener("click", async () => {
@@ -1568,7 +1568,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
           const detailBtn=card.querySelector('.btn-details');
           if(detailBtn) detailBtn.addEventListener('click',async () => {
             detailBtn.disabled=true; detailBtn.textContent='Cevaplar yükleniyor...';
-            try { await getResultDetails(exam); await loadResults(); }
+            try {
+              const detail = await getResultDetails(exam);
+              const expandedCard = renderExamCard(detail, examIndex);
+              card.replaceWith(expandedCard);
+              const reviewButton = expandedCard.querySelector(".question-review-toggle");
+              if (reviewButton) toggleQuestionReview(reviewButton);
+            }
             catch(error) { detailBtn.disabled=false; detailBtn.textContent='Tekrar dene'; showToast('Cevaplar yüklenemedi. Lütfen tekrar deneyin.','error'); console.error(error); }
           });
 
@@ -1576,7 +1582,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
           deleteBtn.addEventListener("click", () =>
             deleteResult(exam.id || exam._id, exam.candidateName, card)
           );
-        });
+          return card;
+        }
+        results.forEach((exam, examIndex) => container.appendChild(renderExamCard(exam, examIndex)));
       } catch (error) {
         container.innerHTML = "<p class='empty'>Sonuçlar yüklenemedi. Lütfen Refresh Results düğmesiyle tekrar deneyin.</p>";
         console.error(error);
