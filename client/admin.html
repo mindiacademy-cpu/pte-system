@@ -1557,7 +1557,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
           container.appendChild(card);
 
           const pdfBtn = card.querySelector(".btn-pdf");
-          pdfBtn.addEventListener("click", async () => {
+          if (pdfBtn) pdfBtn.addEventListener("click", async () => {
             const label=pdfBtn.textContent;
             pdfBtn.disabled=true; pdfBtn.textContent='Rapor yükleniyor...';
             try { await downloadPdfReport(await getResultDetails(exam)); }
