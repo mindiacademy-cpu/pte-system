@@ -1172,8 +1172,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
   `;
     }
 
-    function downloadPdfReport(exam) {
-      const reportWindow = window.open("", "_blank");
+    function downloadPdfReport(exam, reportWindow = window.open("", "_blank")) {
       if (!reportWindow) {
         alert("Report window could not be opened. Please allow pop-ups and try again.");
         return;
@@ -1560,8 +1559,14 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
           if (pdfBtn) pdfBtn.addEventListener("click", async () => {
             const label=pdfBtn.textContent;
             pdfBtn.disabled=true; pdfBtn.textContent='Rapor yükleniyor...';
-            try { await downloadPdfReport(await getResultDetails(exam)); }
-            catch(error) { showToast('Rapor yüklenemedi. Lütfen tekrar deneyin.','error'); console.error(error); }
+            const reportWindow = window.open("", "_blank");
+            if (!reportWindow) {
+              showToast('Rapor penceresi engellendi. Tarayıcıda açılır pencerelere izin verin.','error');
+              pdfBtn.disabled=false; pdfBtn.textContent=label;
+              return;
+            }
+            try { await downloadPdfReport(await getResultDetails(exam), reportWindow); }
+            catch(error) { reportWindow.close(); showToast('Rapor yüklenemedi. Lütfen tekrar deneyin.','error'); console.error(error); }
             finally { pdfBtn.disabled=false; pdfBtn.textContent=label; }
           });
 
