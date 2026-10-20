@@ -578,6 +578,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
     function reportCandidateText(value) {
       const text = String(value ?? "");
       return text
+        .replace(/\b\d+[.,]\d+\s*(?:\/\s*\d+)?\s*puan(?:lar(?:ı|la)?)?\b/gi, "kısmi puan")
         .split(/(?<=[.!?])\s+|\n+/)
         .filter(sentence => !/(manuel|manual|yönetici|administrator|insan değerlendirm|human review|inceleme (gere|bekle)|review (required|pending|needed)|awaiting review|provisional|geçici (puan|sonuç)|nihai değil|not final|audio assessment unavailable|puanlama yapılamadı|değerlendirme yapılamadı)/i.test(sentence))
         .join(" ")
