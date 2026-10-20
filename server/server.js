@@ -831,6 +831,7 @@ Rules:
 - Only discuss pronunciation/fluency where assessmentMethod is audio. Scores marked manualReviewRequired are provisional; explicitly state this and do not infer audio traits from transcripts.
 - Identify strengths and weaknesses.
 - Give practical, specific improvement recommendations.
+- In narrative evaluations, never quote raw question-level points, fractional marks, or decimal scores such as 3.67 or 4.33. Describe performance qualitatively instead. Section and overall scores belong only in their dedicated score fields.
 - Avoid generic filler.
 - Keep the tone professional and suitable for a candidate score report.
 
