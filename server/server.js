@@ -2220,7 +2220,10 @@ app.put("/exam-results/:resultId/manual-score", async (req, res) => {
       finalScore:
         parsedManualScore !== null
           ? parsedManualScore
-          : Number(answers[answerIndex].autoScore || 0)
+          : (answers[answerIndex].autoScore ?? null),
+      aiDetails: parsedManualScore !== null
+        ? { ...(answers[answerIndex].aiDetails || {}), manualReviewRequired: false }
+        : answers[answerIndex].aiDetails
     };
 
     const summary = buildSummary(answers);
