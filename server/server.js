@@ -2235,14 +2235,9 @@ app.put("/exam-results/:resultId/manual-score", async (req, res) => {
 
     const summary = buildSummary(answers);
 
-    // Manuel puan değiştiği için detaylı değerlendirmeyi de yeniden oluştur
-    let evaluation = await generateDetailedEvaluation(summary, answers);
-
-    // OpenAI herhangi bir nedenle cevap vermezse,
-    // rapor yine boş kalmasın.
-    if (!evaluation) {
-      evaluation = buildEvaluation(summary);
-    }
+    // Save the authoritative score and a consistent evaluation immediately.
+    // An external AI request must not block or invalidate a manual score edit.
+    const evaluation = buildEvaluation(summary);
 
     const { error: updateError } = await supabase
       .from("exam_results")
