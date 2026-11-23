@@ -66,6 +66,21 @@ test("manual Essay 23/26 overrides stale pending review", () => {
   assert.equal(result.overall,81);
   assert.equal(result.provisional,false);
 });
+test("manual Essay changes Writing and Overall without altering other skills", () => {
+  const other = [
+    a("read_aloud", 8, 10, {type:"speaking", aiDetails:{speechDetected:true,transcript:"spoken answer"}}),
+    a("reading_mcq_single", 6, 10),
+    a("listening_mcq_single", 4, 10)
+  ];
+  const before = S.buildSummary([...other, a("essay", 0, 26)]);
+  const after = S.buildSummary([...other, a("essay", 0, 26, {manualScore:23})]);
+  assert.ok(after.writing > before.writing);
+  assert.ok(after.overall > before.overall);
+  assert.equal(after.speaking, before.speaking);
+  assert.equal(after.reading, before.reading);
+  assert.equal(after.listening, before.listening);
+  assert.equal(after.provisional, false);
+});
 test("unreviewed Essay remains provisional and earns no points", () => {
   const result=S.buildSummary([a("essay",23,26,{aiDetails:{manualReviewRequired:true}})]);
   assert.equal(result.writing,10);
