@@ -1632,6 +1632,14 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
         }
 
         resultDetailCache.delete(String(resultId));
+        const candidateCard = buttonEl.closest(".card");
+        const summaryBox = candidateCard?.querySelector(".score-box");
+        if (summaryBox && data.summary) {
+          const overallEl = summaryBox.querySelector(".score-main");
+          const skillEl = summaryBox.querySelector(".score-sub:last-child");
+          if (overallEl) overallEl.textContent = `PTE Academic Compact Mock Test Score: ${data.summary.overall ?? 0}`;
+          if (skillEl) skillEl.textContent = `Speaking: ${data.summary.speaking ?? 0} | Writing: ${data.summary.writing ?? 0} | Reading: ${data.summary.reading ?? 0} | Listening: ${data.summary.listening ?? 0}`;
+        }
         input.value = data.updatedAnswer.manualScore ?? "";
 
         const questionBox = wrapper.closest(".question");
@@ -1651,7 +1659,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
         // Reloading the entire result list here loses the expanded question
         // and jumps the administrator back to the top of the page.
         buttonEl.disabled = false;
-        buttonEl.title = "Score saved. Use Refresh Results to update the overall summary.";
+        buttonEl.title = "Score saved and summary updated.";
 
       } catch (error) {
         console.error(error);
