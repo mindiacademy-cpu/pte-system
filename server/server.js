@@ -2239,26 +2239,34 @@ app.put("/exam-results/:resultId/manual-score", async (req, res) => {
     // An external AI request must not block or invalidate a manual score edit.
     const evaluation = buildEvaluation(summary);
 
-    const { error: updateError } = await supabase
+    const { data: savedResult, error: updateError } = await supabase
       .from("exam_results")
       .update({
         answers,
         summary,
         evaluation
       })
-      .eq("id", resultId);
+      .eq("id", resultId)
+      .select("id,answers,summary,evaluation")
+      .maybeSingle();
 
     if (updateError) {
+      console.error("MANUAL SCORE UPDATE ERROR:", updateError);
       return res.status(500).json({
         error: "Manual score could not be updated."
+      });
+    }
+    if (!savedResult) {
+      return res.status(409).json({
+        error: "Exam result was not updated. Please reload and try again."
       });
     }
 
     res.json({
       success: true,
-      updatedAnswer: answers[answerIndex],
-      summary,
-      evaluation
+      updatedAnswer: savedResult.answers[answerIndex],
+      summary: savedResult.summary,
+      evaluation: savedResult.evaluation
     });
   } catch (error) {
     console.error("PUT /exam-results/:resultId/manual-score error:", error);
