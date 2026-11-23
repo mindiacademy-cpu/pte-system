@@ -27,7 +27,7 @@ function functionSource(name) {
       for (++i; i < source.length; i++) {
         const ch = source[i];
         if (regexEscape) { regexEscape = false; continue; }
-        if (ch === "\\\\") { regexEscape = true; continue; }
+        if (ch === "\\") { regexEscape = true; continue; }
         if (ch === "[") inClass = true;
         if (ch === "]") inClass = false;
         if (ch === "/" && !inClass) break;
