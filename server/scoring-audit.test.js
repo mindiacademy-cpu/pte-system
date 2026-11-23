@@ -22,7 +22,7 @@ function functionSource(name) {
     if (c === "/" && next === "*") { comment = "block"; i++; continue; }
     if (c === "'" || c === '"' || c === "`") { quote = c; continue; }
     if (c === "{") depth++;
-    if (c === "}" && --depth === 0) return source.slice(start, i+1);
+    if (c === "}") { depth--; if (depth === 0) return source.slice(start, i+1); }
   }
   throw Error("Unclosed function: " + name);
 }
