@@ -2207,7 +2207,7 @@ app.put("/exam-results/:resultId/manual-score", async (req, res) => {
         ? null
         : Number(manualScore);
 
-    if (parsedManualScore !== null && Number.isNaN(parsedManualScore)) {
+    if (parsedManualScore !== null && !Number.isFinite(parsedManualScore)) {
       return res.status(400).json({ error: "Invalid score." });
     }
 
