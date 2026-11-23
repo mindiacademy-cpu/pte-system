@@ -1,0 +1,25 @@
+name: PTE scoring regression tests
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'server/server.js'
+      - 'server/scoring-audit.test.js'
+      - 'server/package.json'
+      - '.github/workflows/scoring-tests.yml'
+  workflow_dispatch:
+jobs:
+  scoring:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: node --check server.js && node --check scoring-audit.test.js
+      - name: Scoring regression suite
+        run: npm test
