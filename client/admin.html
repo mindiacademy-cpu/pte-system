@@ -1534,7 +1534,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
       <button
         class="btn"
         style="background:#6b7280;"
-        onclick="clearManualScore('${exam.id || exam._id}', '${answer.questionId}')"
+        onclick="clearManualScore('${exam.id || exam._id}', '${answer.questionId}', this)"
       >
         Clear
       </button>
@@ -1668,8 +1668,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
         buttonEl.disabled = false;
       }
     }
-    async function clearManualScore(resultId, questionId) {
-      const buttonEl = event.target;
+    async function clearManualScore(resultId, questionId, buttonEl) {
       const wrapper = buttonEl.parentElement;
       const input = wrapper.querySelector(".manual-score-input");
 
