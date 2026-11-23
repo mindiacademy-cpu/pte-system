@@ -615,8 +615,15 @@ function buildSummary(answers) {
       String(answer.aiDetails?.transcript || answer.transcript || "").trim().length > 0;
     const noSpeech = isSpeaking && !hasSpeech &&
       (!String(answer.transcript || "").trim() || answer.aiDetails?.speechDetected === false);
-    const pending = answer.finalScore === null || answer.finalScore === undefined || answer.aiDetails?.manualReviewRequired;
-    const rawScore = pending || noSpeech ? 0 : Number(answer.finalScore);
+    // An explicit manual score is authoritative even for a previously pending
+    // AI review or a speaking response with incomplete speech metadata.
+    const hasManualScore = answer.manualScore !== null && answer.manualScore !== undefined &&
+      answer.manualScore !== "" && Number.isFinite(Number(answer.manualScore));
+    const pending = !hasManualScore &&
+      (answer.finalScore === null || answer.finalScore === undefined || answer.aiDetails?.manualReviewRequired);
+    const rawScore = hasManualScore
+      ? Number(answer.manualScore)
+      : (pending || noSpeech ? 0 : Number(answer.finalScore));
     const finalScore = Number.isFinite(rawScore) ? Math.max(0, Math.min(maxScore, rawScore)) : 0;
 
     overallEarned += finalScore;
@@ -648,7 +655,7 @@ function buildSummary(answers) {
     writing: writingScore,
     reading: readingScore,
     listening: listeningScore,
-    provisional: safeAnswers.some(a => a.aiDetails?.manualReviewRequired || a.finalScore === null || a.finalScore === undefined)
+    provisional: safeAnswers.some(a => (a.manualScore === null || a.manualScore === undefined || a.manualScore === "") && (a.aiDetails?.manualReviewRequired || a.finalScore === null || a.finalScore === undefined))
   };
 }
 
