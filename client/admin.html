@@ -1647,19 +1647,11 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
         buttonEl.innerText = "Saved";
         buttonEl.style.background = "#059669";
 
-        setTimeout(async () => {
-          buttonEl.innerText = "Save Score";
-          buttonEl.style.background = "";
-          buttonEl.disabled = false;
-
-          const scrollY = window.scrollY;
-
-          await loadResults();
-
-          requestAnimationFrame(() => {
-            window.scrollTo(0, scrollY);
-          });
-        }, 800);
+        // Keep the current question review open after a successful save.
+        // Reloading the entire result list here loses the expanded question
+        // and jumps the administrator back to the top of the page.
+        buttonEl.disabled = false;
+        buttonEl.title = "Score saved. Use Refresh Results to update the overall summary.";
 
       } catch (error) {
         console.error(error);
