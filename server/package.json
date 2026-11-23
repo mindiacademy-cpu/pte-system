@@ -4,7 +4,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "test": "node --test scoring-audit.test.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.3",
