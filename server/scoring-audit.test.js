@@ -21,6 +21,19 @@ function functionSource(name) {
     if (c === "/" && next === "/") { comment = "line"; i++; continue; }
     if (c === "/" && next === "*") { comment = "block"; i++; continue; }
     if (c === "'" || c === '"' || c === "`") { quote = c; continue; }
+    // Ignore braces inside regular-expression literals (e.g. Unicode \\p{L}).
+    if (c === "/" && /[=(,:!]/.test(source.slice(brace, i).trimEnd().slice(-1))) {
+      let inClass = false, regexEscape = false;
+      for (++i; i < source.length; i++) {
+        const ch = source[i];
+        if (regexEscape) { regexEscape = false; continue; }
+        if (ch === "\\\\") { regexEscape = true; continue; }
+        if (ch === "[") inClass = true;
+        if (ch === "]") inClass = false;
+        if (ch === "/" && !inClass) break;
+      }
+      continue;
+    }
     if (c === "{") depth++;
     if (c === "}") { depth--; if (depth === 0) return source.slice(start, i+1); }
   }
