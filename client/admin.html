@@ -1347,8 +1347,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
 
         const results = getFilteredAndSortedResults(data);
         function renderExamCard(exam, examIndex) {
-          const cachedDetail = resultDetailCache.get(String(exam.id));
-          exam = cachedDetail ? { ...cachedDetail, ...exam, answers: cachedDetail.answers } : exam;
+          exam = resultDetailCache.get(String(exam.id)) || exam;
           console.log("CARD ID:", exam.id);
           const card = document.createElement("div");
           card.className = "card";
@@ -1633,15 +1632,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--portal-purple)!import
         }
 
         resultDetailCache.delete(String(resultId));
-        // Reflect the server-calculated scores immediately, without a page reload.
-        const candidateCard = buttonEl.closest(".card");
-        const scoreBox = candidateCard?.querySelector(".score-box");
-        if (scoreBox && data.summary) {
-          const main = scoreBox.querySelector(".score-main");
-          const sub = scoreBox.querySelectorAll(".score-sub");
-          if (main) main.textContent = `PTE Academic Compact Mock Test Score: ${data.summary.overall ?? 0}`;
-          if (sub.length) sub[sub.length - 1].textContent = `Speaking: ${data.summary.speaking ?? 0} | Writing: ${data.summary.writing ?? 0} | Reading: ${data.summary.reading ?? 0} | Listening: ${data.summary.listening ?? 0}`;
-        }
         input.value = data.updatedAnswer.manualScore ?? "";
 
         const questionBox = wrapper.closest(".question");
