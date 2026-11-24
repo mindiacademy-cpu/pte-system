@@ -2361,13 +2361,6 @@ if (process.argv[2] === "rescore") {
 } else {
   app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
-    // Temporary targeted verification; never touches other candidates.
-    const {execFile} = require("node:child_process");
-    const testFiles = fs.readdirSync(__dirname).filter(name=>name.endsWith(".test.js")).map(name=>path.join(__dirname,name));
-    execFile(process.execPath,["--test",...testFiles],{timeout:120000,maxBuffer:4*1024*1024},async(error,stdout,stderr)=>{
-      console.log("FINAL_SCORING_TESTS",stdout.split("\n").filter(line=>/^# (tests|pass|fail|cancelled|skipped) /.test(line)||/^not ok /.test(line)).join(" | "));
-      if(error){console.error("FINAL_SCORING_TEST_FAILURE",stdout.slice(-12000),stderr.slice(-2000));return;}
-      try { await previewRescore("EX129163",true,true); } catch(e){console.error("TARGETED_RESCORE_FAILED",e.message);}
-    });
+
   });
 }
