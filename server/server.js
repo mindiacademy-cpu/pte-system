@@ -1131,7 +1131,17 @@ async function enrichAnswersWithScores(answers, assignedQuestions) {
     } else if (answer.type === "writing" || answer.subType === "summarize_spoken_text") {
       let aiScore;
       try {
-        aiScore = await scoreWritingWithAI({ question, responseText: answer.answer, maxScore });
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            aiScore = await scoreWritingWithAI({ question, responseText: answer.answer, maxScore });
+            if (Number.isFinite(aiScore.score) && !aiScore.manualReviewRequired) break;
+          } catch (error) {
+            if (attempt === 2) throw error;
+          }
+        }
+        if (!aiScore || !Number.isFinite(aiScore.score) || aiScore.manualReviewRequired) {
+          aiScore = {score:null, feedback:"Automatic assessment pending after retries.", manualReviewRequired:true, assessmentMethod:"automatic-retry-pending"};
+        }
       } catch (error) {
         console.error("WRITING ASSESSMENT FAILED:", error.message);
         aiScore = {score:null, feedback:"Automatic writing assessment unavailable; manual review required.",
@@ -2293,7 +2303,7 @@ async function previewRescore(examCode, pendingOnly = false, apply = false) {
     items:rescored.map(a=>({questionId:a.questionId,subType:a.subType,previous:saved.get(String(a.questionId))?.finalScore,recomputed:a.finalScore,pending:!!a.aiDetails?.manualReviewRequired}))},null,2));
 }
 if (process.argv[2] === "rescore") {
-  previewRescore(process.argv[3]).catch(error=>{
+  previewRescore(process.argv[3], process.argv.includes("--pending-only"), process.argv.includes("--apply")).catch(error=>{
     console.error("Rescore preview failed:",error.message);
     process.exitCode=1;
   });
