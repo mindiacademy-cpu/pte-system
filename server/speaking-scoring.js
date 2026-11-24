@@ -9,7 +9,20 @@ function getInputAudio(dataUrl) {
   return {data:data.toString('base64'),format};
 }
 
-function parseAssessment(text, maxScore, contentOnly = false, subType = "") {
+function readAloudContent(reference, transcript) {
+  const words = value => String(value || '').toLowerCase().match(/[\p{L}\p{N}]+(?:['’][\p{L}]+)*/gu) || [];
+  const expected = words(reference), actual = words(transcript);
+  if (!expected.length) return null;
+  let previous = Array.from({length:actual.length+1},(_,i)=>i);
+  for (let i=1;i<=expected.length;i++) {
+    const next=[i];
+    for(let j=1;j<=actual.length;j++) next[j]=Math.min(previous[j]+1,next[j-1]+1,previous[j-1]+(expected[i-1]===actual[j-1]?0:1));
+    previous=next;
+  }
+  return 5*Math.max(0,1-previous[actual.length]/expected.length);
+}
+
+function parseAssessment(text, maxScore, contentOnly = false, subType = "", reference = "") {
   const parsed = JSON.parse(String(text || '').trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,''));
   if (typeof parsed.speechDetected !== 'boolean' || typeof parsed.transcript !== 'string' || typeof parsed.feedback !== 'string') throw new Error('Incomplete audio assessment.');
   const contentMax = subType === "repeat_sentence" ? 3 : 5;
@@ -17,7 +30,8 @@ function parseAssessment(text, maxScore, contentOnly = false, subType = "") {
     if (typeof parsed[key] !== 'number' || !Number.isFinite(parsed[key]) || parsed[key] < 0 || parsed[key] > (key === "content" ? contentMax : 5)) throw new Error('Invalid audio scoring trait: '+key);
     return parsed[key];
   };
-  const content = trait('content');
+  const modelContent = trait('content');
+  const content = subType === 'read_aloud' ? (readAloudContent(reference, parsed.transcript) ?? modelContent) : modelContent;
   const pronunciation = contentOnly ? null : trait('pronunciation');
   const oralFluency = contentOnly ? null : trait('oralFluency');
   const ratio = contentOnly ? content/5 : (content+pronunciation+oralFluency)/(contentMax+10);
@@ -55,7 +69,7 @@ Content measures accuracy, relevance and coverage against the supplied source/ta
   for (let attempt=0; attempt<3; attempt++) {
     const response = await openai.chat.completions.create(request, {timeout:60000,maxRetries:1});
     try {
-      return parseAssessment(response.choices?.[0]?.message?.content,maxScore,contentOnly,question.subType);
+      return parseAssessment(response.choices?.[0]?.message?.content,maxScore,contentOnly,question.subType,reference);
     } catch (error) {
       lastError=error;
     }
@@ -63,4 +77,4 @@ Content measures accuracy, relevance and coverage against the supplied source/ta
   throw lastError;
 }
 
-module.exports = {getInputAudio,parseAssessment,assessSpeakingAudio};
+module.exports = {readAloudContent,getInputAudio,parseAssessment,assessSpeakingAudio};
