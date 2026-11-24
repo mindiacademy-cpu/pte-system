@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
-const {getInputAudio,parseAssessment,assessSpeakingAudio} = require('./speaking-scoring');
+const {readAloudContent,getInputAudio,parseAssessment,assessSpeakingAudio} = require('./speaking-scoring');
 const {encodeMonoWav} = require('../client/speaking-audio');
 const {prepareAnswers} = require('../client/speaking-audio');
 const pcm = Buffer.from(encodeMonoWav(new Float32Array([0,-1,1,0.25]),16000));
@@ -114,4 +114,15 @@ test('Repeat Sentence uses content maximum three and total thirteen', () => {
   assert.equal(parseAssessment(response({content:3,pronunciation:5,oralFluency:5}),5,false,'repeat_sentence').score,5);
   assert.equal(parseAssessment(response({content:2,pronunciation:3,oralFluency:2}),13,false,'repeat_sentence').score,7);
   assert.throws(()=>parseAssessment(response({content:4}),5,false,'repeat_sentence'));
+});
+
+test('Read Aloud content penalizes word omissions, insertions and substitutions', () => {
+  const reference='The students are reading a book.';
+  assert.equal(readAloudContent(reference,reference),5);
+  for (const spoken of ['The students are reading a.','The students are writing a book.','The young students are reading a book.']) {
+    assert.ok(Math.abs(readAloudContent(reference,spoken)-25/6)<1e-9);
+  }
+  assert.equal(readAloudContent(reference,''),0);
+  assert.equal(readAloudContent('',reference),null);
+  assert.equal(parseAssessment(response({transcript:reference,content:1,pronunciation:5,oralFluency:5}),5,false,'read_aloud',reference).score,5);
 });
