@@ -116,3 +116,18 @@ test("repeated incorrect words have separate occurrence credit", () => {
   assert.equal(S.calculateAutoScore(q,["0","2"]),2);
   assert.equal(S.calculateAutoScore(q,["0","1"]),0);
 });
+
+test("invalid scores remain provisional but genuine zero is final", () => {
+  for (const score of [null,undefined,NaN,Infinity,"","invalid"]) {
+    const result=S.buildSummary([a("essay",score,26,{manualScore:"invalid"})]);
+    assert.equal(result.provisional,true);
+    assert.equal(result.overall,10);
+  }
+  assert.equal(S.buildSummary([a("essay",0,26)]).provisional,false);
+});
+test("overall scales whole-test item performance independently of skill mean", () => {
+  const result=S.buildSummary([a("essay",26,26),a("reading_mcq_single",0,1)]);
+  assert.equal(result.overall,87);
+  assert.equal(result.writing,90);
+  assert.equal(result.reading,10);
+});
