@@ -1115,9 +1115,10 @@ Return ONLY JSON: {"traits":{},"feedback":""}`
       ? {content:4,form:2,grammar:2,vocabulary:2,spelling:2}
       : {content:4,form:1,grammar:2,vocabulary:2};
   const valid=traits && typeof traits==="object" && Object.entries(maxima).every(([key,max]) =>
-    typeof traits[key]==="number" && Number.isFinite(traits[key]) && traits[key]>=0 && traits[key]<=max);
+    typeof traits[key]==="number" && Number.isInteger(traits[key]) && traits[key]>=0 && traits[key]<=max);
   if (!valid) return {score:null,feedback:"Incomplete AI rubric; manual review required.",
     traits:traits||{},wordCount,manualReviewRequired:true,assessmentMethod:"manual-review"};
+  traits.form = subType === "essay" ? (wordCount >= 200 && wordCount <= 300 ? 2 : 1) : subType === "summarize_spoken_text" ? (wordCount >= 50 && wordCount <= 70 ? 2 : 1) : traits.form;
   if (traits.content===0) return {score:0,feedback:parsed.feedback||"Content criterion not met.",traits,wordCount};
   const possible=Object.values(maxima).reduce((a,b)=>a+b,0);
   const earned=Object.keys(maxima).reduce((sum,key)=>sum+traits[key],0);
