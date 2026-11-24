@@ -2032,11 +2032,15 @@ app.post("/save-exam", async (req, res) => {
       return res.status(400).json({ error: "Assigned exam could not be found." });
     }
     const submitted = new Map((Array.isArray(body.answers) ? body.answers : []).map(a => [String(a.questionId), a]));
-    const completeAnswers = assignedExam.questions.map(q => ({
-      ...(submitted.get(String(q.id)) || {}),
-      questionId: q.id, type: q.type, subType: q.subType, title: q.title, prompt: q.prompt,
-      answer: submitted.get(String(q.id))?.answer ?? ""
-    }));
+    const completeAnswers = assignedExam.questions.map(q => {
+      const response = submitted.get(String(q.id)) || {};
+      return {
+        questionId: q.id, type: q.type, subType: q.subType, title: q.title, prompt: q.prompt,
+        answer: response.answer ?? "",
+        transcript: typeof response.transcript === "string" ? response.transcript : "",
+        speakingAudio: response.speakingAudio ?? null
+      };
+    });
     const scoredAnswers = await enrichAnswersWithScores(completeAnswers, assignedExam.questions);
     const calculatedSummary = buildSummary(scoredAnswers);
 
