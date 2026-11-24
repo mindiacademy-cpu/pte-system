@@ -989,6 +989,22 @@ async function scoreSpeakingWithAI({question,transcript,maxScore,recording}) {
     return result;
   } catch (error) {
     console.error("SPEAKING AUDIO ASSESSMENT FAILED:", error.message);
+    // ASQ is content-only. A fresh server transcription can resolve an
+    // exact accepted answer without relying on client-supplied text.
+    if (question.subType === "answer_short_question" && recording) {
+      const acceptedAnswers = getAcceptedShortAnswers(question);
+      if (acceptedAnswers.length) {
+        try {
+          const verifiedTranscript = await transcribeAudioFromUrl(recording);
+          if (verifiedTranscript?.trim() && matchShortAnswer(verifiedTranscript, acceptedAnswers)) {
+            return {score:maxScore,content:5,pronunciation:null,oralFluency:null,
+              transcript:verifiedTranscript,speechDetected:true,acceptedAnswers,
+              assessmentMethod:"server-transcription-exact-answer",manualReviewRequired:false,
+              feedback:"Accepted short answer verified from recording."};
+          }
+        } catch (_) { /* keep unresolved assessment pending */ }
+      }
+    }
     if (!transcript && recording) {
       try { transcript = await transcribeAudioFromUrl(recording); } catch (_) { /* administrator review */ }
     }
