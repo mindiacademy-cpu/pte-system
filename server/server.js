@@ -2260,7 +2260,34 @@ async function auditStoredExam(examCode) {
       pending:!!a.aiDetails?.manualReviewRequired}))},null,2));
 }
 
-if (process.argv[2] === "audit") {
+async function previewRescore(examCode) {
+  if (!examCode) throw new Error("Usage: node server.js rescore EX123456");
+  const {data:rows,error} = await supabase.from("exam_results")
+    .select("exam_code,answers,summary").eq("exam_code",examCode).limit(2);
+  if (error) throw error;
+  if (rows?.length !== 1 || rows[0].summary?.status === "failed") throw new Error("Expected one completed exam.");
+  const row = rows[0];
+  const {data:exam,error:lookupError} = await supabase.from("exams")
+    .select("questions").eq("exam_code",examCode).single();
+  if (lookupError || !Array.isArray(exam?.questions) || !Array.isArray(row.answers)) throw new Error("Missing exam snapshot.");
+  const saved = new Map(row.answers.map(a=>[String(a.questionId),a]));
+  if (exam.questions.some(q=>!saved.has(String(q.id)))) throw new Error("Incomplete historical answer snapshot.");
+  const inputs = exam.questions.map(q=>{
+    const a=saved.get(String(q.id));
+    return {questionId:q.id,type:q.type,subType:q.subType,title:q.title,prompt:q.prompt,
+      answer:a.answer??"",transcript:a.transcript??"",speakingAudio:a.speakingAudio??null};
+  });
+  const rescored=await enrichAnswersWithScores(inputs,exam.questions);
+  const summary=buildSummary(rescored);
+  console.log(JSON.stringify({mode:"dry-run",examCode,stored:row.summary,recomputed:summary,
+    items:rescored.map(a=>({questionId:a.questionId,subType:a.subType,previous:saved.get(String(a.questionId))?.finalScore,recomputed:a.finalScore,pending:!!a.aiDetails?.manualReviewRequired}))},null,2));
+}
+if (process.argv[2] === "rescore") {
+  previewRescore(process.argv[3]).catch(error=>{
+    console.error("Rescore preview failed:",error.message);
+    process.exitCode=1;
+  });
+} else if (process.argv[2] === "audit") {
   auditStoredExam(process.argv[3]).catch(error => {
     console.error("Audit failed:", error.message);
     process.exitCode = 1;
