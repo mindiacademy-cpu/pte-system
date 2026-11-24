@@ -2260,7 +2260,7 @@ async function auditStoredExam(examCode) {
       pending:!!a.aiDetails?.manualReviewRequired}))},null,2));
 }
 
-async function previewRescore(examCode) {
+async function previewRescore(examCode, pendingOnly = false) {
   if (!examCode) throw new Error("Usage: node server.js rescore EX123456");
   const {data:rows,error} = await supabase.from("exam_results")
     .select("exam_code,answers,summary").eq("exam_code",examCode).limit(2);
@@ -2277,7 +2277,10 @@ async function previewRescore(examCode) {
     return {questionId:q.id,type:q.type,subType:q.subType,title:q.title,prompt:q.prompt,
       answer:a.answer??"",transcript:a.transcript??"",speakingAudio:a.speakingAudio??null};
   });
-  const rescored=await enrichAnswersWithScores(inputs,exam.questions);
+  const selected = pendingOnly ? inputs.filter(a=>saved.get(String(a.questionId))?.aiDetails?.manualReviewRequired) : inputs;
+  const updated=await enrichAnswersWithScores(selected,exam.questions);
+  const byId=new Map(updated.map(a=>[String(a.questionId),a]));
+  const rescored=row.answers.map(a=>byId.get(String(a.questionId)) ?? a);
   const summary=buildSummary(rescored);
   console.log(JSON.stringify({mode:"dry-run",examCode,stored:row.summary,recomputed:summary,
     items:rescored.map(a=>({questionId:a.questionId,subType:a.subType,previous:saved.get(String(a.questionId))?.finalScore,recomputed:a.finalScore,pending:!!a.aiDetails?.manualReviewRequired}))},null,2));
@@ -2296,6 +2299,6 @@ if (process.argv[2] === "rescore") {
   app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
     // One-time read-only diagnostic for the explicitly selected reference exam.
-    auditStoredExam("EX129163").catch(error => console.error("EX129163 audit failed:", error.message));
+    previewRescore("EX129163", true).catch(error => console.error("EX129163 rescore preview failed:", error.message));
   });
 }
