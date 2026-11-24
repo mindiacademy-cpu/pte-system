@@ -11,33 +11,11 @@ const source = fs.readFileSync(path.join(__dirname, "server.js"), "utf8");
 function functionSource(name) {
   const start = source.indexOf("function " + name + "(");
   assert.ok(start >= 0, "Missing production helper: " + name);
-  const brace = source.indexOf("{", start);
-  let depth = 0, quote = "", escaped = false, comment = "";
-  for (let i = brace; i < source.length; i++) {
-    const c = source[i], next = source[i+1];
-    if (comment === "line") { if (c === "\n") comment = ""; continue; }
-    if (comment === "block") { if (c === "*" && next === "/") { comment = ""; i++; } continue; }
-    if (quote) { if (escaped) { escaped = false; continue; } if (c === "\\") { escaped = true; continue; } if (c === quote) quote = ""; continue; }
-    if (c === "/" && next === "/") { comment = "line"; i++; continue; }
-    if (c === "/" && next === "*") { comment = "block"; i++; continue; }
-    if (c === "'" || c === '"' || c === "`") { quote = c; continue; }
-    // Ignore braces inside regular-expression literals (e.g. Unicode \\p{L}).
-    if (c === "/" && /[=(,:!]/.test(source.slice(brace, i).trimEnd().slice(-1))) {
-      let inClass = false, regexEscape = false;
-      for (++i; i < source.length; i++) {
-        const ch = source[i];
-        if (regexEscape) { regexEscape = false; continue; }
-        if (ch === "\\") { regexEscape = true; continue; }
-        if (ch === "[") inClass = true;
-        if (ch === "]") inClass = false;
-        if (ch === "/" && !inClass) break;
-      }
-      continue;
-    }
-    if (c === "{") depth++;
-    if (c === "}") { depth--; if (depth === 0) return source.slice(start, i+1); }
-  }
-  throw Error("Unclosed function: " + name);
+  // Production helpers use a column-zero closing brace. Avoid interpreting
+  // regex literals, template strings or nested JavaScript as source syntax.
+  const end = source.indexOf("\n}", start);
+  assert.ok(end >= 0, "Missing closing brace: " + name);
+  return source.slice(start, end + 2);
 }
 const weightsStart = source.indexOf("const SKILL_WEIGHTS = ");
 assert.ok(weightsStart >= 0);
@@ -47,7 +25,7 @@ vm.runInContext(source.slice(weightsStart, weightsEnd + 1) + "\n" +
   ["normalizeText","toAnswerArray","normalizeArrayForCompare","scoreSingleChoice",
    "scoreMultipleChoice","scoreArrayAnswers","scoreReorderPairs","scoreDictation",
    "scaleToPTE","buildSummary"].map(functionSource).join("\n") +
-  "\nthis.scoring = {scoreSingleChoice,scoreMultipleChoice,scoreArrayAnswers,scoreReorderPairs,scoreDictation,buildSummary};", context);
+  "\nthis.scoring = {SKILL_WEIGHTS,scoreSingleChoice,scoreMultipleChoice,scoreArrayAnswers,scoreReorderPairs,scoreDictation,buildSummary};", context);
 const S = context.scoring;
 const a = (subType, finalScore, maxScore, extra={}) => ({subType,finalScore,maxScore,...extra});
 
@@ -57,7 +35,7 @@ test("all 22 official item types have skill weights", () => {
     "reading_writing_fill_blanks","reading_mcq_multiple","reorder_paragraphs","reading_fill_blanks","reading_mcq_single",
     "summarize_spoken_text","listening_mcq_multiple","listening_fill_blanks","highlight_correct_summary",
     "listening_mcq_single","select_missing_word","highlight_incorrect_words","write_from_dictation"];
-  const actual = [...source.matchAll(/^  ([a-z_]+): \{ (?:speaking|writing|reading|listening):/gm)].map(x=>x[1]);
+  const actual = Object.keys(S.SKILL_WEIGHTS);
   assert.deepEqual(actual,expected);
 });
 test("manual Essay 23/26 overrides stale pending review", () => {
