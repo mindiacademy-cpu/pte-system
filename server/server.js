@@ -2295,5 +2295,7 @@ if (process.argv[2] === "rescore") {
 } else {
   app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
+    // One-time read-only diagnostic for the explicitly selected reference exam.
+    auditStoredExam("EX129163").catch(error => console.error("EX129163 audit failed:", error.message));
   });
 }
