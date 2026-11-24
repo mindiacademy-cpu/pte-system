@@ -318,7 +318,8 @@ function scoreMultipleChoice(userAnswers, correctAnswers, maxScore = 10) {
 }
 
 function scoreArrayAnswers(userAnswers, correctAnswers, maxScore = 10, splitMode = "line") {
-  const user = normalizeArrayForCompare(userAnswers, splitMode, true);
+  const positionalAnswers = typeof userAnswers === "string" && splitMode === "line" ? userAnswers.split(/\r?\n/) : userAnswers;
+  const user = normalizeArrayForCompare(positionalAnswers, splitMode, true);
   const correct = normalizeArrayForCompare(correctAnswers, splitMode, true);
 
   if (!correct.length) return 0;
