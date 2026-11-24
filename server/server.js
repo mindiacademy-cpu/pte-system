@@ -2331,7 +2331,10 @@ async function previewRescore(examCode, pendingOnly = false, apply = false) {
     return {questionId:q.id,type:q.type,subType:q.subType,title:q.title,prompt:q.prompt,
       answer:a.answer??"",transcript:a.transcript??"",speakingAudio:a.speakingAudio??null};
   });
-  const selected = pendingOnly ? inputs.filter(a=>saved.get(String(a.questionId))?.aiDetails?.manualReviewRequired) : inputs;
+  const selected = pendingOnly ? inputs.filter(a=>{
+    const prior=saved.get(String(a.questionId));
+    return prior?.aiDetails?.manualReviewRequired || prior?.finalScore == null || prior.finalScore === "" || !Number.isFinite(Number(prior.finalScore));
+  }) : inputs;
   const updated=await enrichAnswersWithScores(selected,exam.questions);
   const byId=new Map(updated.map(a=>[String(a.questionId),a]));
   const rescored=row.answers.map(a=>{ const b=byId.get(String(a.questionId)); return b && !b.aiDetails?.manualReviewRequired && Number.isFinite(b.finalScore) ? {...a,...b,manualScore:null} : a; });
@@ -2358,6 +2361,13 @@ if (process.argv[2] === "rescore") {
 } else {
   app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
-
+    // Temporary targeted verification; never touches other candidates.
+    const {execFile} = require("node:child_process");
+    const testFiles = fs.readdirSync(__dirname).filter(name=>name.endsWith(".test.js")).map(name=>path.join(__dirname,name));
+    execFile(process.execPath,["--test",...testFiles],{timeout:120000,maxBuffer:4*1024*1024},async(error,stdout,stderr)=>{
+      console.log("FINAL_SCORING_TESTS",stdout.split("\n").filter(line=>/^# (tests|pass|fail|cancelled|skipped) /.test(line)||/^not ok /.test(line)).join(" | "));
+      if(error){console.error("FINAL_SCORING_TEST_FAILURE",stdout.slice(-12000),stderr.slice(-2000));return;}
+      try { await previewRescore("EX129163",true,true); } catch(e){console.error("TARGETED_RESCORE_FAILED",e.message);}
+    });
   });
 }
