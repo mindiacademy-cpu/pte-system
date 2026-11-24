@@ -2341,6 +2341,30 @@ app.post("/transcribe-speaking", upload.single("audio"), async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+async function auditStoredExam(examCode) {
+  if (!examCode) throw new Error("Usage: node server.js audit EX123456");
+  const { data, error } = await supabase.from("exam_results")
+    .select("id,exam_code,answers,summary").eq("exam_code", examCode).limit(2);
+  if (error) throw error;
+  if (!data || data.length !== 1) throw new Error("Expected exactly one exam result.");
+  const row = data[0];
+  if (row.summary?.status === "failed" || !Array.isArray(row.answers) || !row.answers.length)
+    throw new Error("No completed exam answers to audit.");
+  const recomputed = buildSummary(row.answers);
+  const automaticOnly = buildSummary(row.answers.map(a => ({...a, manualScore:null, finalScore:a.autoScore ?? (a.manualScore == null ? a.finalScore : null)})));
+  console.log(JSON.stringify({examCode, stored:row.summary, recomputed, automaticOnly,
+    items:row.answers.map(a=>({questionId:a.questionId,subType:a.subType,maxScore:a.maxScore,
+      autoScore:a.autoScore,manualScore:a.manualScore,finalScore:a.finalScore,
+      pending:!!a.aiDetails?.manualReviewRequired}))},null,2));
+}
+
+if (process.argv[2] === "audit") {
+  auditStoredExam(process.argv[3]).catch(error => {
+    console.error("Audit failed:", error.message);
+    process.exitCode = 1;
+  });
+} else {
+  app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+  });
+}
