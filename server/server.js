@@ -2305,7 +2305,6 @@ if (process.argv[2] === "rescore") {
 } else {
   app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
-    // One-time read-only diagnostic for the explicitly selected reference exam.
-    previewRescore("EX129163", true, true).catch(error => console.error("EX129163 rescore preview failed:", error.message));
+
   });
 }
