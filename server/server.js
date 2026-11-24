@@ -2177,12 +2177,18 @@ app.get("/exam-results/:resultId", async (req,res) => {
   }
 });
 
-app.put("/exam-results/:resultId/manual-score", async (req, res) => {
+app.put("/exam-results/:resultId/manual-score", requireAdmin, async (req, res) => {
   try {
+    if (!process.env.SUPABASE_ADMIN_KEY) {
+      return res.status(503).json({ error: "Admin database access is not configured." });
+    }
+    const adminDb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ADMIN_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false }
+    });
     const resultId = String(req.params.resultId);
     const { questionId, manualScore } = req.body;
 
-    const { data: exam, error: getError } = await supabase
+    const { data: exam, error: getError } = await adminDb
       .from("exam_results")
       .select("*")
       .eq("id", resultId)
@@ -2239,7 +2245,7 @@ app.put("/exam-results/:resultId/manual-score", async (req, res) => {
     // An external AI request must not block or invalidate a manual score edit.
     const evaluation = buildEvaluation(summary);
 
-    const { data: savedResult, error: updateError } = await supabase
+    const { data: savedResult, error: updateError } = await adminDb
       .from("exam_results")
       .update({
         answers,
