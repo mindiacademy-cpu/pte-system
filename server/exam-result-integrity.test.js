@@ -36,7 +36,10 @@ test('invalid or excessive earned scores cannot inflate results',()=>{
  assert.equal(run('buildSummary('+JSON.stringify(negative)+').overall'),10);
 });
 test('exam saving always reconstitutes all assigned questions',()=>{
- const save=source.slice(source.indexOf('app.post("/save-exam"'),source.indexOf('app.post("/save-exam"')+1800);
+ const routeStart=source.indexOf('app.post("/save-exam"');
+ const routeEnd=source.indexOf('\n});',routeStart);
+ assert.ok(routeStart>=0 && routeEnd>routeStart,'Save route must exist');
+ const save=source.slice(routeStart,routeEnd);
  assert.match(save,/assignedExam\.questions\.map\(/);
  assert.match(save,/submitted\.get\(String\(q\.id\)\)/);
  assert.match(save,/enrichAnswersWithScores\(completeAnswers, assignedExam\.questions\)/);
