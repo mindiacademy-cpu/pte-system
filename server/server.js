@@ -597,6 +597,7 @@ function buildSummary(answers) {
 
   let overallEarned = 0;
   let overallPossible = 0;
+  let provisional = false;
 
   safeAnswers.forEach(answer => {
     const subType = answer.subType || "";
@@ -622,7 +623,8 @@ function buildSummary(answers) {
     const hasManualScore = answer.manualScore !== null && answer.manualScore !== undefined &&
       answer.manualScore !== "" && Number.isFinite(Number(answer.manualScore));
     const pending = !hasManualScore &&
-      (answer.finalScore === null || answer.finalScore === undefined || answer.aiDetails?.manualReviewRequired);
+      (answer.finalScore === null || answer.finalScore === undefined || answer.finalScore === "" || !Number.isFinite(Number(answer.finalScore)) || answer.aiDetails?.manualReviewRequired);
+    if (pending) provisional = true;
     const rawScore = hasManualScore
       ? Number(answer.manualScore)
       : (pending || noSpeech ? 0 : Number(answer.finalScore));
@@ -657,7 +659,7 @@ function buildSummary(answers) {
     writing: writingScore,
     reading: readingScore,
     listening: listeningScore,
-    provisional: safeAnswers.some(a => (a.manualScore === null || a.manualScore === undefined || a.manualScore === "") && (a.aiDetails?.manualReviewRequired || a.finalScore === null || a.finalScore === undefined))
+    provisional
   };
 }
 
