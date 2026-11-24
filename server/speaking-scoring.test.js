@@ -126,3 +126,19 @@ test('Read Aloud content penalizes word omissions, insertions and substitutions'
   assert.equal(readAloudContent('',reference),null);
   assert.equal(parseAssessment(response({transcript:reference,content:1,pronunciation:5,oralFluency:5}),5,false,'read_aloud',reference).score,5);
 });
+
+test('source-dependent speaking tasks prefer audio script and reject missing source', async () => {
+  const source=fs.readFileSync(__dirname+'/server.js','utf8');
+  const start=source.indexOf('async function getSpeakingReference(');
+  const end=source.indexOf('\nfunction getAcceptedShortAnswers(',start);
+  assert.ok(start>=0 && end>start);
+  const context=vm.createContext({transcribeAudioFromUrl:async()=> 'actual recording transcript'});
+  vm.runInContext(source.slice(start,end),context);
+  for(const subType of ['repeat_sentence','re_tell_lecture','summarize_group_discussion']){
+    assert.equal(await context.getSpeakingReference({subType,audioScript:'authored transcript',textContent:'instruction'}),'authored transcript');
+    assert.equal(await context.getSpeakingReference({subType,audioUrl:'/uploads/source.wav',textContent:'instruction'}),'actual recording transcript');
+    await assert.rejects(context.getSpeakingReference({subType,prompt:'instruction'}),/source transcript unavailable/);
+  }
+  await assert.rejects(context.getSpeakingReference({subType:'read_aloud',prompt:'instruction'}),/passage unavailable/);
+  await assert.rejects(context.getSpeakingReference({subType:'describe_image',prompt:'instruction'}),/image unavailable/);
+});
