@@ -109,3 +109,9 @@ test('failed audio conversion preserves original recording instead of silently d
    assert.throws(()=>getInputAudio(prepared[0].speakingAudio),/WAV or MP3/);
  }finally{global.fetch=originalFetch;}
 });
+
+test('Repeat Sentence uses content maximum three and total thirteen', () => {
+  assert.equal(parseAssessment(response({content:3,pronunciation:5,oralFluency:5}),5,false,'repeat_sentence').score,5);
+  assert.equal(parseAssessment(response({content:2,pronunciation:3,oralFluency:2}),13,false,'repeat_sentence').score,7);
+  assert.throws(()=>parseAssessment(response({content:4}),5,false,'repeat_sentence'));
+});
