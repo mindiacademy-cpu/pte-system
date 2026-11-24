@@ -38,7 +38,7 @@ function parseAssessment(text, maxScore, contentOnly = false) {
 async function assessSpeakingAudio({openai,question,recording,maxScore,reference}) {
   const inputAudio = getInputAudio(recording);
   const contentOnly = question.subType === 'answer_short_question';
-  const response = await openai.chat.completions.create({
+  const request = {
     model:process.env.PTE_AUDIO_SCORING_MODEL || 'gpt-audio', modalities:['text'],
     max_completion_tokens:1200,
     messages:[
@@ -49,8 +49,17 @@ Content measures accuracy, relevance and coverage against the supplied source/ta
         {type:'input_audio',input_audio:inputAudio}
       ]}
     ]
-  }, {timeout:60000,maxRetries:1});
-  return parseAssessment(response.choices?.[0]?.message?.content,maxScore,contentOnly);
+  };
+  let lastError;
+  for (let attempt=0; attempt<3; attempt++) {
+    const response = await openai.chat.completions.create(request, {timeout:60000,maxRetries:1});
+    try {
+      return parseAssessment(response.choices?.[0]?.message?.content,maxScore,contentOnly);
+    } catch (error) {
+      lastError=error;
+    }
+  }
+  throw lastError;
 }
 
 module.exports = {getInputAudio,parseAssessment,assessSpeakingAudio};
