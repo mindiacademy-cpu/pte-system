@@ -949,6 +949,21 @@ async function getSpeakingReference(question) {
     if (!result.output_text?.trim()) throw new Error("Image reference could not be assessed.");
     return result.output_text;
   }
+  if (["repeat_sentence","re_tell_lecture","summarize_group_discussion"].includes(question.subType)) {
+    const script = String(question.audioScript || "").trim();
+    if (script) return script;
+    if (question.audioUrl) {
+      const transcript = String(await transcribeAudioFromUrl(question.audioUrl) || "").trim();
+      if (transcript) return transcript;
+    }
+    throw new Error("Actual speaking source transcript unavailable.");
+  }
+  if (question.subType === "describe_image") throw new Error("Question image unavailable for assessment.");
+  if (question.subType === "read_aloud") {
+    const passage = String(question.textContent || "").trim();
+    if (!passage) throw new Error("Read Aloud passage unavailable.");
+    return passage;
+  }
   const reference = question.textContent || question.answerKey;
   if (reference) return reference;
   if (question.audioUrl) {
