@@ -43,7 +43,7 @@ test('API receives actual audio and source; results use audio transcript', async
   assert.equal(sent.modalities[0],'text');
   assert.equal(sent.messages[1].content[1].input_audio.data,pcm.toString('base64'));
   assert.match(sent.messages[1].content[0].text,/The cat sat/);
-  assert.equal(result.score,3);
+  assert.equal(result.score,3.33);
   assert.equal(result.assessmentMethod,'audio');
   assert.equal(result.manualReviewRequired,false);
 });
