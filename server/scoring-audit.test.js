@@ -24,8 +24,8 @@ const context = vm.createContext({});
 vm.runInContext(source.slice(weightsStart, weightsEnd + 1) + "\n" +
   ["normalizeText","toAnswerArray","normalizeArrayForCompare","scoreSingleChoice",
    "scoreMultipleChoice","scoreArrayAnswers","scoreReorderPairs","scoreDictation",
-   "scaleToPTE","buildSummary"].map(functionSource).join("\n") +
-  "\nthis.scoring = {SKILL_WEIGHTS,scoreSingleChoice,scoreMultipleChoice,scoreArrayAnswers,scoreReorderPairs,scoreDictation,buildSummary};", context);
+   "getCorrectArray","getAutomaticPoints","calculateAutoScore","scaleToPTE","buildSummary"].map(functionSource).join("\n") +
+  "\nthis.scoring = {SKILL_WEIGHTS,scoreSingleChoice,scoreMultipleChoice,scoreArrayAnswers,scoreReorderPairs,scoreDictation,buildSummary,getAutomaticPoints,calculateAutoScore};", context);
 const S = context.scoring;
 const a = (subType, finalScore, maxScore, extra={}) => ({subType,finalScore,maxScore,...extra});
 
@@ -102,4 +102,17 @@ test("reorder paragraphs awards correct adjacent pairs", () => {
 test("dictation scores correct words with repeated-word cap", () => {
   assert.equal(S.scoreDictation("the the cat","the cat",2),2);
   assert.equal(S.scoreDictation("cat","the cat",2),1);
+});
+
+test("newline encoded blanks preserve empty positions", () => {
+  assert.equal(S.scoreArrayAnswers("\\ntechnology\\ndevelopment".replace(/\\n/g,"\n"),["environment","technology","development"],3),2);
+  assert.equal(S.scoreArrayAnswers("cat\n",["cat","dog"],2),1);
+  assert.equal(S.scoreArrayAnswers("\ncat",["cat","dog"],2),0);
+});
+test("repeated incorrect words have separate occurrence credit", () => {
+  const q={subType:"highlight_incorrect_words",textContent:"cat dog cat",correctAnswers:["cat","cat"]};
+  q.points=S.getAutomaticPoints(q);
+  assert.equal(q.points,2);
+  assert.equal(S.calculateAutoScore(q,["0","2"]),2);
+  assert.equal(S.calculateAutoScore(q,["0","1"]),0);
 });
