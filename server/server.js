@@ -229,7 +229,7 @@ const SKILL_WEIGHTS = {
   reading_mcq_single: { reading: 1.0 },
   summarize_spoken_text: { listening: 0.4, writing: 0.6 },
   listening_mcq_multiple: { listening: 1.0 },
-  listening_fill_blanks: { listening: 0.5, writing: 0.5 },
+  listening_fill_blanks: { listening: 1.0 }, // Academic Score Guide, p. 44
   highlight_correct_summary: { listening: 0.7, reading: 0.3 },
   listening_mcq_single: { listening: 1.0 },
   select_missing_word: { listening: 1.0 },
