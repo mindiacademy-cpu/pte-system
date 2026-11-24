@@ -2260,13 +2260,14 @@ async function auditStoredExam(examCode) {
       pending:!!a.aiDetails?.manualReviewRequired}))},null,2));
 }
 
-async function previewRescore(examCode, pendingOnly = false) {
+async function previewRescore(examCode, pendingOnly = false, apply = false) {
   if (!examCode) throw new Error("Usage: node server.js rescore EX123456");
   const {data:rows,error} = await supabase.from("exam_results")
-    .select("exam_code,answers,summary").eq("exam_code",examCode).limit(2);
+    .select("id,exam_code,answers,summary").eq("exam_code",examCode).limit(2);
   if (error) throw error;
   if (rows?.length !== 1 || rows[0].summary?.status === "failed") throw new Error("Expected one completed exam.");
   const row = rows[0];
+  if (apply && (examCode !== "EX129163" || !process.env.SUPABASE_ADMIN_KEY)) throw new Error("Authorized target or server key missing.");
   const {data:exam,error:lookupError} = await supabase.from("exams")
     .select("questions").eq("exam_code",examCode).single();
   if (lookupError || !Array.isArray(exam?.questions) || !Array.isArray(row.answers)) throw new Error("Missing exam snapshot.");
@@ -2280,9 +2281,15 @@ async function previewRescore(examCode, pendingOnly = false) {
   const selected = pendingOnly ? inputs.filter(a=>saved.get(String(a.questionId))?.aiDetails?.manualReviewRequired) : inputs;
   const updated=await enrichAnswersWithScores(selected,exam.questions);
   const byId=new Map(updated.map(a=>[String(a.questionId),a]));
-  const rescored=row.answers.map(a=>byId.get(String(a.questionId)) ?? a);
+  const rescored=row.answers.map(a=>{ const b=byId.get(String(a.questionId)); return b && !b.aiDetails?.manualReviewRequired && Number.isFinite(b.finalScore) ? {...a,...b,manualScore:null} : a; });
   const summary=buildSummary(rescored);
-  console.log(JSON.stringify({mode:"dry-run",examCode,stored:row.summary,recomputed:summary,
+  if (apply) {
+    const admin = createClient(process.env.SUPABASE_URL,process.env.SUPABASE_ADMIN_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
+    const {data,error}=await admin.from("exam_results").update({answers:rescored,summary,evaluation:buildEvaluation(summary)}).eq("id",row.id).eq("exam_code",examCode).select("id,summary").single();
+    if(error || !data || JSON.stringify(data.summary)!==JSON.stringify(summary) && Object.keys(summary).some(k=>data.summary[k]!==summary[k])) throw new Error("Result persistence verification failed");
+    console.log("EX129163 persisted:",JSON.stringify(data.summary));
+  }
+  console.log(JSON.stringify({mode:apply?"applied":"dry-run",examCode,stored:row.summary,recomputed:summary,
     items:rescored.map(a=>({questionId:a.questionId,subType:a.subType,previous:saved.get(String(a.questionId))?.finalScore,recomputed:a.finalScore,pending:!!a.aiDetails?.manualReviewRequired}))},null,2));
 }
 if (process.argv[2] === "rescore") {
@@ -2299,6 +2306,6 @@ if (process.argv[2] === "rescore") {
   app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
     // One-time read-only diagnostic for the explicitly selected reference exam.
-    previewRescore("EX129163", true).catch(error => console.error("EX129163 rescore preview failed:", error.message));
+    previewRescore("EX129163", true, true).catch(error => console.error("EX129163 rescore preview failed:", error.message));
   });
 }
