@@ -503,7 +503,8 @@ function writeJson(filePath, data) {
 function getAutomaticPoints(q) {
   const sub = q.subType || "";
   if (["reading_mcq_single","listening_mcq_single","highlight_correct_summary","select_missing_word","answer_short_question"].includes(sub)) return 1;
-  if (["reading_mcq_multiple","listening_mcq_multiple","highlight_incorrect_words"].includes(sub)) return Math.max(1, new Set(getCorrectArray(q).map(normalizeText)).size);
+  if (sub === "highlight_incorrect_words") return Math.max(1, q.incorrectWordIndexes?.length ? new Set(q.incorrectWordIndexes.map(String)).size : getCorrectArray(q).length);
+  if (["reading_mcq_multiple","listening_mcq_multiple"].includes(sub)) return Math.max(1, new Set(getCorrectArray(q).map(normalizeText)).size);
   if (["reading_fill_blanks","reading_writing_fill_blanks","listening_fill_blanks"].includes(sub)) {
     const authoredAnswers = getCorrectArray(q);
     return Math.max(1, authoredAnswers.length || (String(q.textContent || "").match(/_{3,}/g) || []).length);
